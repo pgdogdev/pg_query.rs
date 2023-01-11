@@ -1,5 +1,6 @@
 use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_uint};
+use std::thread::Builder;
 
 use prost::Message;
 
@@ -13,6 +14,13 @@ use crate::protobuf;
 pub struct Fingerprint {
     pub value: u64,
     pub hex: String,
+}
+
+// Thread with a larger stack to avoid a stack overflow when decoding protobuf messages.
+macro_rules! decode_thread {
+    ($exp: expr) => {
+        Builder::new().stack_size(100_000 * 0xFF).spawn(move || $exp).unwrap().join().unwrap()
+    }
 }
 
 /// Parses the given SQL statement into the given abstract syntax tree.
@@ -37,7 +45,10 @@ pub fn parse(statement: &str) -> Result<ParseResult> {
     } else {
         let data = unsafe { std::slice::from_raw_parts(result.parse_tree.data as *const u8, result.parse_tree.len as usize) };
         let stderr = unsafe { CStr::from_ptr(result.stderr_buffer) }.to_string_lossy().to_string();
-        protobuf::ParseResult::decode(data).map_err(Error::Decode).and_then(|result| Ok(ParseResult::new(result, stderr)))
+        match decode_thread!(protobuf::ParseResult::decode(data)) {
+            Ok(result) => Ok(ParseResult::new(result, stderr)),
+            Err(error) => Err(Error::Decode(error)),
+        }
     };
     unsafe { pg_query_free_protobuf_parse_result(result) };
     parse_result
