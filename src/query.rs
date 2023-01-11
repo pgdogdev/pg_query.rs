@@ -20,7 +20,7 @@ pub struct Fingerprint {
 macro_rules! decode_thread {
     ($exp: expr) => {
         Builder::new().stack_size(100_000 * 0xFF).spawn(move || $exp).unwrap().join().unwrap()
-    }
+    };
 }
 
 /// Parses the given SQL statement into the given abstract syntax tree.
