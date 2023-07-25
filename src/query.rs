@@ -71,9 +71,8 @@ pub fn parse(statement: &str) -> Result<ParseResult> {
 pub fn deparse(protobuf: &protobuf::ParseResult) -> Result<String> {
     let buffer = protobuf.encode_to_vec();
     let len = buffer.len() as size_t;
-    let input = unsafe { CStr::from_bytes_with_nul_unchecked(&buffer) };
-    let data = input.as_ptr() as *mut c_char;
-    let protobuf = PgQueryProtobuf { data: data, len: len };
+    let data = buffer.as_ptr() as *const c_char as *mut c_char;
+    let protobuf = PgQueryProtobuf { data, len };
     let result = unsafe { pg_query_deparse_protobuf(protobuf) };
 
     let deparse_result = if !result.error.is_null() {
@@ -240,7 +239,7 @@ pub fn scan(sql: &str) -> Result<protobuf::ScanResult> {
         Err(Error::Scan(message))
     } else {
         let data = unsafe { std::slice::from_raw_parts(result.pbuf.data as *const u8, result.pbuf.len as usize) };
-        protobuf::ScanResult::decode(data).map_err(Error::Decode).and_then(|result| Ok(result))
+        protobuf::ScanResult::decode(data).map_err(Error::Decode)
     };
     unsafe { pg_query_free_scan_result(result) };
     scan_result
