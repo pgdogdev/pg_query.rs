@@ -386,6 +386,7 @@ fn it_parses_CREATE_TABLE() {
     is_not_null: false,
     is_from_type: false,
     storage: "",
+    storage_name: "",
     raw_default: None,
     cooked_default: None,
     identity: "",
@@ -945,7 +946,7 @@ fn it_parses_REVOKE() {
         },
     ],
     is_grant: false,
-    admin_opt: false,
+    opt: [],
     grantor: None,
     behavior: DropRestrict,
 }"#
