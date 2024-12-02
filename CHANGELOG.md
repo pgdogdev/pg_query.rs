@@ -1,5 +1,36 @@
 # Changelog
 
+## 6.0.0   2024-11-26
+
+* Upgrade to libpg_query 17-6.0.0
+  - Updates to the Postgres 17 parser
+  - Deparser improvements:
+    - Add support for deparsing `JSON_TABLE`, `JSON_QUERY`, `JSON_EXISTS`, `JSON_VALUE`
+    - Add support for deparsing `JSON`, `JSON_SCALAR`, `JSON_SERIALIZE`
+    - Add support for deparsing `COPY ... FORCE_NULL(*)`
+    - Add support for deparsing `ALTER COLUMN ... SET EXPRESSION AS`
+    - Add support for deparsing `SET STATISTICS DEFAULT`
+    - Add support for deparsing `SET ACCESS METHOD DEFAULT`
+    - Add support for deparsing `... AT LOCAL`
+    - Add support for deparsing `merge_action()`
+    - Add support for deparsing `MERGE ... RETURNING`
+    - Add support for deparsing `NOT MATCHED [ BY TARGET ]`
+
+## 5.1.1    2024-10-30
+
+* Make `ParseResult` struct public and implement `Debug`
+
+## 5.1.0    2024-01-09
+
+* Update to libpg_query 16-5.1.0
+  - Add support for running on Windows
+  - Add support for compiling on 32-bit systems
+* Always build C library using "cc" crate
+* Add `filter_columns` for getting columns that a query filters by
+  - This returns the table name (if present) and column name for every
+    column that's referenced in a JOIN or WHERE clause.
+
+
 ## 5.0.0    2023-12-22
 
 * Align versioning scheme with that of other pg_query libraries

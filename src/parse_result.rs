@@ -24,7 +24,7 @@ impl protobuf::ParseResult {
     }
 
     // Note: this doesn't iterate over every possible node type, since we only care about a subset of nodes.
-    pub fn nodes(&self) -> Vec<(NodeRef, i32, Context)> {
+    pub fn nodes(&self) -> Vec<(NodeRef, i32, Context, bool)> {
         self.stmts
             .iter()
             .filter_map(|s|
@@ -51,6 +51,8 @@ impl protobuf::ParseResult {
     }
 }
 
+/// Result from calling [parse]
+#[derive(Debug)]
 pub struct ParseResult {
     pub protobuf: protobuf::ParseResult,
     pub warnings: Vec<String>,
@@ -58,6 +60,7 @@ pub struct ParseResult {
     pub aliases: HashMap<String, String>,
     pub cte_names: Vec<String>,
     functions: Vec<(String, Context)>,
+    pub filter_columns: Vec<(Option<String>, String)>,
 }
 
 impl ParseResult {
@@ -67,8 +70,9 @@ impl ParseResult {
         let mut aliases: HashMap<String, String> = HashMap::new();
         let mut cte_names: HashSet<String> = HashSet::new();
         let mut functions: HashSet<(String, Context)> = HashSet::new();
+        let mut filter_columns: HashSet<(Option<String>, String)> = HashSet::new();
 
-        for (node, _depth, context) in protobuf.nodes().into_iter() {
+        for (node, _depth, context, has_filter_columns) in protobuf.nodes().into_iter() {
             match node {
                 NodeRef::CommonTableExpr(s) => {
                     cte_names.insert(s.ctename.to_owned());
@@ -139,6 +143,23 @@ impl ParseResult {
                         }
                     }
                 }
+                NodeRef::ColumnRef(c) => {
+                    if !has_filter_columns {
+                        continue;
+                    }
+                    let f: Vec<String> = c
+                        .fields
+                        .iter()
+                        .filter_map(|n| match n.node.as_ref() {
+                            Some(NodeEnum::String(s)) => Some(s.sval.to_string()),
+                            _ => None,
+                        })
+                        .rev()
+                        .collect();
+                    if f.len() > 0 {
+                        filter_columns.insert((f.get(1).cloned(), f[0].to_string()));
+                    }
+                }
                 _ => (),
             }
         }
@@ -150,6 +171,7 @@ impl ParseResult {
             aliases,
             cte_names: Vec::from_iter(cte_names),
             functions: Vec::from_iter(functions),
+            filter_columns: Vec::from_iter(filter_columns),
         }
     }
 
@@ -195,7 +217,7 @@ impl ParseResult {
             .collect()
     }
 
-    /// Returns any references to tables in the query
+    /// Returns all function references
     pub fn functions(&self) -> Vec<String> {
         let mut functions = HashSet::new();
         self.functions.iter().for_each(|(f, _c)| {
@@ -226,6 +248,7 @@ impl ParseResult {
             .collect()
     }
 
+    /// Converts the parsed query back into a SQL string
     pub fn deparse(&self) -> Result<String> {
         crate::deparse(&self.protobuf)
     }
@@ -243,6 +266,7 @@ impl ParseResult {
         crate::truncate(&self.protobuf, max_length)
     }
 
+    /// Returns all statement types in the query
     pub fn statement_types(&self) -> Vec<&str> {
         self.protobuf
             .stmts
