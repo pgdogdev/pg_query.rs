@@ -4,7 +4,7 @@
 //! results to parse (protobuf-based parsing).
 
 pub use pg_query::protobuf::{a_const, node, ParseResult as ProtobufParseResult};
-pub use pg_query::{parse, parse_raw, Error};
+pub use pg_query::{deparse_raw, parse, parse_raw, Error};
 
 /// Helper to extract AConst from a SELECT statement's first target
 pub fn get_first_const(result: &ProtobufParseResult) -> Option<&pg_query::protobuf::AConst> {
@@ -25,9 +25,23 @@ pub fn get_first_const(result: &ProtobufParseResult) -> Option<&pg_query::protob
     None
 }
 
-/// Helper macro for simple parse comparison tests
+/// Helper macro for simple parse comparison tests with deparse verification
 #[macro_export]
 macro_rules! parse_test {
+    ($query:expr) => {{
+        let raw_result = parse_raw($query).unwrap();
+        let proto_result = parse($query).unwrap();
+        assert_eq!(raw_result.protobuf, proto_result.protobuf);
+        // Verify that deparse_raw produces the original query
+        let deparsed = deparse_raw(&raw_result.protobuf).unwrap();
+        assert_eq!(deparsed, $query);
+    }};
+}
+
+/// Helper macro for parse tests where the deparsed output may differ from input
+/// (e.g., when PostgreSQL normalizes the SQL syntax)
+#[macro_export]
+macro_rules! parse_test_no_deparse_check {
     ($query:expr) => {{
         let raw_result = parse_raw($query).unwrap();
         let proto_result = parse($query).unwrap();

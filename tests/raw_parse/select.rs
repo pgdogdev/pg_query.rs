@@ -17,6 +17,8 @@ fn it_parses_join() {
 
     // Full structural equality check
     assert_eq!(raw_result.protobuf, proto_result.protobuf);
+    // Verify deparse produces original query
+    assert_eq!(deparse_raw(&raw_result.protobuf).unwrap(), query);
 
     // Verify tables are extracted correctly
     let mut raw_tables = raw_result.tables();
@@ -36,6 +38,7 @@ fn it_parses_union() {
 
     // Full structural equality check
     assert_eq!(raw_result.protobuf, proto_result.protobuf);
+    assert_eq!(deparse_raw(&raw_result.protobuf).unwrap(), query);
 
     // Verify tables from both sides of UNION
     let mut raw_tables = raw_result.tables();
@@ -55,6 +58,7 @@ fn it_parses_cte() {
 
     // Full structural equality check
     assert_eq!(raw_result.protobuf, proto_result.protobuf);
+    assert_eq!(deparse_raw(&raw_result.protobuf).unwrap(), query);
 
     // Verify CTE names match
     assert_eq!(raw_result.cte_names, proto_result.cte_names);
@@ -78,6 +82,7 @@ fn it_parses_subquery() {
 
     // Full structural equality check
     assert_eq!(raw_result.protobuf, proto_result.protobuf);
+    assert_eq!(deparse_raw(&raw_result.protobuf).unwrap(), query);
 
     // Verify all tables are found
     let mut raw_tables = raw_result.tables();
@@ -97,6 +102,7 @@ fn it_parses_aggregates() {
 
     // Full structural equality check
     assert_eq!(raw_result.protobuf, proto_result.protobuf);
+    assert_eq!(deparse_raw(&raw_result.protobuf).unwrap(), query);
 
     // Verify functions are extracted correctly
     let mut raw_funcs = raw_result.functions();
@@ -118,6 +124,7 @@ fn it_parses_case_expression() {
 
     // Full structural equality check
     assert_eq!(raw_result.protobuf, proto_result.protobuf);
+    assert_eq!(deparse_raw(&raw_result.protobuf).unwrap(), query);
 
     // Verify table is found
     let raw_tables = raw_result.tables();

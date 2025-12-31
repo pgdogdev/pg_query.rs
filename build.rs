@@ -66,6 +66,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .blocklist_function("pg_query_parse_raw_opts")
         .blocklist_function("pg_query_free_raw_parse_result")
         .blocklist_type("PgQueryRawParseResult")
+        // Blocklist raw deparse functions that use types from bindings_raw
+        .blocklist_function("pg_query_deparse_raw")
+        .blocklist_function("pg_query_deparse_raw_opts")
         .generate()
         .map_err(|_| "Unable to generate bindings")?
         .write_to_file(out_dir.join("bindings.rs"))?;
@@ -243,6 +246,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .allowlist_function("pg_query_parse_raw")
         .allowlist_function("pg_query_parse_raw_opts")
         .allowlist_function("pg_query_free_raw_parse_result")
+        // Allowlist raw deparse functions
+        .allowlist_function("pg_query_deparse_raw")
+        .allowlist_function("pg_query_deparse_raw_opts")
+        .allowlist_function("pg_query_free_deparse_result")
+        // Node building helpers for deparse_raw
+        .allowlist_function("pg_query_deparse_enter_context")
+        .allowlist_function("pg_query_deparse_exit_context")
+        .allowlist_function("pg_query_alloc_node")
+        .allowlist_function("pg_query_pstrdup")
+        .allowlist_function("pg_query_list_make1")
+        .allowlist_function("pg_query_list_append")
+        .allowlist_function("pg_query_deparse_nodes")
         .generate()
         .map_err(|_| "Unable to generate raw bindings")?
         .write_to_file(out_dir.join("bindings_raw.rs"))?;

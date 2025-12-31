@@ -27,6 +27,8 @@ fn it_parses_simple_select() {
 
     assert_eq!(raw_result.protobuf.stmts.len(), 1);
     assert_eq!(raw_result.protobuf, proto_result.protobuf);
+    // Verify deparse produces original query
+    assert_eq!(deparse_raw(&raw_result.protobuf).unwrap(), query);
 }
 
 /// Test that parse_raw handles syntax errors
@@ -48,6 +50,7 @@ fn it_matches_parse_for_simple_select() {
     let proto_result = parse(query).unwrap();
 
     assert_eq!(raw_result.protobuf, proto_result.protobuf);
+    assert_eq!(deparse_raw(&raw_result.protobuf).unwrap(), query);
 }
 
 /// Test that parse_raw and parse produce equivalent results for SELECT with table
@@ -58,6 +61,7 @@ fn it_matches_parse_for_select_from_table() {
     let proto_result = parse(query).unwrap();
 
     assert_eq!(raw_result.protobuf, proto_result.protobuf);
+    assert_eq!(deparse_raw(&raw_result.protobuf).unwrap(), query);
 
     let mut raw_tables = raw_result.tables();
     let mut proto_tables = proto_result.tables();
@@ -76,6 +80,8 @@ fn it_handles_empty_queries() {
 
     assert_eq!(raw_result.protobuf.stmts.len(), 0);
     assert_eq!(raw_result.protobuf, proto_result.protobuf);
+    // Empty queries deparse to empty string (comments are stripped)
+    assert_eq!(deparse_raw(&raw_result.protobuf).unwrap(), "");
 }
 
 /// Test that parse_raw parses multiple statements
@@ -87,6 +93,7 @@ fn it_parses_multiple_statements() {
 
     assert_eq!(raw_result.protobuf.stmts.len(), 3);
     assert_eq!(raw_result.protobuf, proto_result.protobuf);
+    assert_eq!(deparse_raw(&raw_result.protobuf).unwrap(), query);
 }
 
 /// Test that tables() returns the same results for both parsers
@@ -97,6 +104,7 @@ fn it_returns_tables_like_parse() {
     let proto_result = parse(query).unwrap();
 
     assert_eq!(raw_result.protobuf, proto_result.protobuf);
+    assert_eq!(deparse_raw(&raw_result.protobuf).unwrap(), query);
 
     let mut raw_tables = raw_result.tables();
     let mut proto_tables = proto_result.tables();
@@ -114,6 +122,7 @@ fn it_returns_functions_like_parse() {
     let proto_result = parse(query).unwrap();
 
     assert_eq!(raw_result.protobuf, proto_result.protobuf);
+    assert_eq!(deparse_raw(&raw_result.protobuf).unwrap(), query);
 
     let mut raw_funcs = raw_result.functions();
     let mut proto_funcs = proto_result.functions();
@@ -131,7 +140,75 @@ fn it_returns_statement_types_like_parse() {
     let proto_result = parse(query).unwrap();
 
     assert_eq!(raw_result.protobuf, proto_result.protobuf);
+    assert_eq!(deparse_raw(&raw_result.protobuf).unwrap(), query);
 
     assert_eq!(raw_result.statement_types(), proto_result.statement_types());
     assert_eq!(raw_result.statement_types(), vec!["SelectStmt", "InsertStmt", "UpdateStmt", "DeleteStmt"]);
+}
+
+// ============================================================================
+// deparse_raw tests
+// ============================================================================
+
+/// Test that deparse_raw successfully roundtrips a simple SELECT
+#[test]
+fn it_deparse_raw_simple_select() {
+    let query = "SELECT 1";
+    let result = pg_query::parse(query).unwrap();
+    let deparsed = pg_query::deparse_raw(&result.protobuf).unwrap();
+    assert_eq!(deparsed, query);
+}
+
+/// Test that deparse_raw successfully roundtrips SELECT FROM table
+#[test]
+fn it_deparse_raw_select_from_table() {
+    let query = "SELECT * FROM users";
+    let result = pg_query::parse(query).unwrap();
+    let deparsed = pg_query::deparse_raw(&result.protobuf).unwrap();
+    assert_eq!(deparsed, query);
+}
+
+/// Test that deparse_raw handles complex queries
+#[test]
+fn it_deparse_raw_complex_select() {
+    let query = "SELECT u.id, u.name FROM users u WHERE u.active = true ORDER BY u.name";
+    let result = pg_query::parse(query).unwrap();
+    let deparsed = pg_query::deparse_raw(&result.protobuf).unwrap();
+    assert_eq!(deparsed, query);
+}
+
+/// Test that deparse_raw handles INSERT statements
+#[test]
+fn it_deparse_raw_insert() {
+    let query = "INSERT INTO users (name, email) VALUES ('John', 'john@example.com')";
+    let result = pg_query::parse(query).unwrap();
+    let deparsed = pg_query::deparse_raw(&result.protobuf).unwrap();
+    assert_eq!(deparsed, query);
+}
+
+/// Test that deparse_raw handles UPDATE statements
+#[test]
+fn it_deparse_raw_update() {
+    let query = "UPDATE users SET name = 'Jane' WHERE id = 1";
+    let result = pg_query::parse(query).unwrap();
+    let deparsed = pg_query::deparse_raw(&result.protobuf).unwrap();
+    assert_eq!(deparsed, query);
+}
+
+/// Test that deparse_raw handles DELETE statements
+#[test]
+fn it_deparse_raw_delete() {
+    let query = "DELETE FROM users WHERE id = 1";
+    let result = pg_query::parse(query).unwrap();
+    let deparsed = pg_query::deparse_raw(&result.protobuf).unwrap();
+    assert_eq!(deparsed, query);
+}
+
+/// Test that deparse_raw handles multiple statements
+#[test]
+fn it_deparse_raw_multiple_statements() {
+    let query = "SELECT 1; SELECT 2; SELECT 3";
+    let result = pg_query::parse(query).unwrap();
+    let deparsed = pg_query::deparse_raw(&result.protobuf).unwrap();
+    assert_eq!(deparsed, query);
 }

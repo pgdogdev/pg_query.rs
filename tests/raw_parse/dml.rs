@@ -16,6 +16,7 @@ fn it_parses_insert() {
     let proto_result = parse(query).unwrap();
 
     assert_eq!(raw_result.protobuf, proto_result.protobuf);
+    assert_eq!(deparse_raw(&raw_result.protobuf).unwrap(), query);
 
     let mut raw_tables = raw_result.dml_tables();
     let mut proto_tables = proto_result.dml_tables();
@@ -33,6 +34,7 @@ fn it_parses_update() {
     let proto_result = parse(query).unwrap();
 
     assert_eq!(raw_result.protobuf, proto_result.protobuf);
+    assert_eq!(deparse_raw(&raw_result.protobuf).unwrap(), query);
 
     let mut raw_tables = raw_result.dml_tables();
     let mut proto_tables = proto_result.dml_tables();
@@ -50,6 +52,7 @@ fn it_parses_delete() {
     let proto_result = parse(query).unwrap();
 
     assert_eq!(raw_result.protobuf, proto_result.protobuf);
+    assert_eq!(deparse_raw(&raw_result.protobuf).unwrap(), query);
 
     let mut raw_tables = raw_result.dml_tables();
     let mut proto_tables = proto_result.dml_tables();
@@ -71,6 +74,8 @@ fn it_parses_insert_on_conflict() {
     let proto_result = parse(query).unwrap();
 
     assert_eq!(raw_result.protobuf, proto_result.protobuf);
+    // PostgreSQL's deparser normalizes EXCLUDED to lowercase, so compare case-insensitively
+    assert_eq!(deparse_raw(&raw_result.protobuf).unwrap().to_lowercase(), query.to_lowercase());
 
     let raw_tables = raw_result.dml_tables();
     let proto_tables = proto_result.dml_tables();
@@ -86,6 +91,7 @@ fn it_parses_insert_returning() {
     let proto_result = parse(query).unwrap();
 
     assert_eq!(raw_result.protobuf, proto_result.protobuf);
+    assert_eq!(deparse_raw(&raw_result.protobuf).unwrap(), query);
 }
 
 /// Test INSERT with multiple tuples
@@ -96,6 +102,7 @@ fn it_parses_insert_multiple_rows() {
     let proto_result = parse(query).unwrap();
 
     assert_eq!(raw_result.protobuf, proto_result.protobuf);
+    assert_eq!(deparse_raw(&raw_result.protobuf).unwrap(), query);
 }
 
 /// Test INSERT ... SELECT
