@@ -38,7 +38,9 @@
 //! ```
 //!
 
+pub mod ast;
 mod bindings;
+mod bindings_raw;
 mod error;
 mod node_enum;
 mod node_mut;
@@ -48,6 +50,7 @@ mod parse_result;
 #[rustfmt::skip]
 pub mod protobuf;
 mod query;
+mod raw_parse;
 mod summary;
 mod summary_result;
 mod truncate;
@@ -58,6 +61,7 @@ pub use node_mut::*;
 pub use node_ref::*;
 pub use parse_result::*;
 pub use query::*;
+pub use raw_parse::parse_raw;
 pub use summary::*;
 pub use summary_result::*;
 pub use truncate::*;
