@@ -325,6 +325,126 @@ unsafe fn convert_node(node_ptr: *mut bindings_raw::Node) -> Option<protobuf::No
             let prd = node_ptr as *mut bindings_raw::PartitionRangeDatum;
             Some(protobuf::node::Node::PartitionRangeDatum(Box::new(convert_partition_range_datum(&*prd))))
         }
+        bindings_raw::NodeTag_T_TransactionStmt => {
+            let ts = node_ptr as *mut bindings_raw::TransactionStmt;
+            Some(protobuf::node::Node::TransactionStmt(convert_transaction_stmt(&*ts)))
+        }
+        bindings_raw::NodeTag_T_VacuumStmt => {
+            let vs = node_ptr as *mut bindings_raw::VacuumStmt;
+            Some(protobuf::node::Node::VacuumStmt(convert_vacuum_stmt(&*vs)))
+        }
+        bindings_raw::NodeTag_T_VacuumRelation => {
+            let vr = node_ptr as *mut bindings_raw::VacuumRelation;
+            Some(protobuf::node::Node::VacuumRelation(convert_vacuum_relation(&*vr)))
+        }
+        bindings_raw::NodeTag_T_VariableSetStmt => {
+            let vss = node_ptr as *mut bindings_raw::VariableSetStmt;
+            Some(protobuf::node::Node::VariableSetStmt(convert_variable_set_stmt(&*vss)))
+        }
+        bindings_raw::NodeTag_T_VariableShowStmt => {
+            let vss = node_ptr as *mut bindings_raw::VariableShowStmt;
+            Some(protobuf::node::Node::VariableShowStmt(convert_variable_show_stmt(&*vss)))
+        }
+        bindings_raw::NodeTag_T_CreateSeqStmt => {
+            let css = node_ptr as *mut bindings_raw::CreateSeqStmt;
+            Some(protobuf::node::Node::CreateSeqStmt(convert_create_seq_stmt(&*css)))
+        }
+        bindings_raw::NodeTag_T_DoStmt => {
+            let ds = node_ptr as *mut bindings_raw::DoStmt;
+            Some(protobuf::node::Node::DoStmt(convert_do_stmt(&*ds)))
+        }
+        bindings_raw::NodeTag_T_LockStmt => {
+            let ls = node_ptr as *mut bindings_raw::LockStmt;
+            Some(protobuf::node::Node::LockStmt(convert_lock_stmt(&*ls)))
+        }
+        bindings_raw::NodeTag_T_CreateSchemaStmt => {
+            let css = node_ptr as *mut bindings_raw::CreateSchemaStmt;
+            Some(protobuf::node::Node::CreateSchemaStmt(convert_create_schema_stmt(&*css)))
+        }
+        bindings_raw::NodeTag_T_RenameStmt => {
+            let rs = node_ptr as *mut bindings_raw::RenameStmt;
+            Some(protobuf::node::Node::RenameStmt(Box::new(convert_rename_stmt(&*rs))))
+        }
+        bindings_raw::NodeTag_T_CreateFunctionStmt => {
+            let cfs = node_ptr as *mut bindings_raw::CreateFunctionStmt;
+            Some(protobuf::node::Node::CreateFunctionStmt(Box::new(convert_create_function_stmt(&*cfs))))
+        }
+        bindings_raw::NodeTag_T_AlterOwnerStmt => {
+            let aos = node_ptr as *mut bindings_raw::AlterOwnerStmt;
+            Some(protobuf::node::Node::AlterOwnerStmt(Box::new(convert_alter_owner_stmt(&*aos))))
+        }
+        bindings_raw::NodeTag_T_AlterSeqStmt => {
+            let ass = node_ptr as *mut bindings_raw::AlterSeqStmt;
+            Some(protobuf::node::Node::AlterSeqStmt(convert_alter_seq_stmt(&*ass)))
+        }
+        bindings_raw::NodeTag_T_CreateEnumStmt => {
+            let ces = node_ptr as *mut bindings_raw::CreateEnumStmt;
+            Some(protobuf::node::Node::CreateEnumStmt(convert_create_enum_stmt(&*ces)))
+        }
+        bindings_raw::NodeTag_T_ObjectWithArgs => {
+            let owa = node_ptr as *mut bindings_raw::ObjectWithArgs;
+            Some(protobuf::node::Node::ObjectWithArgs(convert_object_with_args(&*owa)))
+        }
+        bindings_raw::NodeTag_T_FunctionParameter => {
+            let fp = node_ptr as *mut bindings_raw::FunctionParameter;
+            Some(protobuf::node::Node::FunctionParameter(Box::new(convert_function_parameter(&*fp))))
+        }
+        bindings_raw::NodeTag_T_NotifyStmt => {
+            let ns = node_ptr as *mut bindings_raw::NotifyStmt;
+            Some(protobuf::node::Node::NotifyStmt(convert_notify_stmt(&*ns)))
+        }
+        bindings_raw::NodeTag_T_ListenStmt => {
+            let ls = node_ptr as *mut bindings_raw::ListenStmt;
+            Some(protobuf::node::Node::ListenStmt(convert_listen_stmt(&*ls)))
+        }
+        bindings_raw::NodeTag_T_UnlistenStmt => {
+            let us = node_ptr as *mut bindings_raw::UnlistenStmt;
+            Some(protobuf::node::Node::UnlistenStmt(convert_unlisten_stmt(&*us)))
+        }
+        bindings_raw::NodeTag_T_DiscardStmt => {
+            let ds = node_ptr as *mut bindings_raw::DiscardStmt;
+            Some(protobuf::node::Node::DiscardStmt(convert_discard_stmt(&*ds)))
+        }
+        bindings_raw::NodeTag_T_CollateClause => {
+            let cc = node_ptr as *mut bindings_raw::CollateClause;
+            Some(protobuf::node::Node::CollateClause(Box::new(convert_collate_clause(&*cc))))
+        }
+        bindings_raw::NodeTag_T_CoerceToDomain => {
+            let ctd = node_ptr as *mut bindings_raw::CoerceToDomain;
+            Some(protobuf::node::Node::CoerceToDomain(Box::new(convert_coerce_to_domain(&*ctd))))
+        }
+        bindings_raw::NodeTag_T_CompositeTypeStmt => {
+            let cts = node_ptr as *mut bindings_raw::CompositeTypeStmt;
+            Some(protobuf::node::Node::CompositeTypeStmt(convert_composite_type_stmt(&*cts)))
+        }
+        bindings_raw::NodeTag_T_CreateDomainStmt => {
+            let cds = node_ptr as *mut bindings_raw::CreateDomainStmt;
+            Some(protobuf::node::Node::CreateDomainStmt(Box::new(convert_create_domain_stmt(&*cds))))
+        }
+        bindings_raw::NodeTag_T_CreateExtensionStmt => {
+            let ces = node_ptr as *mut bindings_raw::CreateExtensionStmt;
+            Some(protobuf::node::Node::CreateExtensionStmt(convert_create_extension_stmt(&*ces)))
+        }
+        bindings_raw::NodeTag_T_CreatePublicationStmt => {
+            let cps = node_ptr as *mut bindings_raw::CreatePublicationStmt;
+            Some(protobuf::node::Node::CreatePublicationStmt(convert_create_publication_stmt(&*cps)))
+        }
+        bindings_raw::NodeTag_T_AlterPublicationStmt => {
+            let aps = node_ptr as *mut bindings_raw::AlterPublicationStmt;
+            Some(protobuf::node::Node::AlterPublicationStmt(convert_alter_publication_stmt(&*aps)))
+        }
+        bindings_raw::NodeTag_T_CreateSubscriptionStmt => {
+            let css = node_ptr as *mut bindings_raw::CreateSubscriptionStmt;
+            Some(protobuf::node::Node::CreateSubscriptionStmt(convert_create_subscription_stmt(&*css)))
+        }
+        bindings_raw::NodeTag_T_AlterSubscriptionStmt => {
+            let ass = node_ptr as *mut bindings_raw::AlterSubscriptionStmt;
+            Some(protobuf::node::Node::AlterSubscriptionStmt(convert_alter_subscription_stmt(&*ass)))
+        }
+        bindings_raw::NodeTag_T_CreateTrigStmt => {
+            let cts = node_ptr as *mut bindings_raw::CreateTrigStmt;
+            Some(protobuf::node::Node::CreateTrigStmt(Box::new(convert_create_trig_stmt(&*cts))))
+        }
         _ => {
             // For unhandled node types, return None
             // In the future, we could add more node types here
@@ -342,6 +462,8 @@ unsafe fn convert_list(list: &bindings_raw::List) -> protobuf::List {
 }
 
 /// Converts a PostgreSQL List pointer to a Vec of protobuf Nodes.
+/// Note: Preserves placeholder nodes (Node { node: None }) for cases like DISTINCT
+/// where the list must retain its structure even if content is not recognized.
 unsafe fn convert_list_to_nodes(list: *mut bindings_raw::List) -> Vec<protobuf::Node> {
     if list.is_null() {
         return Vec::new();
@@ -355,9 +477,11 @@ unsafe fn convert_list_to_nodes(list: *mut bindings_raw::List) -> Vec<protobuf::
         let cell = list_ref.elements.add(i);
         let node_ptr = (*cell).ptr_value as *mut bindings_raw::Node;
 
-        if let Some(node) = convert_node(node_ptr) {
-            nodes.push(node);
-        }
+        // Always push the node, even if it's None/unrecognized.
+        // This preserves list structure for things like DISTINCT where
+        // a placeholder node (Node { node: None }) is meaningful.
+        let node = convert_node(node_ptr).unwrap_or_else(|| protobuf::Node { node: None });
+        nodes.push(node);
     }
 
     nodes
@@ -1124,6 +1248,252 @@ unsafe fn convert_cte_cycle_clause_opt(ccc: *mut bindings_raw::CTECycleClause) -
         None
     } else {
         Some(Box::new(convert_cte_cycle_clause(&*ccc)))
+    }
+}
+
+// ============================================================================
+// Additional Statement Conversions
+// ============================================================================
+
+unsafe fn convert_transaction_stmt(ts: &bindings_raw::TransactionStmt) -> protobuf::TransactionStmt {
+    protobuf::TransactionStmt {
+        kind: ts.kind as i32 + 1, // Protobuf enums have UNDEFINED=0
+        options: convert_list_to_nodes(ts.options),
+        savepoint_name: convert_c_string(ts.savepoint_name),
+        gid: convert_c_string(ts.gid),
+        chain: ts.chain,
+        location: ts.location,
+    }
+}
+
+unsafe fn convert_vacuum_stmt(vs: &bindings_raw::VacuumStmt) -> protobuf::VacuumStmt {
+    protobuf::VacuumStmt { options: convert_list_to_nodes(vs.options), rels: convert_list_to_nodes(vs.rels), is_vacuumcmd: vs.is_vacuumcmd }
+}
+
+unsafe fn convert_vacuum_relation(vr: &bindings_raw::VacuumRelation) -> protobuf::VacuumRelation {
+    protobuf::VacuumRelation {
+        relation: if vr.relation.is_null() { None } else { Some(convert_range_var(&*vr.relation)) },
+        oid: vr.oid,
+        va_cols: convert_list_to_nodes(vr.va_cols),
+    }
+}
+
+unsafe fn convert_variable_set_stmt(vss: &bindings_raw::VariableSetStmt) -> protobuf::VariableSetStmt {
+    protobuf::VariableSetStmt {
+        kind: vss.kind as i32 + 1, // Protobuf enums have UNDEFINED=0
+        name: convert_c_string(vss.name),
+        args: convert_list_to_nodes(vss.args),
+        is_local: vss.is_local,
+    }
+}
+
+unsafe fn convert_variable_show_stmt(vss: &bindings_raw::VariableShowStmt) -> protobuf::VariableShowStmt {
+    protobuf::VariableShowStmt { name: convert_c_string(vss.name) }
+}
+
+unsafe fn convert_create_seq_stmt(css: &bindings_raw::CreateSeqStmt) -> protobuf::CreateSeqStmt {
+    protobuf::CreateSeqStmt {
+        sequence: if css.sequence.is_null() { None } else { Some(convert_range_var(&*css.sequence)) },
+        options: convert_list_to_nodes(css.options),
+        owner_id: css.ownerId,
+        for_identity: css.for_identity,
+        if_not_exists: css.if_not_exists,
+    }
+}
+
+unsafe fn convert_do_stmt(ds: &bindings_raw::DoStmt) -> protobuf::DoStmt {
+    protobuf::DoStmt { args: convert_list_to_nodes(ds.args) }
+}
+
+unsafe fn convert_lock_stmt(ls: &bindings_raw::LockStmt) -> protobuf::LockStmt {
+    protobuf::LockStmt { relations: convert_list_to_nodes(ls.relations), mode: ls.mode, nowait: ls.nowait }
+}
+
+unsafe fn convert_create_schema_stmt(css: &bindings_raw::CreateSchemaStmt) -> protobuf::CreateSchemaStmt {
+    protobuf::CreateSchemaStmt {
+        schemaname: convert_c_string(css.schemaname),
+        authrole: if css.authrole.is_null() { None } else { Some(convert_role_spec(&*css.authrole)) },
+        schema_elts: convert_list_to_nodes(css.schemaElts),
+        if_not_exists: css.if_not_exists,
+    }
+}
+
+unsafe fn convert_rename_stmt(rs: &bindings_raw::RenameStmt) -> protobuf::RenameStmt {
+    protobuf::RenameStmt {
+        rename_type: rs.renameType as i32 + 1, // Protobuf ObjectType has UNDEFINED=0
+        relation_type: rs.relationType as i32 + 1,
+        relation: if rs.relation.is_null() { None } else { Some(convert_range_var(&*rs.relation)) },
+        object: convert_node_boxed(rs.object),
+        subname: convert_c_string(rs.subname),
+        newname: convert_c_string(rs.newname),
+        behavior: rs.behavior as i32 + 1,
+        missing_ok: rs.missing_ok,
+    }
+}
+
+unsafe fn convert_create_function_stmt(cfs: &bindings_raw::CreateFunctionStmt) -> protobuf::CreateFunctionStmt {
+    protobuf::CreateFunctionStmt {
+        is_procedure: cfs.is_procedure,
+        replace: cfs.replace,
+        funcname: convert_list_to_nodes(cfs.funcname),
+        parameters: convert_list_to_nodes(cfs.parameters),
+        return_type: if cfs.returnType.is_null() { None } else { Some(convert_type_name(&*cfs.returnType)) },
+        options: convert_list_to_nodes(cfs.options),
+        sql_body: convert_node_boxed(cfs.sql_body),
+    }
+}
+
+unsafe fn convert_alter_owner_stmt(aos: &bindings_raw::AlterOwnerStmt) -> protobuf::AlterOwnerStmt {
+    protobuf::AlterOwnerStmt {
+        object_type: aos.objectType as i32 + 1, // Protobuf ObjectType has UNDEFINED=0
+        relation: if aos.relation.is_null() { None } else { Some(convert_range_var(&*aos.relation)) },
+        object: convert_node_boxed(aos.object),
+        newowner: if aos.newowner.is_null() { None } else { Some(convert_role_spec(&*aos.newowner)) },
+    }
+}
+
+unsafe fn convert_alter_seq_stmt(ass: &bindings_raw::AlterSeqStmt) -> protobuf::AlterSeqStmt {
+    protobuf::AlterSeqStmt {
+        sequence: if ass.sequence.is_null() { None } else { Some(convert_range_var(&*ass.sequence)) },
+        options: convert_list_to_nodes(ass.options),
+        for_identity: ass.for_identity,
+        missing_ok: ass.missing_ok,
+    }
+}
+
+unsafe fn convert_create_enum_stmt(ces: &bindings_raw::CreateEnumStmt) -> protobuf::CreateEnumStmt {
+    protobuf::CreateEnumStmt { type_name: convert_list_to_nodes(ces.typeName), vals: convert_list_to_nodes(ces.vals) }
+}
+
+unsafe fn convert_object_with_args(owa: &bindings_raw::ObjectWithArgs) -> protobuf::ObjectWithArgs {
+    protobuf::ObjectWithArgs {
+        objname: convert_list_to_nodes(owa.objname),
+        objargs: convert_list_to_nodes(owa.objargs),
+        objfuncargs: convert_list_to_nodes(owa.objfuncargs),
+        args_unspecified: owa.args_unspecified,
+    }
+}
+
+unsafe fn convert_function_parameter(fp: &bindings_raw::FunctionParameter) -> protobuf::FunctionParameter {
+    protobuf::FunctionParameter {
+        name: convert_c_string(fp.name),
+        arg_type: if fp.argType.is_null() { None } else { Some(convert_type_name(&*fp.argType)) },
+        mode: fp.mode as i32 + 1, // Protobuf FunctionParameterMode has UNDEFINED=0
+        defexpr: convert_node_boxed(fp.defexpr),
+    }
+}
+
+unsafe fn convert_notify_stmt(ns: &bindings_raw::NotifyStmt) -> protobuf::NotifyStmt {
+    protobuf::NotifyStmt { conditionname: convert_c_string(ns.conditionname), payload: convert_c_string(ns.payload) }
+}
+
+unsafe fn convert_listen_stmt(ls: &bindings_raw::ListenStmt) -> protobuf::ListenStmt {
+    protobuf::ListenStmt { conditionname: convert_c_string(ls.conditionname) }
+}
+
+unsafe fn convert_unlisten_stmt(us: &bindings_raw::UnlistenStmt) -> protobuf::UnlistenStmt {
+    protobuf::UnlistenStmt { conditionname: convert_c_string(us.conditionname) }
+}
+
+unsafe fn convert_discard_stmt(ds: &bindings_raw::DiscardStmt) -> protobuf::DiscardStmt {
+    protobuf::DiscardStmt {
+        target: ds.target as i32 + 1, // DiscardMode enum
+    }
+}
+
+unsafe fn convert_coerce_to_domain(ctd: &bindings_raw::CoerceToDomain) -> protobuf::CoerceToDomain {
+    // xpr is an embedded Expr, convert it as a node pointer
+    let xpr_ptr = &ctd.xpr as *const bindings_raw::Expr as *mut bindings_raw::Node;
+    protobuf::CoerceToDomain {
+        xpr: convert_node_boxed(xpr_ptr),
+        arg: convert_node_boxed(ctd.arg as *mut bindings_raw::Node),
+        resulttype: ctd.resulttype,
+        resulttypmod: ctd.resulttypmod,
+        resultcollid: ctd.resultcollid,
+        coercionformat: ctd.coercionformat as i32 + 1,
+        location: ctd.location,
+    }
+}
+
+unsafe fn convert_composite_type_stmt(cts: &bindings_raw::CompositeTypeStmt) -> protobuf::CompositeTypeStmt {
+    protobuf::CompositeTypeStmt {
+        typevar: if cts.typevar.is_null() { None } else { Some(convert_range_var(&*cts.typevar)) },
+        coldeflist: convert_list_to_nodes(cts.coldeflist),
+    }
+}
+
+unsafe fn convert_create_domain_stmt(cds: &bindings_raw::CreateDomainStmt) -> protobuf::CreateDomainStmt {
+    protobuf::CreateDomainStmt {
+        domainname: convert_list_to_nodes(cds.domainname),
+        type_name: if cds.typeName.is_null() { None } else { Some(convert_type_name(&*cds.typeName)) },
+        coll_clause: convert_collate_clause_opt(cds.collClause),
+        constraints: convert_list_to_nodes(cds.constraints),
+    }
+}
+
+unsafe fn convert_create_extension_stmt(ces: &bindings_raw::CreateExtensionStmt) -> protobuf::CreateExtensionStmt {
+    protobuf::CreateExtensionStmt {
+        extname: convert_c_string(ces.extname),
+        if_not_exists: ces.if_not_exists,
+        options: convert_list_to_nodes(ces.options),
+    }
+}
+
+unsafe fn convert_create_publication_stmt(cps: &bindings_raw::CreatePublicationStmt) -> protobuf::CreatePublicationStmt {
+    protobuf::CreatePublicationStmt {
+        pubname: convert_c_string(cps.pubname),
+        options: convert_list_to_nodes(cps.options),
+        pubobjects: convert_list_to_nodes(cps.pubobjects),
+        for_all_tables: cps.for_all_tables,
+    }
+}
+
+unsafe fn convert_alter_publication_stmt(aps: &bindings_raw::AlterPublicationStmt) -> protobuf::AlterPublicationStmt {
+    protobuf::AlterPublicationStmt {
+        pubname: convert_c_string(aps.pubname),
+        options: convert_list_to_nodes(aps.options),
+        pubobjects: convert_list_to_nodes(aps.pubobjects),
+        for_all_tables: aps.for_all_tables,
+        action: aps.action as i32 + 1,
+    }
+}
+
+unsafe fn convert_create_subscription_stmt(css: &bindings_raw::CreateSubscriptionStmt) -> protobuf::CreateSubscriptionStmt {
+    protobuf::CreateSubscriptionStmt {
+        subname: convert_c_string(css.subname),
+        conninfo: convert_c_string(css.conninfo),
+        publication: convert_list_to_nodes(css.publication),
+        options: convert_list_to_nodes(css.options),
+    }
+}
+
+unsafe fn convert_alter_subscription_stmt(ass: &bindings_raw::AlterSubscriptionStmt) -> protobuf::AlterSubscriptionStmt {
+    protobuf::AlterSubscriptionStmt {
+        kind: ass.kind as i32 + 1,
+        subname: convert_c_string(ass.subname),
+        conninfo: convert_c_string(ass.conninfo),
+        publication: convert_list_to_nodes(ass.publication),
+        options: convert_list_to_nodes(ass.options),
+    }
+}
+
+unsafe fn convert_create_trig_stmt(cts: &bindings_raw::CreateTrigStmt) -> protobuf::CreateTrigStmt {
+    protobuf::CreateTrigStmt {
+        replace: cts.replace,
+        isconstraint: cts.isconstraint,
+        trigname: convert_c_string(cts.trigname),
+        relation: if cts.relation.is_null() { None } else { Some(convert_range_var(&*cts.relation)) },
+        funcname: convert_list_to_nodes(cts.funcname),
+        args: convert_list_to_nodes(cts.args),
+        row: cts.row,
+        timing: cts.timing as i32,
+        events: cts.events as i32,
+        columns: convert_list_to_nodes(cts.columns),
+        when_clause: convert_node_boxed(cts.whenClause),
+        transition_rels: convert_list_to_nodes(cts.transitionRels),
+        deferrable: cts.deferrable,
+        initdeferred: cts.initdeferred,
+        constrrel: if cts.constrrel.is_null() { None } else { Some(convert_range_var(&*cts.constrrel)) },
     }
 }
 
