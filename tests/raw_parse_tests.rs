@@ -4,6 +4,25 @@
 use pg_query::protobuf::{a_const, node, ParseResult as ProtobufParseResult};
 use pg_query::{parse, parse_raw, Error};
 
+/// Test that parse_raw results can be deparsed back to SQL
+#[test]
+fn it_deparses_parse_raw_result() {
+    let query = "SELECT * FROM users";
+    let result = parse_raw(query).unwrap();
+
+    // Print version info for debugging
+    eprintln!("parse_raw protobuf version: {}", result.protobuf.version);
+
+    // Compare with regular parse
+    let regular_result = parse(query).unwrap();
+    eprintln!("parse protobuf version: {}", regular_result.protobuf.version);
+
+    assert_eq!(result.protobuf.version, regular_result.protobuf.version, "Version mismatch between parse_raw and parse");
+
+    let deparsed = result.deparse().unwrap();
+    assert_eq!(deparsed, query);
+}
+
 #[macro_use]
 mod support;
 

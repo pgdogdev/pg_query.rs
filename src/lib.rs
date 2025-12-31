@@ -67,6 +67,9 @@ pub use truncate::*;
 
 pub use protobuf::Node;
 
+/// PostgreSQL version number (e.g., 170007 for PostgreSQL 17.0.7)
+pub use bindings::PG_VERSION_NUM;
+
 // From Postgres source: src/include/storage/lockdefs.h
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
