@@ -977,7 +977,7 @@ impl From<protobuf::GroupingSet> for GroupingSet {
 impl From<protobuf::MergeWhenClause> for MergeWhenClause {
     fn from(pb: protobuf::MergeWhenClause) -> Self {
         MergeWhenClause {
-            matched: pb.matched,
+            match_kind: pb.match_kind.into(),
             command_type: pb.command_type.into(),
             override_: pb.r#override.into(),
             condition: pb.condition.map(|n| n.into()),
@@ -1041,6 +1041,7 @@ impl From<protobuf::Constraint> for Constraint {
             raw_expr: pb.raw_expr.map(|n| n.into()),
             cooked_expr: pb.cooked_expr,
             generated_when: pb.generated_when,
+            inhcount: pb.inhcount,
             nulls_not_distinct: pb.nulls_not_distinct,
             keys: pb.keys.into_iter().map(|n| n.into()).collect(),
             including: pb.including.into_iter().map(|n| n.into()).collect(),
@@ -1630,6 +1631,17 @@ impl From<i32> for CmdType {
             7 => CmdType::Utility,
             8 => CmdType::Nothing,
             _ => CmdType::Unknown,
+        }
+    }
+}
+
+impl From<i32> for MergeMatchKind {
+    fn from(v: i32) -> Self {
+        match v {
+            1 => MergeMatchKind::Matched,
+            2 => MergeMatchKind::NotMatchedBySource,
+            3 => MergeMatchKind::NotMatchedByTarget,
+            _ => MergeMatchKind::Undefined,
         }
     }
 }

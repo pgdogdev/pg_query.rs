@@ -849,6 +849,7 @@ unsafe fn convert_constraint(c: &bindings_raw::Constraint) -> protobuf::Constrai
         raw_expr: convert_node_boxed(c.raw_expr),
         cooked_expr: convert_c_string(c.cooked_expr),
         generated_when: if c.generated_when == 0 { String::new() } else { String::from_utf8_lossy(&[c.generated_when as u8]).to_string() },
+        inhcount: c.inhcount,
         nulls_not_distinct: c.nulls_not_distinct,
         keys: convert_list_to_nodes(c.keys),
         including: convert_list_to_nodes(c.including),
@@ -1057,6 +1058,8 @@ unsafe fn convert_execute_stmt(es: &bindings_raw::ExecuteStmt) -> protobuf::Exec
 unsafe fn convert_deallocate_stmt(ds: &bindings_raw::DeallocateStmt) -> protobuf::DeallocateStmt {
     protobuf::DeallocateStmt {
         name: convert_c_string(ds.name),
+        isall: ds.isall,
+        location: ds.location,
     }
 }
 

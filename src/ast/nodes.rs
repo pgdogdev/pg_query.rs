@@ -814,7 +814,7 @@ pub struct GroupingSet {
 /// MERGE WHEN clause
 #[derive(Debug, Clone, Default)]
 pub struct MergeWhenClause {
-    pub matched: bool,
+    pub match_kind: MergeMatchKind,
     pub command_type: CmdType,
     pub override_: OverridingKind,
     pub condition: Option<Node>,
@@ -875,6 +875,7 @@ pub struct Constraint {
     pub raw_expr: Option<Node>,
     pub cooked_expr: String,
     pub generated_when: String,
+    pub inhcount: i32,
     pub nulls_not_distinct: bool,
     pub keys: Vec<Node>,
     pub including: Vec<Node>,
@@ -1390,6 +1391,16 @@ pub enum CmdType {
     Merge,
     Utility,
     Nothing,
+}
+
+/// MERGE match kind
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum MergeMatchKind {
+    #[default]
+    Undefined,
+    Matched,
+    NotMatchedBySource,
+    NotMatchedByTarget,
 }
 
 /// Transaction statement kind
