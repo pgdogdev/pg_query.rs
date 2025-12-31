@@ -1,8 +1,8 @@
 #![allow(non_snake_case)]
 #![cfg(test)]
 
-use pg_query::{parse, parse_raw, Error};
 use pg_query::protobuf::{a_const, node, ParseResult as ProtobufParseResult};
+use pg_query::{parse, parse_raw, Error};
 
 #[macro_use]
 mod support;
@@ -934,7 +934,8 @@ fn it_parses_named_window() {
 /// Test LAG and LEAD functions
 #[test]
 fn it_parses_lag_lead() {
-    let query = "SELECT date, price, LAG(price, 1) OVER (ORDER BY date) AS prev_price, LEAD(price, 1) OVER (ORDER BY date) AS next_price FROM stock_prices";
+    let query =
+        "SELECT date, price, LAG(price, 1) OVER (ORDER BY date) AS prev_price, LEAD(price, 1) OVER (ORDER BY date) AS next_price FROM stock_prices";
     let raw_result = parse_raw(query).unwrap();
     let proto_result = parse(query).unwrap();
 

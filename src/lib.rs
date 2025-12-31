@@ -38,7 +38,6 @@
 //! ```
 //!
 
-pub mod ast;
 mod bindings;
 mod bindings_raw;
 mod error;

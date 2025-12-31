@@ -27,18 +27,13 @@ pub fn parse_raw(statement: &str) -> Result<ParseResult> {
     let result = unsafe { bindings_raw::pg_query_parse_raw(input.as_ptr()) };
 
     let parse_result = if !result.error.is_null() {
-        let message = unsafe { CStr::from_ptr((*result.error).message) }
-            .to_string_lossy()
-            .to_string();
+        let message = unsafe { CStr::from_ptr((*result.error).message) }.to_string_lossy().to_string();
         Err(Error::Parse(message))
     } else {
         // Convert the C parse tree to protobuf types
         let tree = result.tree;
         let stmts = unsafe { convert_list_to_raw_stmts(tree) };
-        let protobuf = protobuf::ParseResult {
-            version: bindings::PG_VERSION_NUM as i32,
-            stmts,
-        };
+        let protobuf = protobuf::ParseResult { version: bindings::PG_VERSION_NUM as i32, stmts };
         Ok(ParseResult::new(protobuf, String::new()))
     };
 
@@ -74,11 +69,7 @@ unsafe fn convert_list_to_raw_stmts(list: *mut bindings_raw::List) -> Vec<protob
 
 /// Converts a C RawStmt to a protobuf RawStmt.
 unsafe fn convert_raw_stmt(raw_stmt: &bindings_raw::RawStmt) -> protobuf::RawStmt {
-    protobuf::RawStmt {
-        stmt: convert_node_boxed(raw_stmt.stmt),
-        stmt_location: raw_stmt.stmt_location,
-        stmt_len: raw_stmt.stmt_len,
-    }
+    protobuf::RawStmt { stmt: convert_node_boxed(raw_stmt.stmt), stmt_location: raw_stmt.stmt_location, stmt_len: raw_stmt.stmt_len }
 }
 
 /// Converts a C Node pointer to a boxed protobuf Node (for fields that expect Option<Box<Node>>).
@@ -204,9 +195,7 @@ unsafe fn convert_node(node_ptr: *mut bindings_raw::Node) -> Option<protobuf::No
             let cr = node_ptr as *mut bindings_raw::ColumnRef;
             Some(protobuf::node::Node::ColumnRef(convert_column_ref(&*cr)))
         }
-        bindings_raw::NodeTag_T_A_Star => {
-            Some(protobuf::node::Node::AStar(protobuf::AStar {}))
-        }
+        bindings_raw::NodeTag_T_A_Star => Some(protobuf::node::Node::AStar(protobuf::AStar {})),
         bindings_raw::NodeTag_T_TypeName => {
             let tn = node_ptr as *mut bindings_raw::TypeName;
             Some(protobuf::node::Node::TypeName(convert_type_name(&*tn)))
@@ -225,11 +214,7 @@ unsafe fn convert_node(node_ptr: *mut bindings_raw::Node) -> Option<protobuf::No
         }
         bindings_raw::NodeTag_T_Float => {
             let f = node_ptr as *mut bindings_raw::Float;
-            let fval = if (*f).fval.is_null() {
-                String::new()
-            } else {
-                CStr::from_ptr((*f).fval).to_string_lossy().to_string()
-            };
+            let fval = if (*f).fval.is_null() { String::new() } else { CStr::from_ptr((*f).fval).to_string_lossy().to_string() };
             Some(protobuf::node::Node::Float(protobuf::Float { fval }))
         }
         bindings_raw::NodeTag_T_Boolean => {
@@ -238,10 +223,7 @@ unsafe fn convert_node(node_ptr: *mut bindings_raw::Node) -> Option<protobuf::No
         }
         bindings_raw::NodeTag_T_ParamRef => {
             let pr = node_ptr as *mut bindings_raw::ParamRef;
-            Some(protobuf::node::Node::ParamRef(protobuf::ParamRef {
-                number: (*pr).number,
-                location: (*pr).location,
-            }))
+            Some(protobuf::node::Node::ParamRef(protobuf::ParamRef { number: (*pr).number, location: (*pr).location }))
         }
         bindings_raw::NodeTag_T_WithClause => {
             let wc = node_ptr as *mut bindings_raw::WithClause;
@@ -516,10 +498,7 @@ unsafe fn convert_range_var(rv: &bindings_raw::RangeVar) -> protobuf::RangeVar {
 }
 
 unsafe fn convert_column_ref(cr: &bindings_raw::ColumnRef) -> protobuf::ColumnRef {
-    protobuf::ColumnRef {
-        fields: convert_list_to_nodes(cr.fields),
-        location: cr.location,
-    }
+    protobuf::ColumnRef { fields: convert_list_to_nodes(cr.fields), location: cr.location }
 }
 
 unsafe fn convert_res_target(rt: &bindings_raw::ResTarget) -> protobuf::ResTarget {
@@ -548,11 +527,7 @@ unsafe fn convert_a_const(aconst: &bindings_raw::A_Const) -> protobuf::AConst {
         // Check the node tag in the val union to determine the type
         let node_tag = aconst.val.node.type_;
         match node_tag {
-            bindings_raw::NodeTag_T_Integer => {
-                Some(protobuf::a_const::Val::Ival(protobuf::Integer {
-                    ival: aconst.val.ival.ival,
-                }))
-            }
+            bindings_raw::NodeTag_T_Integer => Some(protobuf::a_const::Val::Ival(protobuf::Integer { ival: aconst.val.ival.ival })),
             bindings_raw::NodeTag_T_Float => {
                 let fval = if aconst.val.fval.fval.is_null() {
                     std::string::String::new()
@@ -561,11 +536,7 @@ unsafe fn convert_a_const(aconst: &bindings_raw::A_Const) -> protobuf::AConst {
                 };
                 Some(protobuf::a_const::Val::Fval(protobuf::Float { fval }))
             }
-            bindings_raw::NodeTag_T_Boolean => {
-                Some(protobuf::a_const::Val::Boolval(protobuf::Boolean {
-                    boolval: aconst.val.boolval.boolval,
-                }))
-            }
+            bindings_raw::NodeTag_T_Boolean => Some(protobuf::a_const::Val::Boolval(protobuf::Boolean { boolval: aconst.val.boolval.boolval })),
             bindings_raw::NodeTag_T_String => {
                 let sval = if aconst.val.sval.sval.is_null() {
                     std::string::String::new()
@@ -586,11 +557,7 @@ unsafe fn convert_a_const(aconst: &bindings_raw::A_Const) -> protobuf::AConst {
         }
     };
 
-    protobuf::AConst {
-        isnull: aconst.isnull,
-        val,
-        location: aconst.location,
-    }
+    protobuf::AConst { isnull: aconst.isnull, val, location: aconst.location }
 }
 
 unsafe fn convert_func_call(fc: &bindings_raw::FuncCall) -> protobuf::FuncCall {
@@ -631,10 +598,7 @@ unsafe fn convert_type_name(tn: &bindings_raw::TypeName) -> protobuf::TypeName {
 }
 
 unsafe fn convert_alias(alias: &bindings_raw::Alias) -> protobuf::Alias {
-    protobuf::Alias {
-        aliasname: convert_c_string(alias.aliasname),
-        colnames: convert_list_to_nodes(alias.colnames),
-    }
+    protobuf::Alias { aliasname: convert_c_string(alias.aliasname), colnames: convert_list_to_nodes(alias.colnames) }
 }
 
 unsafe fn convert_join_expr(je: &bindings_raw::JoinExpr) -> protobuf::JoinExpr {
@@ -724,11 +688,7 @@ unsafe fn convert_coalesce_expr(ce: &bindings_raw::CoalesceExpr) -> protobuf::Co
 }
 
 unsafe fn convert_with_clause(wc: &bindings_raw::WithClause) -> protobuf::WithClause {
-    protobuf::WithClause {
-        ctes: convert_list_to_nodes(wc.ctes),
-        recursive: wc.recursive,
-        location: wc.location,
-    }
+    protobuf::WithClause { ctes: convert_list_to_nodes(wc.ctes), recursive: wc.recursive, location: wc.location }
 }
 
 unsafe fn convert_with_clause_opt(wc: *mut bindings_raw::WithClause) -> Option<protobuf::WithClause> {
@@ -898,9 +858,7 @@ unsafe fn convert_def_elem(de: &bindings_raw::DefElem) -> protobuf::DefElem {
 }
 
 unsafe fn convert_string(s: &bindings_raw::String) -> protobuf::String {
-    protobuf::String {
-        sval: convert_c_string(s.sval),
-    }
+    protobuf::String { sval: convert_c_string(s.sval) }
 }
 
 unsafe fn convert_locking_clause(lc: &bindings_raw::LockingClause) -> protobuf::LockingClause {
@@ -924,11 +882,7 @@ unsafe fn convert_min_max_expr(mme: &bindings_raw::MinMaxExpr) -> protobuf::MinM
 }
 
 unsafe fn convert_grouping_set(gs: &bindings_raw::GroupingSet) -> protobuf::GroupingSet {
-    protobuf::GroupingSet {
-        kind: gs.kind as i32 + 1,
-        content: convert_list_to_nodes(gs.content),
-        location: gs.location,
-    }
+    protobuf::GroupingSet { kind: gs.kind as i32 + 1, content: convert_list_to_nodes(gs.content), location: gs.location }
 }
 
 unsafe fn convert_range_subselect(rs: &bindings_raw::RangeSubselect) -> protobuf::RangeSubselect {
@@ -940,25 +894,15 @@ unsafe fn convert_range_subselect(rs: &bindings_raw::RangeSubselect) -> protobuf
 }
 
 unsafe fn convert_a_array_expr(ae: &bindings_raw::A_ArrayExpr) -> protobuf::AArrayExpr {
-    protobuf::AArrayExpr {
-        elements: convert_list_to_nodes(ae.elements),
-        location: ae.location,
-    }
+    protobuf::AArrayExpr { elements: convert_list_to_nodes(ae.elements), location: ae.location }
 }
 
 unsafe fn convert_a_indirection(ai: &bindings_raw::A_Indirection) -> protobuf::AIndirection {
-    protobuf::AIndirection {
-        arg: convert_node_boxed(ai.arg),
-        indirection: convert_list_to_nodes(ai.indirection),
-    }
+    protobuf::AIndirection { arg: convert_node_boxed(ai.arg), indirection: convert_list_to_nodes(ai.indirection) }
 }
 
 unsafe fn convert_a_indices(ai: &bindings_raw::A_Indices) -> protobuf::AIndices {
-    protobuf::AIndices {
-        is_slice: ai.is_slice,
-        lidx: convert_node_boxed(ai.lidx),
-        uidx: convert_node_boxed(ai.uidx),
-    }
+    protobuf::AIndices { is_slice: ai.is_slice, lidx: convert_node_boxed(ai.lidx), uidx: convert_node_boxed(ai.uidx) }
 }
 
 unsafe fn convert_alter_table_stmt(ats: &bindings_raw::AlterTableStmt) -> protobuf::AlterTableStmt {
@@ -984,11 +928,7 @@ unsafe fn convert_alter_table_cmd(atc: &bindings_raw::AlterTableCmd) -> protobuf
 }
 
 unsafe fn convert_role_spec(rs: &bindings_raw::RoleSpec) -> protobuf::RoleSpec {
-    protobuf::RoleSpec {
-        roletype: rs.roletype as i32 + 1,
-        rolename: convert_c_string(rs.rolename),
-        location: rs.location,
-    }
+    protobuf::RoleSpec { roletype: rs.roletype as i32 + 1, rolename: convert_c_string(rs.rolename), location: rs.location }
 }
 
 unsafe fn convert_copy_stmt(cs: &bindings_raw::CopyStmt) -> protobuf::CopyStmt {
@@ -1005,11 +945,7 @@ unsafe fn convert_copy_stmt(cs: &bindings_raw::CopyStmt) -> protobuf::CopyStmt {
 }
 
 unsafe fn convert_truncate_stmt(ts: &bindings_raw::TruncateStmt) -> protobuf::TruncateStmt {
-    protobuf::TruncateStmt {
-        relations: convert_list_to_nodes(ts.relations),
-        restart_seqs: ts.restart_seqs,
-        behavior: ts.behavior as i32 + 1,
-    }
+    protobuf::TruncateStmt { relations: convert_list_to_nodes(ts.relations), restart_seqs: ts.restart_seqs, behavior: ts.behavior as i32 + 1 }
 }
 
 unsafe fn convert_view_stmt(vs: &bindings_raw::ViewStmt) -> protobuf::ViewStmt {
@@ -1024,10 +960,7 @@ unsafe fn convert_view_stmt(vs: &bindings_raw::ViewStmt) -> protobuf::ViewStmt {
 }
 
 unsafe fn convert_explain_stmt(es: &bindings_raw::ExplainStmt) -> protobuf::ExplainStmt {
-    protobuf::ExplainStmt {
-        query: convert_node_boxed(es.query),
-        options: convert_list_to_nodes(es.options),
-    }
+    protobuf::ExplainStmt { query: convert_node_boxed(es.query), options: convert_list_to_nodes(es.options) }
 }
 
 unsafe fn convert_create_table_as_stmt(ctas: &bindings_raw::CreateTableAsStmt) -> protobuf::CreateTableAsStmt {
@@ -1041,26 +974,15 @@ unsafe fn convert_create_table_as_stmt(ctas: &bindings_raw::CreateTableAsStmt) -
 }
 
 unsafe fn convert_prepare_stmt(ps: &bindings_raw::PrepareStmt) -> protobuf::PrepareStmt {
-    protobuf::PrepareStmt {
-        name: convert_c_string(ps.name),
-        argtypes: convert_list_to_nodes(ps.argtypes),
-        query: convert_node_boxed(ps.query),
-    }
+    protobuf::PrepareStmt { name: convert_c_string(ps.name), argtypes: convert_list_to_nodes(ps.argtypes), query: convert_node_boxed(ps.query) }
 }
 
 unsafe fn convert_execute_stmt(es: &bindings_raw::ExecuteStmt) -> protobuf::ExecuteStmt {
-    protobuf::ExecuteStmt {
-        name: convert_c_string(es.name),
-        params: convert_list_to_nodes(es.params),
-    }
+    protobuf::ExecuteStmt { name: convert_c_string(es.name), params: convert_list_to_nodes(es.params) }
 }
 
 unsafe fn convert_deallocate_stmt(ds: &bindings_raw::DeallocateStmt) -> protobuf::DeallocateStmt {
-    protobuf::DeallocateStmt {
-        name: convert_c_string(ds.name),
-        isall: ds.isall,
-        location: ds.location,
-    }
+    protobuf::DeallocateStmt { name: convert_c_string(ds.name), isall: ds.isall, location: ds.location }
 }
 
 unsafe fn convert_set_to_default(std: &bindings_raw::SetToDefault) -> protobuf::SetToDefault {
@@ -1074,11 +996,7 @@ unsafe fn convert_set_to_default(std: &bindings_raw::SetToDefault) -> protobuf::
 }
 
 unsafe fn convert_multi_assign_ref(mar: &bindings_raw::MultiAssignRef) -> protobuf::MultiAssignRef {
-    protobuf::MultiAssignRef {
-        source: convert_node_boxed(mar.source),
-        colno: mar.colno,
-        ncolumns: mar.ncolumns,
-    }
+    protobuf::MultiAssignRef { source: convert_node_boxed(mar.source), colno: mar.colno, ncolumns: mar.ncolumns }
 }
 
 unsafe fn convert_row_expr(re: &bindings_raw::RowExpr) -> protobuf::RowExpr {
@@ -1093,11 +1011,7 @@ unsafe fn convert_row_expr(re: &bindings_raw::RowExpr) -> protobuf::RowExpr {
 }
 
 unsafe fn convert_collate_clause(cc: &bindings_raw::CollateClause) -> protobuf::CollateClause {
-    protobuf::CollateClause {
-        arg: convert_node_boxed(cc.arg),
-        collname: convert_list_to_nodes(cc.collname),
-        location: cc.location,
-    }
+    protobuf::CollateClause { arg: convert_node_boxed(cc.arg), collname: convert_list_to_nodes(cc.collname), location: cc.location }
 }
 
 unsafe fn convert_collate_clause_opt(cc: *mut bindings_raw::CollateClause) -> Option<Box<protobuf::CollateClause>> {
@@ -1118,11 +1032,7 @@ unsafe fn convert_partition_spec(ps: &bindings_raw::PartitionSpec) -> protobuf::
         'h' => 3, // HASH
         _ => 0,   // UNDEFINED
     };
-    protobuf::PartitionSpec {
-        strategy,
-        part_params: convert_list_to_nodes(ps.partParams),
-        location: ps.location,
-    }
+    protobuf::PartitionSpec { strategy, part_params: convert_list_to_nodes(ps.partParams), location: ps.location }
 }
 
 unsafe fn convert_partition_spec_opt(ps: *mut bindings_raw::PartitionSpec) -> Option<protobuf::PartitionSpec> {
@@ -1174,11 +1084,7 @@ unsafe fn convert_partition_range_datum(prd: &bindings_raw::PartitionRangeDatum)
         bindings_raw::PartitionRangeDatumKind_PARTITION_RANGE_DATUM_MAXVALUE => 3,
         _ => 0,
     };
-    protobuf::PartitionRangeDatum {
-        kind,
-        value: convert_node_boxed(prd.value),
-        location: prd.location,
-    }
+    protobuf::PartitionRangeDatum { kind, value: convert_node_boxed(prd.value), location: prd.location }
 }
 
 unsafe fn convert_cte_search_clause(csc: &bindings_raw::CTESearchClause) -> protobuf::CteSearchClause {
