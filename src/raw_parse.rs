@@ -445,6 +445,14 @@ unsafe fn convert_node(node_ptr: *mut bindings_raw::Node) -> Option<protobuf::No
             let cts = node_ptr as *mut bindings_raw::CreateTrigStmt;
             Some(protobuf::node::Node::CreateTrigStmt(Box::new(convert_create_trig_stmt(&*cts))))
         }
+        bindings_raw::NodeTag_T_PublicationObjSpec => {
+            let pos = node_ptr as *mut bindings_raw::PublicationObjSpec;
+            Some(protobuf::node::Node::PublicationObjSpec(Box::new(convert_publication_obj_spec(&*pos))))
+        }
+        bindings_raw::NodeTag_T_PublicationTable => {
+            let pt = node_ptr as *mut bindings_raw::PublicationTable;
+            Some(protobuf::node::Node::PublicationTable(Box::new(convert_publication_table(&*pt))))
+        }
         _ => {
             // For unhandled node types, return None
             // In the future, we could add more node types here
@@ -1474,6 +1482,20 @@ unsafe fn convert_alter_subscription_stmt(ass: &bindings_raw::AlterSubscriptionS
         conninfo: convert_c_string(ass.conninfo),
         publication: convert_list_to_nodes(ass.publication),
         options: convert_list_to_nodes(ass.options),
+    }
+}
+
+unsafe fn convert_publication_obj_spec(pos: &bindings_raw::PublicationObjSpec) -> protobuf::PublicationObjSpec {
+    let pubtable = if pos.pubtable.is_null() { None } else { Some(Box::new(convert_publication_table(&*pos.pubtable))) };
+    protobuf::PublicationObjSpec { pubobjtype: pos.pubobjtype as i32 + 1, name: convert_c_string(pos.name), pubtable, location: pos.location }
+}
+
+unsafe fn convert_publication_table(pt: &bindings_raw::PublicationTable) -> protobuf::PublicationTable {
+    let relation = if pt.relation.is_null() { None } else { Some(convert_range_var(&*pt.relation)) };
+    protobuf::PublicationTable {
+        relation,
+        where_clause: convert_node_boxed(pt.whereClause as *mut bindings_raw::Node),
+        columns: convert_list_to_nodes(pt.columns),
     }
 }
 
