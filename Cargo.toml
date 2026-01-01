@@ -42,3 +42,9 @@ regex = "1.6.0"
 [[bench]]
 name = "parse_vs_summary"
 harness = false
+
+# Optimize build scripts even in debug mode to reduce stack usage.
+# This is needed because bindgen uses deep recursion when processing
+# PostgreSQL header files, which can overflow the stack on Windows.
+[profile.dev.build-override]
+opt-level = 2
