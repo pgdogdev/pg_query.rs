@@ -209,11 +209,212 @@ fn write_node_inner(node: &protobuf::node::Node) -> *mut bindings_raw::Node {
             protobuf::node::Node::CreateTableAsStmt(ctas) => write_create_table_as_stmt(ctas) as *mut bindings_raw::Node,
             protobuf::node::Node::RefreshMatViewStmt(rmvs) => write_refresh_mat_view_stmt(rmvs) as *mut bindings_raw::Node,
             protobuf::node::Node::VacuumRelation(vr) => write_vacuum_relation(vr) as *mut bindings_raw::Node,
-            // TODO: Add remaining node types as needed
-            _ => {
-                // For unimplemented nodes, return null and let the deparser handle it
+            // Simple statement nodes
+            protobuf::node::Node::ListenStmt(ls) => write_listen_stmt(ls) as *mut bindings_raw::Node,
+            protobuf::node::Node::UnlistenStmt(us) => write_unlisten_stmt(us) as *mut bindings_raw::Node,
+            protobuf::node::Node::NotifyStmt(ns) => write_notify_stmt(ns) as *mut bindings_raw::Node,
+            protobuf::node::Node::DiscardStmt(ds) => write_discard_stmt(ds) as *mut bindings_raw::Node,
+            // Type definition nodes
+            protobuf::node::Node::CompositeTypeStmt(cts) => write_composite_type_stmt(cts) as *mut bindings_raw::Node,
+            protobuf::node::Node::CreateEnumStmt(ces) => write_create_enum_stmt(ces) as *mut bindings_raw::Node,
+            protobuf::node::Node::CreateRangeStmt(crs) => write_create_range_stmt(crs) as *mut bindings_raw::Node,
+            protobuf::node::Node::AlterEnumStmt(aes) => write_alter_enum_stmt(aes) as *mut bindings_raw::Node,
+            protobuf::node::Node::CreateDomainStmt(cds) => write_create_domain_stmt(cds) as *mut bindings_raw::Node,
+            // Extension nodes
+            protobuf::node::Node::CreateExtensionStmt(ces) => write_create_extension_stmt(ces) as *mut bindings_raw::Node,
+            // Publication/Subscription nodes
+            protobuf::node::Node::CreatePublicationStmt(cps) => write_create_publication_stmt(cps) as *mut bindings_raw::Node,
+            protobuf::node::Node::AlterPublicationStmt(aps) => write_alter_publication_stmt(aps) as *mut bindings_raw::Node,
+            protobuf::node::Node::CreateSubscriptionStmt(css) => write_create_subscription_stmt(css) as *mut bindings_raw::Node,
+            protobuf::node::Node::AlterSubscriptionStmt(ass) => write_alter_subscription_stmt(ass) as *mut bindings_raw::Node,
+            // Expression nodes
+            protobuf::node::Node::CoerceToDomain(ctd) => write_coerce_to_domain(ctd) as *mut bindings_raw::Node,
+            // Sequence nodes
+            protobuf::node::Node::CreateSeqStmt(css) => write_create_seq_stmt(css) as *mut bindings_raw::Node,
+            protobuf::node::Node::AlterSeqStmt(ass) => write_alter_seq_stmt(ass) as *mut bindings_raw::Node,
+            // Cursor nodes
+            protobuf::node::Node::ClosePortalStmt(cps) => write_close_portal_stmt(cps) as *mut bindings_raw::Node,
+            protobuf::node::Node::FetchStmt(fs) => write_fetch_stmt(fs) as *mut bindings_raw::Node,
+            protobuf::node::Node::DeclareCursorStmt(dcs) => write_declare_cursor_stmt(dcs) as *mut bindings_raw::Node,
+            // Additional DDL statements
+            protobuf::node::Node::DefineStmt(ds) => write_define_stmt(ds) as *mut bindings_raw::Node,
+            protobuf::node::Node::CommentStmt(cs) => write_comment_stmt(cs) as *mut bindings_raw::Node,
+            protobuf::node::Node::SecLabelStmt(sls) => write_sec_label_stmt(sls) as *mut bindings_raw::Node,
+            protobuf::node::Node::CreateRoleStmt(crs) => write_create_role_stmt(crs) as *mut bindings_raw::Node,
+            protobuf::node::Node::AlterRoleStmt(ars) => write_alter_role_stmt(ars) as *mut bindings_raw::Node,
+            protobuf::node::Node::AlterRoleSetStmt(arss) => write_alter_role_set_stmt(arss) as *mut bindings_raw::Node,
+            protobuf::node::Node::DropRoleStmt(drs) => write_drop_role_stmt(drs) as *mut bindings_raw::Node,
+            protobuf::node::Node::CreatePolicyStmt(cps) => write_create_policy_stmt(cps) as *mut bindings_raw::Node,
+            protobuf::node::Node::AlterPolicyStmt(aps) => write_alter_policy_stmt(aps) as *mut bindings_raw::Node,
+            protobuf::node::Node::CreateEventTrigStmt(cets) => write_create_event_trig_stmt(cets) as *mut bindings_raw::Node,
+            protobuf::node::Node::AlterEventTrigStmt(aets) => write_alter_event_trig_stmt(aets) as *mut bindings_raw::Node,
+            protobuf::node::Node::CreatePlangStmt(cpls) => write_create_plang_stmt(cpls) as *mut bindings_raw::Node,
+            protobuf::node::Node::CreateAmStmt(cas) => write_create_am_stmt(cas) as *mut bindings_raw::Node,
+            protobuf::node::Node::CreateOpClassStmt(cocs) => write_create_op_class_stmt(cocs) as *mut bindings_raw::Node,
+            protobuf::node::Node::CreateOpClassItem(coci) => write_create_op_class_item(coci) as *mut bindings_raw::Node,
+            protobuf::node::Node::CreateOpFamilyStmt(cofs) => write_create_op_family_stmt(cofs) as *mut bindings_raw::Node,
+            protobuf::node::Node::AlterOpFamilyStmt(aofs) => write_alter_op_family_stmt(aofs) as *mut bindings_raw::Node,
+            protobuf::node::Node::CreateFdwStmt(cfds) => write_create_fdw_stmt(cfds) as *mut bindings_raw::Node,
+            protobuf::node::Node::AlterFdwStmt(afds) => write_alter_fdw_stmt(afds) as *mut bindings_raw::Node,
+            protobuf::node::Node::CreateForeignServerStmt(cfss) => write_create_foreign_server_stmt(cfss) as *mut bindings_raw::Node,
+            protobuf::node::Node::AlterForeignServerStmt(afss) => write_alter_foreign_server_stmt(afss) as *mut bindings_raw::Node,
+            protobuf::node::Node::CreateForeignTableStmt(cfts) => write_create_foreign_table_stmt(cfts) as *mut bindings_raw::Node,
+            protobuf::node::Node::CreateUserMappingStmt(cums) => write_create_user_mapping_stmt(cums) as *mut bindings_raw::Node,
+            protobuf::node::Node::AlterUserMappingStmt(aums) => write_alter_user_mapping_stmt(aums) as *mut bindings_raw::Node,
+            protobuf::node::Node::DropUserMappingStmt(dums) => write_drop_user_mapping_stmt(dums) as *mut bindings_raw::Node,
+            protobuf::node::Node::ImportForeignSchemaStmt(ifss) => write_import_foreign_schema_stmt(ifss) as *mut bindings_raw::Node,
+            protobuf::node::Node::CreateTableSpaceStmt(ctss) => write_create_table_space_stmt(ctss) as *mut bindings_raw::Node,
+            protobuf::node::Node::DropTableSpaceStmt(dtss) => write_drop_table_space_stmt(dtss) as *mut bindings_raw::Node,
+            protobuf::node::Node::AlterTableSpaceOptionsStmt(atsos) => write_alter_table_space_options_stmt(atsos) as *mut bindings_raw::Node,
+            protobuf::node::Node::AlterTableMoveAllStmt(atmas) => write_alter_table_move_all_stmt(atmas) as *mut bindings_raw::Node,
+            protobuf::node::Node::AlterExtensionStmt(aes) => write_alter_extension_stmt(aes) as *mut bindings_raw::Node,
+            protobuf::node::Node::AlterExtensionContentsStmt(aecs) => write_alter_extension_contents_stmt(aecs) as *mut bindings_raw::Node,
+            protobuf::node::Node::AlterDomainStmt(ads) => write_alter_domain_stmt(ads) as *mut bindings_raw::Node,
+            protobuf::node::Node::AlterFunctionStmt(afs) => write_alter_function_stmt(afs) as *mut bindings_raw::Node,
+            protobuf::node::Node::AlterOperatorStmt(aos) => write_alter_operator_stmt(aos) as *mut bindings_raw::Node,
+            protobuf::node::Node::AlterTypeStmt(ats) => write_alter_type_stmt(ats) as *mut bindings_raw::Node,
+            protobuf::node::Node::AlterOwnerStmt(aos) => write_alter_owner_stmt(aos) as *mut bindings_raw::Node,
+            protobuf::node::Node::AlterObjectSchemaStmt(aoss) => write_alter_object_schema_stmt(aoss) as *mut bindings_raw::Node,
+            protobuf::node::Node::AlterObjectDependsStmt(aods) => write_alter_object_depends_stmt(aods) as *mut bindings_raw::Node,
+            protobuf::node::Node::AlterCollationStmt(acs) => write_alter_collation_stmt(acs) as *mut bindings_raw::Node,
+            protobuf::node::Node::AlterDefaultPrivilegesStmt(adps) => write_alter_default_privileges_stmt(adps) as *mut bindings_raw::Node,
+            protobuf::node::Node::CreateCastStmt(ccs) => write_create_cast_stmt(ccs) as *mut bindings_raw::Node,
+            protobuf::node::Node::CreateTransformStmt(cts) => write_create_transform_stmt(cts) as *mut bindings_raw::Node,
+            protobuf::node::Node::CreateConversionStmt(ccs) => write_create_conversion_stmt(ccs) as *mut bindings_raw::Node,
+            protobuf::node::Node::AlterTsdictionaryStmt(atds) => write_alter_ts_dictionary_stmt(atds) as *mut bindings_raw::Node,
+            protobuf::node::Node::AlterTsconfigurationStmt(atcs) => write_alter_ts_configuration_stmt(atcs) as *mut bindings_raw::Node,
+            // Database statements
+            protobuf::node::Node::CreatedbStmt(cds) => write_createdb_stmt(cds) as *mut bindings_raw::Node,
+            protobuf::node::Node::DropdbStmt(dds) => write_dropdb_stmt(dds) as *mut bindings_raw::Node,
+            protobuf::node::Node::AlterDatabaseStmt(ads) => write_alter_database_stmt(ads) as *mut bindings_raw::Node,
+            protobuf::node::Node::AlterDatabaseSetStmt(adss) => write_alter_database_set_stmt(adss) as *mut bindings_raw::Node,
+            protobuf::node::Node::AlterDatabaseRefreshCollStmt(adrcs) => write_alter_database_refresh_coll_stmt(adrcs) as *mut bindings_raw::Node,
+            protobuf::node::Node::AlterSystemStmt(ass) => write_alter_system_stmt(ass) as *mut bindings_raw::Node,
+            protobuf::node::Node::ClusterStmt(cs) => write_cluster_stmt(cs) as *mut bindings_raw::Node,
+            protobuf::node::Node::ReindexStmt(rs) => write_reindex_stmt(rs) as *mut bindings_raw::Node,
+            protobuf::node::Node::ConstraintsSetStmt(css) => write_constraints_set_stmt(css) as *mut bindings_raw::Node,
+            protobuf::node::Node::LoadStmt(ls) => write_load_stmt(ls) as *mut bindings_raw::Node,
+            protobuf::node::Node::DropOwnedStmt(dos) => write_drop_owned_stmt(dos) as *mut bindings_raw::Node,
+            protobuf::node::Node::ReassignOwnedStmt(ros) => write_reassign_owned_stmt(ros) as *mut bindings_raw::Node,
+            protobuf::node::Node::DropSubscriptionStmt(dss) => write_drop_subscription_stmt(dss) as *mut bindings_raw::Node,
+            // Table-related nodes
+            protobuf::node::Node::TableFunc(tf) => write_table_func(tf) as *mut bindings_raw::Node,
+            protobuf::node::Node::IntoClause(ic) => write_into_clause(ic) as *mut bindings_raw::Node,
+            protobuf::node::Node::TableLikeClause(tlc) => write_table_like_clause(tlc) as *mut bindings_raw::Node,
+            protobuf::node::Node::RangeTableFunc(rtf) => write_range_table_func(rtf) as *mut bindings_raw::Node,
+            protobuf::node::Node::RangeTableFuncCol(rtfc) => write_range_table_func_col(rtfc) as *mut bindings_raw::Node,
+            protobuf::node::Node::RangeTableSample(rts) => write_range_table_sample(rts) as *mut bindings_raw::Node,
+            protobuf::node::Node::PartitionSpec(ps) => write_partition_spec(ps) as *mut bindings_raw::Node,
+            protobuf::node::Node::PartitionBoundSpec(pbs) => write_partition_bound_spec(pbs) as *mut bindings_raw::Node,
+            protobuf::node::Node::PartitionRangeDatum(prd) => write_partition_range_datum(prd) as *mut bindings_raw::Node,
+            protobuf::node::Node::PartitionElem(pe) => write_partition_elem(pe) as *mut bindings_raw::Node,
+            protobuf::node::Node::PartitionCmd(pc) => write_partition_cmd(pc) as *mut bindings_raw::Node,
+            protobuf::node::Node::SinglePartitionSpec(sps) => write_single_partition_spec(sps) as *mut bindings_raw::Node,
+            protobuf::node::Node::InferClause(ic) => write_infer_clause(ic) as *mut bindings_raw::Node,
+            protobuf::node::Node::OnConflictClause(occ) => write_on_conflict_clause(occ) as *mut bindings_raw::Node,
+            protobuf::node::Node::MultiAssignRef(mar) => write_multi_assign_ref(mar) as *mut bindings_raw::Node,
+            protobuf::node::Node::TriggerTransition(tt) => write_trigger_transition(tt) as *mut bindings_raw::Node,
+            // CTE-related nodes
+            protobuf::node::Node::CtesearchClause(csc) => write_cte_search_clause(csc) as *mut bindings_raw::Node,
+            protobuf::node::Node::CtecycleClause(ccc) => write_cte_cycle_clause(ccc) as *mut bindings_raw::Node,
+            // Statistics nodes
+            protobuf::node::Node::CreateStatsStmt(css) => write_create_stats_stmt(css) as *mut bindings_raw::Node,
+            protobuf::node::Node::AlterStatsStmt(ass) => write_alter_stats_stmt(ass) as *mut bindings_raw::Node,
+            protobuf::node::Node::StatsElem(se) => write_stats_elem(se) as *mut bindings_raw::Node,
+            // Publication nodes
+            protobuf::node::Node::PublicationObjSpec(pos) => write_publication_obj_spec(pos) as *mut bindings_raw::Node,
+            protobuf::node::Node::PublicationTable(pt) => write_publication_table(pt) as *mut bindings_raw::Node,
+            // Expression nodes (internal/executor - return null as they shouldn't appear in raw parse trees)
+            protobuf::node::Node::Var(_)
+            | protobuf::node::Node::Aggref(_)
+            | protobuf::node::Node::WindowFunc(_)
+            | protobuf::node::Node::WindowFuncRunCondition(_)
+            | protobuf::node::Node::MergeSupportFunc(_)
+            | protobuf::node::Node::SubscriptingRef(_)
+            | protobuf::node::Node::FuncExpr(_)
+            | protobuf::node::Node::OpExpr(_)
+            | protobuf::node::Node::DistinctExpr(_)
+            | protobuf::node::Node::NullIfExpr(_)
+            | protobuf::node::Node::ScalarArrayOpExpr(_)
+            | protobuf::node::Node::FieldSelect(_)
+            | protobuf::node::Node::FieldStore(_)
+            | protobuf::node::Node::RelabelType(_)
+            | protobuf::node::Node::CoerceViaIo(_)
+            | protobuf::node::Node::ArrayCoerceExpr(_)
+            | protobuf::node::Node::ConvertRowtypeExpr(_)
+            | protobuf::node::Node::CollateExpr(_)
+            | protobuf::node::Node::CaseTestExpr(_)
+            | protobuf::node::Node::ArrayExpr(_)
+            | protobuf::node::Node::RowCompareExpr(_)
+            | protobuf::node::Node::CoerceToDomainValue(_)
+            | protobuf::node::Node::CurrentOfExpr(_)
+            | protobuf::node::Node::NextValueExpr(_)
+            | protobuf::node::Node::InferenceElem(_)
+            | protobuf::node::Node::SubPlan(_)
+            | protobuf::node::Node::AlternativeSubPlan(_)
+            | protobuf::node::Node::TargetEntry(_)
+            | protobuf::node::Node::RangeTblRef(_)
+            | protobuf::node::Node::FromExpr(_)
+            | protobuf::node::Node::OnConflictExpr(_)
+            | protobuf::node::Node::Query(_)
+            | protobuf::node::Node::MergeAction(_)
+            | protobuf::node::Node::SortGroupClause(_)
+            | protobuf::node::Node::WindowClause(_)
+            | protobuf::node::Node::RowMarkClause(_)
+            | protobuf::node::Node::WithCheckOption(_)
+            | protobuf::node::Node::RangeTblEntry(_)
+            | protobuf::node::Node::RangeTblFunction(_)
+            | protobuf::node::Node::TableSampleClause(_)
+            | protobuf::node::Node::RtepermissionInfo(_)
+            | protobuf::node::Node::GroupingFunc(_)
+            | protobuf::node::Node::Param(_)
+            | protobuf::node::Node::IntList(_)
+            | protobuf::node::Node::OidList(_)
+            | protobuf::node::Node::RawStmt(_)
+            | protobuf::node::Node::SetOperationStmt(_)
+            | protobuf::node::Node::ReturnStmt(_)
+            | protobuf::node::Node::PlassignStmt(_)
+            | protobuf::node::Node::ReplicaIdentityStmt(_)
+            | protobuf::node::Node::CallContext(_)
+            | protobuf::node::Node::InlineCodeBlock(_) => {
+                // These are internal/executor nodes that shouldn't appear in raw parse trees,
+                // or are handled specially elsewhere
                 std::ptr::null_mut()
             }
+            // SQL Value function
+            protobuf::node::Node::SqlvalueFunction(svf) => write_sql_value_function(svf) as *mut bindings_raw::Node,
+            // XML nodes
+            protobuf::node::Node::XmlExpr(xe) => write_xml_expr(xe) as *mut bindings_raw::Node,
+            protobuf::node::Node::XmlSerialize(xs) => write_xml_serialize(xs) as *mut bindings_raw::Node,
+            // Named argument
+            protobuf::node::Node::NamedArgExpr(nae) => write_named_arg_expr(nae) as *mut bindings_raw::Node,
+            // JSON nodes
+            protobuf::node::Node::JsonFormat(jf) => write_json_format(jf) as *mut bindings_raw::Node,
+            protobuf::node::Node::JsonReturning(jr) => write_json_returning(jr) as *mut bindings_raw::Node,
+            protobuf::node::Node::JsonValueExpr(jve) => write_json_value_expr(jve) as *mut bindings_raw::Node,
+            protobuf::node::Node::JsonConstructorExpr(jce) => write_json_constructor_expr(jce) as *mut bindings_raw::Node,
+            protobuf::node::Node::JsonIsPredicate(jip) => write_json_is_predicate(jip) as *mut bindings_raw::Node,
+            protobuf::node::Node::JsonBehavior(jb) => write_json_behavior(jb) as *mut bindings_raw::Node,
+            protobuf::node::Node::JsonExpr(je) => write_json_expr(je) as *mut bindings_raw::Node,
+            protobuf::node::Node::JsonTablePath(jtp) => write_json_table_path(jtp) as *mut bindings_raw::Node,
+            protobuf::node::Node::JsonTablePathScan(jtps) => write_json_table_path_scan(jtps) as *mut bindings_raw::Node,
+            protobuf::node::Node::JsonTableSiblingJoin(jtsj) => write_json_table_sibling_join(jtsj) as *mut bindings_raw::Node,
+            protobuf::node::Node::JsonOutput(jo) => write_json_output(jo) as *mut bindings_raw::Node,
+            protobuf::node::Node::JsonArgument(ja) => write_json_argument(ja) as *mut bindings_raw::Node,
+            protobuf::node::Node::JsonFuncExpr(jfe) => write_json_func_expr(jfe) as *mut bindings_raw::Node,
+            protobuf::node::Node::JsonTablePathSpec(jtps) => write_json_table_path_spec(jtps) as *mut bindings_raw::Node,
+            protobuf::node::Node::JsonTable(jt) => write_json_table(jt) as *mut bindings_raw::Node,
+            protobuf::node::Node::JsonTableColumn(jtc) => write_json_table_column(jtc) as *mut bindings_raw::Node,
+            protobuf::node::Node::JsonKeyValue(jkv) => write_json_key_value(jkv) as *mut bindings_raw::Node,
+            protobuf::node::Node::JsonParseExpr(jpe) => write_json_parse_expr(jpe) as *mut bindings_raw::Node,
+            protobuf::node::Node::JsonScalarExpr(jse) => write_json_scalar_expr(jse) as *mut bindings_raw::Node,
+            protobuf::node::Node::JsonSerializeExpr(jse) => write_json_serialize_expr(jse) as *mut bindings_raw::Node,
+            protobuf::node::Node::JsonObjectConstructor(joc) => write_json_object_constructor(joc) as *mut bindings_raw::Node,
+            protobuf::node::Node::JsonArrayConstructor(jac) => write_json_array_constructor(jac) as *mut bindings_raw::Node,
+            protobuf::node::Node::JsonArrayQueryConstructor(jaqc) => write_json_array_query_constructor(jaqc) as *mut bindings_raw::Node,
+            protobuf::node::Node::JsonAggConstructor(jac) => write_json_agg_constructor(jac) as *mut bindings_raw::Node,
+            protobuf::node::Node::JsonObjectAgg(joa) => write_json_object_agg(joa) as *mut bindings_raw::Node,
+            protobuf::node::Node::JsonArrayAgg(jaa) => write_json_array_agg(jaa) as *mut bindings_raw::Node,
         }
     }
 }
@@ -372,13 +573,6 @@ unsafe fn write_range_var(rv: &protobuf::RangeVar) -> *mut bindings_raw::RangeVa
     node
 }
 
-unsafe fn write_range_var_opt(rv: &Option<Box<protobuf::RangeVar>>) -> *mut bindings_raw::RangeVar {
-    match rv {
-        Some(r) => write_range_var(r),
-        None => std::ptr::null_mut(),
-    }
-}
-
 unsafe fn write_range_var_ref(rv: &Option<protobuf::RangeVar>) -> *mut bindings_raw::RangeVar {
     match rv {
         Some(r) => write_range_var(r),
@@ -391,13 +585,6 @@ unsafe fn write_alias(alias: &protobuf::Alias) -> *mut bindings_raw::Alias {
     (*node).aliasname = pstrdup(&alias.aliasname);
     (*node).colnames = write_node_list(&alias.colnames);
     node
-}
-
-unsafe fn write_alias_opt(alias: &Option<Box<protobuf::Alias>>) -> *mut bindings_raw::Alias {
-    match alias {
-        Some(a) => write_alias(a),
-        None => std::ptr::null_mut(),
-    }
 }
 
 unsafe fn write_alias_ref(alias: &Option<protobuf::Alias>) -> *mut bindings_raw::Alias {
@@ -531,14 +718,6 @@ unsafe fn write_bit_string(bs: &protobuf::BitString) -> *mut bindings_raw::BitSt
     node
 }
 
-unsafe fn write_null() -> *mut bindings_raw::Node {
-    // A_Const with isnull=true represents NULL
-    let node = alloc_node::<bindings_raw::A_Const>(bindings_raw::NodeTag_T_A_Const);
-    (*node).isnull = true;
-    (*node).location = -1;
-    node as *mut bindings_raw::Node
-}
-
 unsafe fn write_list(l: &protobuf::List) -> *mut bindings_raw::List {
     write_node_list(&l.items)
 }
@@ -577,13 +756,6 @@ unsafe fn write_type_cast(tc: &protobuf::TypeCast) -> *mut bindings_raw::TypeCas
     (*node).typeName = write_type_name_ref(&tc.type_name);
     (*node).location = tc.location;
     node
-}
-
-unsafe fn write_type_name_opt(tn: &Option<Box<protobuf::TypeName>>) -> *mut bindings_raw::TypeName {
-    match tn {
-        Some(t) => write_type_name(t),
-        None => std::ptr::null_mut(),
-    }
 }
 
 unsafe fn write_type_name_ref(tn: &Option<protobuf::TypeName>) -> *mut bindings_raw::TypeName {
@@ -701,13 +873,6 @@ unsafe fn write_with_clause(wc: &protobuf::WithClause) -> *mut bindings_raw::Wit
     (*node).recursive = wc.recursive;
     (*node).location = wc.location;
     node
-}
-
-unsafe fn write_with_clause_opt(wc: &Option<Box<protobuf::WithClause>>) -> *mut bindings_raw::WithClause {
-    match wc {
-        Some(w) => write_with_clause(w),
-        None => std::ptr::null_mut(),
-    }
 }
 
 unsafe fn write_with_clause_ref(wc: &Option<protobuf::WithClause>) -> *mut bindings_raw::WithClause {
@@ -1400,4 +1565,1389 @@ unsafe fn write_collate_clause(cc: &protobuf::CollateClause) -> *mut bindings_ra
     (*node).collname = write_node_list(&cc.collname);
     (*node).location = cc.location;
     node
+}
+
+// =============================================================================
+// Simple statement nodes
+// =============================================================================
+
+unsafe fn write_listen_stmt(stmt: &protobuf::ListenStmt) -> *mut bindings_raw::ListenStmt {
+    let node = alloc_node::<bindings_raw::ListenStmt>(bindings_raw::NodeTag_T_ListenStmt);
+    (*node).conditionname = pstrdup(&stmt.conditionname);
+    node
+}
+
+unsafe fn write_unlisten_stmt(stmt: &protobuf::UnlistenStmt) -> *mut bindings_raw::UnlistenStmt {
+    let node = alloc_node::<bindings_raw::UnlistenStmt>(bindings_raw::NodeTag_T_UnlistenStmt);
+    (*node).conditionname = pstrdup(&stmt.conditionname);
+    node
+}
+
+unsafe fn write_notify_stmt(stmt: &protobuf::NotifyStmt) -> *mut bindings_raw::NotifyStmt {
+    let node = alloc_node::<bindings_raw::NotifyStmt>(bindings_raw::NodeTag_T_NotifyStmt);
+    (*node).conditionname = pstrdup(&stmt.conditionname);
+    (*node).payload = pstrdup(&stmt.payload);
+    node
+}
+
+unsafe fn write_discard_stmt(stmt: &protobuf::DiscardStmt) -> *mut bindings_raw::DiscardStmt {
+    let node = alloc_node::<bindings_raw::DiscardStmt>(bindings_raw::NodeTag_T_DiscardStmt);
+    (*node).target = proto_enum_to_c(stmt.target);
+    node
+}
+
+// =============================================================================
+// Type definition nodes
+// =============================================================================
+
+unsafe fn write_composite_type_stmt(stmt: &protobuf::CompositeTypeStmt) -> *mut bindings_raw::CompositeTypeStmt {
+    let node = alloc_node::<bindings_raw::CompositeTypeStmt>(bindings_raw::NodeTag_T_CompositeTypeStmt);
+    (*node).typevar = write_range_var_ref(&stmt.typevar);
+    (*node).coldeflist = write_node_list(&stmt.coldeflist);
+    node
+}
+
+unsafe fn write_create_enum_stmt(stmt: &protobuf::CreateEnumStmt) -> *mut bindings_raw::CreateEnumStmt {
+    let node = alloc_node::<bindings_raw::CreateEnumStmt>(bindings_raw::NodeTag_T_CreateEnumStmt);
+    (*node).typeName = write_node_list(&stmt.type_name);
+    (*node).vals = write_node_list(&stmt.vals);
+    node
+}
+
+unsafe fn write_create_range_stmt(stmt: &protobuf::CreateRangeStmt) -> *mut bindings_raw::CreateRangeStmt {
+    let node = alloc_node::<bindings_raw::CreateRangeStmt>(bindings_raw::NodeTag_T_CreateRangeStmt);
+    (*node).typeName = write_node_list(&stmt.type_name);
+    (*node).params = write_node_list(&stmt.params);
+    node
+}
+
+unsafe fn write_alter_enum_stmt(stmt: &protobuf::AlterEnumStmt) -> *mut bindings_raw::AlterEnumStmt {
+    let node = alloc_node::<bindings_raw::AlterEnumStmt>(bindings_raw::NodeTag_T_AlterEnumStmt);
+    (*node).typeName = write_node_list(&stmt.type_name);
+    (*node).oldVal = pstrdup(&stmt.old_val);
+    (*node).newVal = pstrdup(&stmt.new_val);
+    (*node).newValNeighbor = pstrdup(&stmt.new_val_neighbor);
+    (*node).newValIsAfter = stmt.new_val_is_after;
+    (*node).skipIfNewValExists = stmt.skip_if_new_val_exists;
+    node
+}
+
+unsafe fn write_create_domain_stmt(stmt: &protobuf::CreateDomainStmt) -> *mut bindings_raw::CreateDomainStmt {
+    let node = alloc_node::<bindings_raw::CreateDomainStmt>(bindings_raw::NodeTag_T_CreateDomainStmt);
+    (*node).domainname = write_node_list(&stmt.domainname);
+    (*node).typeName = write_type_name_ref(&stmt.type_name);
+    (*node).collClause = match &stmt.coll_clause {
+        Some(cc) => write_collate_clause(cc) as *mut bindings_raw::CollateClause,
+        None => std::ptr::null_mut(),
+    };
+    (*node).constraints = write_node_list(&stmt.constraints);
+    node
+}
+
+// =============================================================================
+// Extension nodes
+// =============================================================================
+
+unsafe fn write_create_extension_stmt(stmt: &protobuf::CreateExtensionStmt) -> *mut bindings_raw::CreateExtensionStmt {
+    let node = alloc_node::<bindings_raw::CreateExtensionStmt>(bindings_raw::NodeTag_T_CreateExtensionStmt);
+    (*node).extname = pstrdup(&stmt.extname);
+    (*node).if_not_exists = stmt.if_not_exists;
+    (*node).options = write_node_list(&stmt.options);
+    node
+}
+
+// =============================================================================
+// Publication/Subscription nodes
+// =============================================================================
+
+unsafe fn write_create_publication_stmt(stmt: &protobuf::CreatePublicationStmt) -> *mut bindings_raw::CreatePublicationStmt {
+    let node = alloc_node::<bindings_raw::CreatePublicationStmt>(bindings_raw::NodeTag_T_CreatePublicationStmt);
+    (*node).pubname = pstrdup(&stmt.pubname);
+    (*node).options = write_node_list(&stmt.options);
+    (*node).pubobjects = write_node_list(&stmt.pubobjects);
+    (*node).for_all_tables = stmt.for_all_tables;
+    node
+}
+
+unsafe fn write_alter_publication_stmt(stmt: &protobuf::AlterPublicationStmt) -> *mut bindings_raw::AlterPublicationStmt {
+    let node = alloc_node::<bindings_raw::AlterPublicationStmt>(bindings_raw::NodeTag_T_AlterPublicationStmt);
+    (*node).pubname = pstrdup(&stmt.pubname);
+    (*node).options = write_node_list(&stmt.options);
+    (*node).pubobjects = write_node_list(&stmt.pubobjects);
+    (*node).for_all_tables = stmt.for_all_tables;
+    (*node).action = proto_enum_to_c(stmt.action);
+    node
+}
+
+unsafe fn write_create_subscription_stmt(stmt: &protobuf::CreateSubscriptionStmt) -> *mut bindings_raw::CreateSubscriptionStmt {
+    let node = alloc_node::<bindings_raw::CreateSubscriptionStmt>(bindings_raw::NodeTag_T_CreateSubscriptionStmt);
+    (*node).subname = pstrdup(&stmt.subname);
+    (*node).conninfo = pstrdup(&stmt.conninfo);
+    (*node).publication = write_node_list(&stmt.publication);
+    (*node).options = write_node_list(&stmt.options);
+    node
+}
+
+unsafe fn write_alter_subscription_stmt(stmt: &protobuf::AlterSubscriptionStmt) -> *mut bindings_raw::AlterSubscriptionStmt {
+    let node = alloc_node::<bindings_raw::AlterSubscriptionStmt>(bindings_raw::NodeTag_T_AlterSubscriptionStmt);
+    (*node).kind = proto_enum_to_c(stmt.kind);
+    (*node).subname = pstrdup(&stmt.subname);
+    (*node).conninfo = pstrdup(&stmt.conninfo);
+    (*node).publication = write_node_list(&stmt.publication);
+    (*node).options = write_node_list(&stmt.options);
+    node
+}
+
+// =============================================================================
+// Expression nodes
+// =============================================================================
+
+unsafe fn write_coerce_to_domain(ctd: &protobuf::CoerceToDomain) -> *mut bindings_raw::CoerceToDomain {
+    let node = alloc_node::<bindings_raw::CoerceToDomain>(bindings_raw::NodeTag_T_CoerceToDomain);
+    (*node).arg = write_node_boxed(&ctd.arg) as *mut bindings_raw::Expr;
+    (*node).resulttype = ctd.resulttype;
+    (*node).resulttypmod = ctd.resulttypmod;
+    (*node).resultcollid = ctd.resultcollid;
+    (*node).coercionformat = proto_enum_to_c(ctd.coercionformat);
+    (*node).location = ctd.location;
+    node
+}
+
+// =============================================================================
+// Sequence nodes
+// =============================================================================
+
+unsafe fn write_create_seq_stmt(stmt: &protobuf::CreateSeqStmt) -> *mut bindings_raw::CreateSeqStmt {
+    let node = alloc_node::<bindings_raw::CreateSeqStmt>(bindings_raw::NodeTag_T_CreateSeqStmt);
+    (*node).sequence = write_range_var_ref(&stmt.sequence);
+    (*node).options = write_node_list(&stmt.options);
+    (*node).ownerId = stmt.owner_id;
+    (*node).for_identity = stmt.for_identity;
+    (*node).if_not_exists = stmt.if_not_exists;
+    node
+}
+
+unsafe fn write_alter_seq_stmt(stmt: &protobuf::AlterSeqStmt) -> *mut bindings_raw::AlterSeqStmt {
+    let node = alloc_node::<bindings_raw::AlterSeqStmt>(bindings_raw::NodeTag_T_AlterSeqStmt);
+    (*node).sequence = write_range_var_ref(&stmt.sequence);
+    (*node).options = write_node_list(&stmt.options);
+    (*node).for_identity = stmt.for_identity;
+    (*node).missing_ok = stmt.missing_ok;
+    node
+}
+
+// =============================================================================
+// Cursor nodes
+// =============================================================================
+
+unsafe fn write_close_portal_stmt(stmt: &protobuf::ClosePortalStmt) -> *mut bindings_raw::ClosePortalStmt {
+    let node = alloc_node::<bindings_raw::ClosePortalStmt>(bindings_raw::NodeTag_T_ClosePortalStmt);
+    (*node).portalname = pstrdup(&stmt.portalname);
+    node
+}
+
+unsafe fn write_fetch_stmt(stmt: &protobuf::FetchStmt) -> *mut bindings_raw::FetchStmt {
+    let node = alloc_node::<bindings_raw::FetchStmt>(bindings_raw::NodeTag_T_FetchStmt);
+    (*node).direction = proto_enum_to_c(stmt.direction);
+    (*node).howMany = stmt.how_many;
+    (*node).portalname = pstrdup(&stmt.portalname);
+    (*node).ismove = stmt.ismove;
+    node
+}
+
+unsafe fn write_declare_cursor_stmt(stmt: &protobuf::DeclareCursorStmt) -> *mut bindings_raw::DeclareCursorStmt {
+    let node = alloc_node::<bindings_raw::DeclareCursorStmt>(bindings_raw::NodeTag_T_DeclareCursorStmt);
+    (*node).portalname = pstrdup(&stmt.portalname);
+    (*node).options = stmt.options;
+    (*node).query = write_node_boxed(&stmt.query);
+    node
+}
+
+// =============================================================================
+// Additional DDL statements
+// =============================================================================
+
+unsafe fn write_define_stmt(stmt: &protobuf::DefineStmt) -> *mut bindings_raw::DefineStmt {
+    let node = alloc_node::<bindings_raw::DefineStmt>(bindings_raw::NodeTag_T_DefineStmt);
+    (*node).kind = proto_enum_to_c(stmt.kind);
+    (*node).oldstyle = stmt.oldstyle;
+    (*node).defnames = write_node_list(&stmt.defnames);
+    (*node).args = write_node_list(&stmt.args);
+    (*node).definition = write_node_list(&stmt.definition);
+    (*node).if_not_exists = stmt.if_not_exists;
+    (*node).replace = stmt.replace;
+    node
+}
+
+unsafe fn write_comment_stmt(stmt: &protobuf::CommentStmt) -> *mut bindings_raw::CommentStmt {
+    let node = alloc_node::<bindings_raw::CommentStmt>(bindings_raw::NodeTag_T_CommentStmt);
+    (*node).objtype = proto_enum_to_c(stmt.objtype);
+    (*node).object = write_node_boxed(&stmt.object);
+    (*node).comment = pstrdup(&stmt.comment);
+    node
+}
+
+unsafe fn write_sec_label_stmt(stmt: &protobuf::SecLabelStmt) -> *mut bindings_raw::SecLabelStmt {
+    let node = alloc_node::<bindings_raw::SecLabelStmt>(bindings_raw::NodeTag_T_SecLabelStmt);
+    (*node).objtype = proto_enum_to_c(stmt.objtype);
+    (*node).object = write_node_boxed(&stmt.object);
+    (*node).provider = pstrdup(&stmt.provider);
+    (*node).label = pstrdup(&stmt.label);
+    node
+}
+
+unsafe fn write_create_role_stmt(stmt: &protobuf::CreateRoleStmt) -> *mut bindings_raw::CreateRoleStmt {
+    let node = alloc_node::<bindings_raw::CreateRoleStmt>(bindings_raw::NodeTag_T_CreateRoleStmt);
+    (*node).stmt_type = proto_enum_to_c(stmt.stmt_type);
+    (*node).role = pstrdup(&stmt.role);
+    (*node).options = write_node_list(&stmt.options);
+    node
+}
+
+unsafe fn write_alter_role_stmt(stmt: &protobuf::AlterRoleStmt) -> *mut bindings_raw::AlterRoleStmt {
+    let node = alloc_node::<bindings_raw::AlterRoleStmt>(bindings_raw::NodeTag_T_AlterRoleStmt);
+    (*node).role = write_role_spec_ref(&stmt.role);
+    (*node).options = write_node_list(&stmt.options);
+    (*node).action = stmt.action;
+    node
+}
+
+unsafe fn write_alter_role_set_stmt(stmt: &protobuf::AlterRoleSetStmt) -> *mut bindings_raw::AlterRoleSetStmt {
+    let node = alloc_node::<bindings_raw::AlterRoleSetStmt>(bindings_raw::NodeTag_T_AlterRoleSetStmt);
+    (*node).role = write_role_spec_ref(&stmt.role);
+    (*node).database = pstrdup(&stmt.database);
+    (*node).setstmt = write_variable_set_stmt_ref(&stmt.setstmt);
+    node
+}
+
+unsafe fn write_drop_role_stmt(stmt: &protobuf::DropRoleStmt) -> *mut bindings_raw::DropRoleStmt {
+    let node = alloc_node::<bindings_raw::DropRoleStmt>(bindings_raw::NodeTag_T_DropRoleStmt);
+    (*node).roles = write_node_list(&stmt.roles);
+    (*node).missing_ok = stmt.missing_ok;
+    node
+}
+
+unsafe fn write_create_policy_stmt(stmt: &protobuf::CreatePolicyStmt) -> *mut bindings_raw::CreatePolicyStmt {
+    let node = alloc_node::<bindings_raw::CreatePolicyStmt>(bindings_raw::NodeTag_T_CreatePolicyStmt);
+    (*node).policy_name = pstrdup(&stmt.policy_name);
+    (*node).table = write_range_var_ref(&stmt.table);
+    (*node).cmd_name = pstrdup(&stmt.cmd_name);
+    (*node).permissive = stmt.permissive;
+    (*node).roles = write_node_list(&stmt.roles);
+    (*node).qual = write_node_boxed(&stmt.qual);
+    (*node).with_check = write_node_boxed(&stmt.with_check);
+    node
+}
+
+unsafe fn write_alter_policy_stmt(stmt: &protobuf::AlterPolicyStmt) -> *mut bindings_raw::AlterPolicyStmt {
+    let node = alloc_node::<bindings_raw::AlterPolicyStmt>(bindings_raw::NodeTag_T_AlterPolicyStmt);
+    (*node).policy_name = pstrdup(&stmt.policy_name);
+    (*node).table = write_range_var_ref(&stmt.table);
+    (*node).roles = write_node_list(&stmt.roles);
+    (*node).qual = write_node_boxed(&stmt.qual);
+    (*node).with_check = write_node_boxed(&stmt.with_check);
+    node
+}
+
+unsafe fn write_create_event_trig_stmt(stmt: &protobuf::CreateEventTrigStmt) -> *mut bindings_raw::CreateEventTrigStmt {
+    let node = alloc_node::<bindings_raw::CreateEventTrigStmt>(bindings_raw::NodeTag_T_CreateEventTrigStmt);
+    (*node).trigname = pstrdup(&stmt.trigname);
+    (*node).eventname = pstrdup(&stmt.eventname);
+    (*node).whenclause = write_node_list(&stmt.whenclause);
+    (*node).funcname = write_node_list(&stmt.funcname);
+    node
+}
+
+unsafe fn write_alter_event_trig_stmt(stmt: &protobuf::AlterEventTrigStmt) -> *mut bindings_raw::AlterEventTrigStmt {
+    let node = alloc_node::<bindings_raw::AlterEventTrigStmt>(bindings_raw::NodeTag_T_AlterEventTrigStmt);
+    (*node).trigname = pstrdup(&stmt.trigname);
+    (*node).tgenabled = if stmt.tgenabled.is_empty() { 0 } else { stmt.tgenabled.as_bytes()[0] as i8 };
+    node
+}
+
+unsafe fn write_create_plang_stmt(stmt: &protobuf::CreatePLangStmt) -> *mut bindings_raw::CreatePLangStmt {
+    let node = alloc_node::<bindings_raw::CreatePLangStmt>(bindings_raw::NodeTag_T_CreatePLangStmt);
+    (*node).replace = stmt.replace;
+    (*node).plname = pstrdup(&stmt.plname);
+    (*node).plhandler = write_node_list(&stmt.plhandler);
+    (*node).plinline = write_node_list(&stmt.plinline);
+    (*node).plvalidator = write_node_list(&stmt.plvalidator);
+    (*node).pltrusted = stmt.pltrusted;
+    node
+}
+
+unsafe fn write_create_am_stmt(stmt: &protobuf::CreateAmStmt) -> *mut bindings_raw::CreateAmStmt {
+    let node = alloc_node::<bindings_raw::CreateAmStmt>(bindings_raw::NodeTag_T_CreateAmStmt);
+    (*node).amname = pstrdup(&stmt.amname);
+    (*node).handler_name = write_node_list(&stmt.handler_name);
+    (*node).amtype = if stmt.amtype.is_empty() { 0 } else { stmt.amtype.as_bytes()[0] as i8 };
+    node
+}
+
+unsafe fn write_create_op_class_stmt(stmt: &protobuf::CreateOpClassStmt) -> *mut bindings_raw::CreateOpClassStmt {
+    let node = alloc_node::<bindings_raw::CreateOpClassStmt>(bindings_raw::NodeTag_T_CreateOpClassStmt);
+    (*node).opclassname = write_node_list(&stmt.opclassname);
+    (*node).opfamilyname = write_node_list(&stmt.opfamilyname);
+    (*node).amname = pstrdup(&stmt.amname);
+    (*node).datatype = write_type_name_ref(&stmt.datatype);
+    (*node).items = write_node_list(&stmt.items);
+    (*node).isDefault = stmt.is_default;
+    node
+}
+
+unsafe fn write_create_op_class_item(stmt: &protobuf::CreateOpClassItem) -> *mut bindings_raw::CreateOpClassItem {
+    let node = alloc_node::<bindings_raw::CreateOpClassItem>(bindings_raw::NodeTag_T_CreateOpClassItem);
+    (*node).itemtype = stmt.itemtype;
+    (*node).name = write_object_with_args_ref(&stmt.name);
+    (*node).number = stmt.number;
+    (*node).order_family = write_node_list(&stmt.order_family);
+    (*node).class_args = write_node_list(&stmt.class_args);
+    (*node).storedtype = write_type_name_ref(&stmt.storedtype);
+    node
+}
+
+unsafe fn write_create_op_family_stmt(stmt: &protobuf::CreateOpFamilyStmt) -> *mut bindings_raw::CreateOpFamilyStmt {
+    let node = alloc_node::<bindings_raw::CreateOpFamilyStmt>(bindings_raw::NodeTag_T_CreateOpFamilyStmt);
+    (*node).opfamilyname = write_node_list(&stmt.opfamilyname);
+    (*node).amname = pstrdup(&stmt.amname);
+    node
+}
+
+unsafe fn write_alter_op_family_stmt(stmt: &protobuf::AlterOpFamilyStmt) -> *mut bindings_raw::AlterOpFamilyStmt {
+    let node = alloc_node::<bindings_raw::AlterOpFamilyStmt>(bindings_raw::NodeTag_T_AlterOpFamilyStmt);
+    (*node).opfamilyname = write_node_list(&stmt.opfamilyname);
+    (*node).amname = pstrdup(&stmt.amname);
+    (*node).isDrop = stmt.is_drop;
+    (*node).items = write_node_list(&stmt.items);
+    node
+}
+
+unsafe fn write_create_fdw_stmt(stmt: &protobuf::CreateFdwStmt) -> *mut bindings_raw::CreateFdwStmt {
+    let node = alloc_node::<bindings_raw::CreateFdwStmt>(bindings_raw::NodeTag_T_CreateFdwStmt);
+    (*node).fdwname = pstrdup(&stmt.fdwname);
+    (*node).func_options = write_node_list(&stmt.func_options);
+    (*node).options = write_node_list(&stmt.options);
+    node
+}
+
+unsafe fn write_alter_fdw_stmt(stmt: &protobuf::AlterFdwStmt) -> *mut bindings_raw::AlterFdwStmt {
+    let node = alloc_node::<bindings_raw::AlterFdwStmt>(bindings_raw::NodeTag_T_AlterFdwStmt);
+    (*node).fdwname = pstrdup(&stmt.fdwname);
+    (*node).func_options = write_node_list(&stmt.func_options);
+    (*node).options = write_node_list(&stmt.options);
+    node
+}
+
+unsafe fn write_create_foreign_server_stmt(stmt: &protobuf::CreateForeignServerStmt) -> *mut bindings_raw::CreateForeignServerStmt {
+    let node = alloc_node::<bindings_raw::CreateForeignServerStmt>(bindings_raw::NodeTag_T_CreateForeignServerStmt);
+    (*node).servername = pstrdup(&stmt.servername);
+    (*node).servertype = pstrdup(&stmt.servertype);
+    (*node).version = pstrdup(&stmt.version);
+    (*node).fdwname = pstrdup(&stmt.fdwname);
+    (*node).if_not_exists = stmt.if_not_exists;
+    (*node).options = write_node_list(&stmt.options);
+    node
+}
+
+unsafe fn write_alter_foreign_server_stmt(stmt: &protobuf::AlterForeignServerStmt) -> *mut bindings_raw::AlterForeignServerStmt {
+    let node = alloc_node::<bindings_raw::AlterForeignServerStmt>(bindings_raw::NodeTag_T_AlterForeignServerStmt);
+    (*node).servername = pstrdup(&stmt.servername);
+    (*node).version = pstrdup(&stmt.version);
+    (*node).options = write_node_list(&stmt.options);
+    (*node).has_version = stmt.has_version;
+    node
+}
+
+unsafe fn write_create_foreign_table_stmt(stmt: &protobuf::CreateForeignTableStmt) -> *mut bindings_raw::CreateForeignTableStmt {
+    let node = alloc_node::<bindings_raw::CreateForeignTableStmt>(bindings_raw::NodeTag_T_CreateForeignTableStmt);
+    // CreateForeignTableStmt extends CreateStmt
+    (*node).base.type_ = bindings_raw::NodeTag_T_CreateForeignTableStmt;
+    if let Some(ref base) = stmt.base_stmt {
+        (*node).base.relation = write_range_var_ref(&base.relation);
+        (*node).base.tableElts = write_node_list(&base.table_elts);
+        (*node).base.inhRelations = write_node_list(&base.inh_relations);
+        (*node).base.partbound = write_partition_bound_spec_ref(&base.partbound);
+        (*node).base.partspec = write_partition_spec_ref(&base.partspec);
+        (*node).base.ofTypename = write_type_name_ref(&base.of_typename);
+        (*node).base.constraints = write_node_list(&base.constraints);
+        (*node).base.options = write_node_list(&base.options);
+        (*node).base.oncommit = proto_enum_to_c(base.oncommit);
+        (*node).base.tablespacename = pstrdup(&base.tablespacename);
+        (*node).base.accessMethod = pstrdup(&base.access_method);
+        (*node).base.if_not_exists = base.if_not_exists;
+    }
+    (*node).servername = pstrdup(&stmt.servername);
+    (*node).options = write_node_list(&stmt.options);
+    node
+}
+
+unsafe fn write_create_user_mapping_stmt(stmt: &protobuf::CreateUserMappingStmt) -> *mut bindings_raw::CreateUserMappingStmt {
+    let node = alloc_node::<bindings_raw::CreateUserMappingStmt>(bindings_raw::NodeTag_T_CreateUserMappingStmt);
+    (*node).user = write_role_spec_ref(&stmt.user);
+    (*node).servername = pstrdup(&stmt.servername);
+    (*node).if_not_exists = stmt.if_not_exists;
+    (*node).options = write_node_list(&stmt.options);
+    node
+}
+
+unsafe fn write_alter_user_mapping_stmt(stmt: &protobuf::AlterUserMappingStmt) -> *mut bindings_raw::AlterUserMappingStmt {
+    let node = alloc_node::<bindings_raw::AlterUserMappingStmt>(bindings_raw::NodeTag_T_AlterUserMappingStmt);
+    (*node).user = write_role_spec_ref(&stmt.user);
+    (*node).servername = pstrdup(&stmt.servername);
+    (*node).options = write_node_list(&stmt.options);
+    node
+}
+
+unsafe fn write_drop_user_mapping_stmt(stmt: &protobuf::DropUserMappingStmt) -> *mut bindings_raw::DropUserMappingStmt {
+    let node = alloc_node::<bindings_raw::DropUserMappingStmt>(bindings_raw::NodeTag_T_DropUserMappingStmt);
+    (*node).user = write_role_spec_ref(&stmt.user);
+    (*node).servername = pstrdup(&stmt.servername);
+    (*node).missing_ok = stmt.missing_ok;
+    node
+}
+
+unsafe fn write_import_foreign_schema_stmt(stmt: &protobuf::ImportForeignSchemaStmt) -> *mut bindings_raw::ImportForeignSchemaStmt {
+    let node = alloc_node::<bindings_raw::ImportForeignSchemaStmt>(bindings_raw::NodeTag_T_ImportForeignSchemaStmt);
+    (*node).server_name = pstrdup(&stmt.server_name);
+    (*node).remote_schema = pstrdup(&stmt.remote_schema);
+    (*node).local_schema = pstrdup(&stmt.local_schema);
+    (*node).list_type = proto_enum_to_c(stmt.list_type);
+    (*node).table_list = write_node_list(&stmt.table_list);
+    (*node).options = write_node_list(&stmt.options);
+    node
+}
+
+unsafe fn write_create_table_space_stmt(stmt: &protobuf::CreateTableSpaceStmt) -> *mut bindings_raw::CreateTableSpaceStmt {
+    let node = alloc_node::<bindings_raw::CreateTableSpaceStmt>(bindings_raw::NodeTag_T_CreateTableSpaceStmt);
+    (*node).tablespacename = pstrdup(&stmt.tablespacename);
+    (*node).owner = write_role_spec_ref(&stmt.owner);
+    (*node).location = pstrdup(&stmt.location);
+    (*node).options = write_node_list(&stmt.options);
+    node
+}
+
+unsafe fn write_drop_table_space_stmt(stmt: &protobuf::DropTableSpaceStmt) -> *mut bindings_raw::DropTableSpaceStmt {
+    let node = alloc_node::<bindings_raw::DropTableSpaceStmt>(bindings_raw::NodeTag_T_DropTableSpaceStmt);
+    (*node).tablespacename = pstrdup(&stmt.tablespacename);
+    (*node).missing_ok = stmt.missing_ok;
+    node
+}
+
+unsafe fn write_alter_table_space_options_stmt(stmt: &protobuf::AlterTableSpaceOptionsStmt) -> *mut bindings_raw::AlterTableSpaceOptionsStmt {
+    let node = alloc_node::<bindings_raw::AlterTableSpaceOptionsStmt>(bindings_raw::NodeTag_T_AlterTableSpaceOptionsStmt);
+    (*node).tablespacename = pstrdup(&stmt.tablespacename);
+    (*node).options = write_node_list(&stmt.options);
+    (*node).isReset = stmt.is_reset;
+    node
+}
+
+unsafe fn write_alter_table_move_all_stmt(stmt: &protobuf::AlterTableMoveAllStmt) -> *mut bindings_raw::AlterTableMoveAllStmt {
+    let node = alloc_node::<bindings_raw::AlterTableMoveAllStmt>(bindings_raw::NodeTag_T_AlterTableMoveAllStmt);
+    (*node).orig_tablespacename = pstrdup(&stmt.orig_tablespacename);
+    (*node).objtype = proto_enum_to_c(stmt.objtype);
+    (*node).roles = write_node_list(&stmt.roles);
+    (*node).new_tablespacename = pstrdup(&stmt.new_tablespacename);
+    (*node).nowait = stmt.nowait;
+    node
+}
+
+unsafe fn write_alter_extension_stmt(stmt: &protobuf::AlterExtensionStmt) -> *mut bindings_raw::AlterExtensionStmt {
+    let node = alloc_node::<bindings_raw::AlterExtensionStmt>(bindings_raw::NodeTag_T_AlterExtensionStmt);
+    (*node).extname = pstrdup(&stmt.extname);
+    (*node).options = write_node_list(&stmt.options);
+    node
+}
+
+unsafe fn write_alter_extension_contents_stmt(stmt: &protobuf::AlterExtensionContentsStmt) -> *mut bindings_raw::AlterExtensionContentsStmt {
+    let node = alloc_node::<bindings_raw::AlterExtensionContentsStmt>(bindings_raw::NodeTag_T_AlterExtensionContentsStmt);
+    (*node).extname = pstrdup(&stmt.extname);
+    (*node).action = stmt.action;
+    (*node).objtype = proto_enum_to_c(stmt.objtype);
+    (*node).object = write_node_boxed(&stmt.object);
+    node
+}
+
+unsafe fn write_alter_domain_stmt(stmt: &protobuf::AlterDomainStmt) -> *mut bindings_raw::AlterDomainStmt {
+    let node = alloc_node::<bindings_raw::AlterDomainStmt>(bindings_raw::NodeTag_T_AlterDomainStmt);
+    (*node).subtype = if stmt.subtype.is_empty() { 0 } else { stmt.subtype.as_bytes()[0] as i8 };
+    (*node).typeName = write_node_list(&stmt.type_name);
+    (*node).name = pstrdup(&stmt.name);
+    (*node).def = write_node_boxed(&stmt.def);
+    (*node).behavior = proto_enum_to_c(stmt.behavior);
+    (*node).missing_ok = stmt.missing_ok;
+    node
+}
+
+unsafe fn write_alter_function_stmt(stmt: &protobuf::AlterFunctionStmt) -> *mut bindings_raw::AlterFunctionStmt {
+    let node = alloc_node::<bindings_raw::AlterFunctionStmt>(bindings_raw::NodeTag_T_AlterFunctionStmt);
+    (*node).objtype = proto_enum_to_c(stmt.objtype);
+    (*node).func = write_object_with_args_ref(&stmt.func);
+    (*node).actions = write_node_list(&stmt.actions);
+    node
+}
+
+unsafe fn write_alter_operator_stmt(stmt: &protobuf::AlterOperatorStmt) -> *mut bindings_raw::AlterOperatorStmt {
+    let node = alloc_node::<bindings_raw::AlterOperatorStmt>(bindings_raw::NodeTag_T_AlterOperatorStmt);
+    (*node).opername = write_object_with_args_ref(&stmt.opername);
+    (*node).options = write_node_list(&stmt.options);
+    node
+}
+
+unsafe fn write_alter_type_stmt(stmt: &protobuf::AlterTypeStmt) -> *mut bindings_raw::AlterTypeStmt {
+    let node = alloc_node::<bindings_raw::AlterTypeStmt>(bindings_raw::NodeTag_T_AlterTypeStmt);
+    (*node).typeName = write_node_list(&stmt.type_name);
+    (*node).options = write_node_list(&stmt.options);
+    node
+}
+
+unsafe fn write_alter_owner_stmt(stmt: &protobuf::AlterOwnerStmt) -> *mut bindings_raw::AlterOwnerStmt {
+    let node = alloc_node::<bindings_raw::AlterOwnerStmt>(bindings_raw::NodeTag_T_AlterOwnerStmt);
+    (*node).objectType = proto_enum_to_c(stmt.object_type);
+    (*node).relation = write_range_var_ref(&stmt.relation);
+    (*node).object = write_node_boxed(&stmt.object);
+    (*node).newowner = write_role_spec_ref(&stmt.newowner);
+    node
+}
+
+unsafe fn write_alter_object_schema_stmt(stmt: &protobuf::AlterObjectSchemaStmt) -> *mut bindings_raw::AlterObjectSchemaStmt {
+    let node = alloc_node::<bindings_raw::AlterObjectSchemaStmt>(bindings_raw::NodeTag_T_AlterObjectSchemaStmt);
+    (*node).objectType = proto_enum_to_c(stmt.object_type);
+    (*node).relation = write_range_var_ref(&stmt.relation);
+    (*node).object = write_node_boxed(&stmt.object);
+    (*node).newschema = pstrdup(&stmt.newschema);
+    (*node).missing_ok = stmt.missing_ok;
+    node
+}
+
+unsafe fn write_alter_object_depends_stmt(stmt: &protobuf::AlterObjectDependsStmt) -> *mut bindings_raw::AlterObjectDependsStmt {
+    let node = alloc_node::<bindings_raw::AlterObjectDependsStmt>(bindings_raw::NodeTag_T_AlterObjectDependsStmt);
+    (*node).objectType = proto_enum_to_c(stmt.object_type);
+    (*node).relation = write_range_var_ref(&stmt.relation);
+    (*node).object = write_node_boxed(&stmt.object);
+    (*node).extname = write_string_ref(&stmt.extname);
+    (*node).remove = stmt.remove;
+    node
+}
+
+unsafe fn write_alter_collation_stmt(stmt: &protobuf::AlterCollationStmt) -> *mut bindings_raw::AlterCollationStmt {
+    let node = alloc_node::<bindings_raw::AlterCollationStmt>(bindings_raw::NodeTag_T_AlterCollationStmt);
+    (*node).collname = write_node_list(&stmt.collname);
+    node
+}
+
+unsafe fn write_alter_default_privileges_stmt(stmt: &protobuf::AlterDefaultPrivilegesStmt) -> *mut bindings_raw::AlterDefaultPrivilegesStmt {
+    let node = alloc_node::<bindings_raw::AlterDefaultPrivilegesStmt>(bindings_raw::NodeTag_T_AlterDefaultPrivilegesStmt);
+    (*node).options = write_node_list(&stmt.options);
+    (*node).action = write_grant_stmt_ref(&stmt.action);
+    node
+}
+
+unsafe fn write_create_cast_stmt(stmt: &protobuf::CreateCastStmt) -> *mut bindings_raw::CreateCastStmt {
+    let node = alloc_node::<bindings_raw::CreateCastStmt>(bindings_raw::NodeTag_T_CreateCastStmt);
+    (*node).sourcetype = write_type_name_ref(&stmt.sourcetype);
+    (*node).targettype = write_type_name_ref(&stmt.targettype);
+    (*node).func = write_object_with_args_ref(&stmt.func);
+    (*node).context = proto_enum_to_c(stmt.context);
+    (*node).inout = stmt.inout;
+    node
+}
+
+unsafe fn write_create_transform_stmt(stmt: &protobuf::CreateTransformStmt) -> *mut bindings_raw::CreateTransformStmt {
+    let node = alloc_node::<bindings_raw::CreateTransformStmt>(bindings_raw::NodeTag_T_CreateTransformStmt);
+    (*node).replace = stmt.replace;
+    (*node).type_name = write_type_name_ref(&stmt.type_name);
+    (*node).lang = pstrdup(&stmt.lang);
+    (*node).fromsql = write_object_with_args_ref(&stmt.fromsql);
+    (*node).tosql = write_object_with_args_ref(&stmt.tosql);
+    node
+}
+
+unsafe fn write_create_conversion_stmt(stmt: &protobuf::CreateConversionStmt) -> *mut bindings_raw::CreateConversionStmt {
+    let node = alloc_node::<bindings_raw::CreateConversionStmt>(bindings_raw::NodeTag_T_CreateConversionStmt);
+    (*node).conversion_name = write_node_list(&stmt.conversion_name);
+    (*node).for_encoding_name = pstrdup(&stmt.for_encoding_name);
+    (*node).to_encoding_name = pstrdup(&stmt.to_encoding_name);
+    (*node).func_name = write_node_list(&stmt.func_name);
+    (*node).def = stmt.def;
+    node
+}
+
+unsafe fn write_alter_ts_dictionary_stmt(stmt: &protobuf::AlterTsDictionaryStmt) -> *mut bindings_raw::AlterTSDictionaryStmt {
+    let node = alloc_node::<bindings_raw::AlterTSDictionaryStmt>(bindings_raw::NodeTag_T_AlterTSDictionaryStmt);
+    (*node).dictname = write_node_list(&stmt.dictname);
+    (*node).options = write_node_list(&stmt.options);
+    node
+}
+
+unsafe fn write_alter_ts_configuration_stmt(stmt: &protobuf::AlterTsConfigurationStmt) -> *mut bindings_raw::AlterTSConfigurationStmt {
+    let node = alloc_node::<bindings_raw::AlterTSConfigurationStmt>(bindings_raw::NodeTag_T_AlterTSConfigurationStmt);
+    (*node).kind = proto_enum_to_c(stmt.kind);
+    (*node).cfgname = write_node_list(&stmt.cfgname);
+    (*node).tokentype = write_node_list(&stmt.tokentype);
+    (*node).dicts = write_node_list(&stmt.dicts);
+    (*node).override_ = stmt.r#override;
+    (*node).replace = stmt.replace;
+    (*node).missing_ok = stmt.missing_ok;
+    node
+}
+
+// =============================================================================
+// Database statements
+// =============================================================================
+
+unsafe fn write_createdb_stmt(stmt: &protobuf::CreatedbStmt) -> *mut bindings_raw::CreatedbStmt {
+    let node = alloc_node::<bindings_raw::CreatedbStmt>(bindings_raw::NodeTag_T_CreatedbStmt);
+    (*node).dbname = pstrdup(&stmt.dbname);
+    (*node).options = write_node_list(&stmt.options);
+    node
+}
+
+unsafe fn write_dropdb_stmt(stmt: &protobuf::DropdbStmt) -> *mut bindings_raw::DropdbStmt {
+    let node = alloc_node::<bindings_raw::DropdbStmt>(bindings_raw::NodeTag_T_DropdbStmt);
+    (*node).dbname = pstrdup(&stmt.dbname);
+    (*node).missing_ok = stmt.missing_ok;
+    (*node).options = write_node_list(&stmt.options);
+    node
+}
+
+unsafe fn write_alter_database_stmt(stmt: &protobuf::AlterDatabaseStmt) -> *mut bindings_raw::AlterDatabaseStmt {
+    let node = alloc_node::<bindings_raw::AlterDatabaseStmt>(bindings_raw::NodeTag_T_AlterDatabaseStmt);
+    (*node).dbname = pstrdup(&stmt.dbname);
+    (*node).options = write_node_list(&stmt.options);
+    node
+}
+
+unsafe fn write_alter_database_set_stmt(stmt: &protobuf::AlterDatabaseSetStmt) -> *mut bindings_raw::AlterDatabaseSetStmt {
+    let node = alloc_node::<bindings_raw::AlterDatabaseSetStmt>(bindings_raw::NodeTag_T_AlterDatabaseSetStmt);
+    (*node).dbname = pstrdup(&stmt.dbname);
+    (*node).setstmt = write_variable_set_stmt_ref(&stmt.setstmt);
+    node
+}
+
+unsafe fn write_alter_database_refresh_coll_stmt(stmt: &protobuf::AlterDatabaseRefreshCollStmt) -> *mut bindings_raw::AlterDatabaseRefreshCollStmt {
+    let node = alloc_node::<bindings_raw::AlterDatabaseRefreshCollStmt>(bindings_raw::NodeTag_T_AlterDatabaseRefreshCollStmt);
+    (*node).dbname = pstrdup(&stmt.dbname);
+    node
+}
+
+unsafe fn write_alter_system_stmt(stmt: &protobuf::AlterSystemStmt) -> *mut bindings_raw::AlterSystemStmt {
+    let node = alloc_node::<bindings_raw::AlterSystemStmt>(bindings_raw::NodeTag_T_AlterSystemStmt);
+    (*node).setstmt = write_variable_set_stmt_ref(&stmt.setstmt);
+    node
+}
+
+unsafe fn write_cluster_stmt(stmt: &protobuf::ClusterStmt) -> *mut bindings_raw::ClusterStmt {
+    let node = alloc_node::<bindings_raw::ClusterStmt>(bindings_raw::NodeTag_T_ClusterStmt);
+    (*node).relation = write_range_var_ref(&stmt.relation);
+    (*node).indexname = pstrdup(&stmt.indexname);
+    (*node).params = write_node_list(&stmt.params);
+    node
+}
+
+unsafe fn write_reindex_stmt(stmt: &protobuf::ReindexStmt) -> *mut bindings_raw::ReindexStmt {
+    let node = alloc_node::<bindings_raw::ReindexStmt>(bindings_raw::NodeTag_T_ReindexStmt);
+    (*node).kind = proto_enum_to_c(stmt.kind);
+    (*node).relation = write_range_var_ref(&stmt.relation);
+    (*node).name = pstrdup(&stmt.name);
+    (*node).params = write_node_list(&stmt.params);
+    node
+}
+
+unsafe fn write_constraints_set_stmt(stmt: &protobuf::ConstraintsSetStmt) -> *mut bindings_raw::ConstraintsSetStmt {
+    let node = alloc_node::<bindings_raw::ConstraintsSetStmt>(bindings_raw::NodeTag_T_ConstraintsSetStmt);
+    (*node).constraints = write_node_list(&stmt.constraints);
+    (*node).deferred = stmt.deferred;
+    node
+}
+
+unsafe fn write_load_stmt(stmt: &protobuf::LoadStmt) -> *mut bindings_raw::LoadStmt {
+    let node = alloc_node::<bindings_raw::LoadStmt>(bindings_raw::NodeTag_T_LoadStmt);
+    (*node).filename = pstrdup(&stmt.filename);
+    node
+}
+
+unsafe fn write_drop_owned_stmt(stmt: &protobuf::DropOwnedStmt) -> *mut bindings_raw::DropOwnedStmt {
+    let node = alloc_node::<bindings_raw::DropOwnedStmt>(bindings_raw::NodeTag_T_DropOwnedStmt);
+    (*node).roles = write_node_list(&stmt.roles);
+    (*node).behavior = proto_enum_to_c(stmt.behavior);
+    node
+}
+
+unsafe fn write_reassign_owned_stmt(stmt: &protobuf::ReassignOwnedStmt) -> *mut bindings_raw::ReassignOwnedStmt {
+    let node = alloc_node::<bindings_raw::ReassignOwnedStmt>(bindings_raw::NodeTag_T_ReassignOwnedStmt);
+    (*node).roles = write_node_list(&stmt.roles);
+    (*node).newrole = write_role_spec_ref(&stmt.newrole);
+    node
+}
+
+unsafe fn write_drop_subscription_stmt(stmt: &protobuf::DropSubscriptionStmt) -> *mut bindings_raw::DropSubscriptionStmt {
+    let node = alloc_node::<bindings_raw::DropSubscriptionStmt>(bindings_raw::NodeTag_T_DropSubscriptionStmt);
+    (*node).subname = pstrdup(&stmt.subname);
+    (*node).missing_ok = stmt.missing_ok;
+    (*node).behavior = proto_enum_to_c(stmt.behavior);
+    node
+}
+
+// =============================================================================
+// Table-related nodes
+// =============================================================================
+
+unsafe fn write_table_func(stmt: &protobuf::TableFunc) -> *mut bindings_raw::TableFunc {
+    let node = alloc_node::<bindings_raw::TableFunc>(bindings_raw::NodeTag_T_TableFunc);
+    (*node).ns_uris = write_node_list(&stmt.ns_uris);
+    (*node).ns_names = write_node_list(&stmt.ns_names);
+    (*node).docexpr = write_node_boxed(&stmt.docexpr);
+    (*node).rowexpr = write_node_boxed(&stmt.rowexpr);
+    (*node).colnames = write_node_list(&stmt.colnames);
+    (*node).coltypes = write_node_list(&stmt.coltypes);
+    (*node).coltypmods = write_node_list(&stmt.coltypmods);
+    (*node).colcollations = write_node_list(&stmt.colcollations);
+    (*node).colexprs = write_node_list(&stmt.colexprs);
+    (*node).coldefexprs = write_node_list(&stmt.coldefexprs);
+    (*node).ordinalitycol = stmt.ordinalitycol;
+    (*node).location = stmt.location;
+    node
+}
+
+unsafe fn write_table_like_clause(stmt: &protobuf::TableLikeClause) -> *mut bindings_raw::TableLikeClause {
+    let node = alloc_node::<bindings_raw::TableLikeClause>(bindings_raw::NodeTag_T_TableLikeClause);
+    (*node).relation = write_range_var_ref(&stmt.relation);
+    (*node).options = stmt.options;
+    (*node).relationOid = stmt.relation_oid;
+    node
+}
+
+unsafe fn write_range_table_func(stmt: &protobuf::RangeTableFunc) -> *mut bindings_raw::RangeTableFunc {
+    let node = alloc_node::<bindings_raw::RangeTableFunc>(bindings_raw::NodeTag_T_RangeTableFunc);
+    (*node).lateral = stmt.lateral;
+    (*node).docexpr = write_node_boxed(&stmt.docexpr);
+    (*node).rowexpr = write_node_boxed(&stmt.rowexpr);
+    (*node).namespaces = write_node_list(&stmt.namespaces);
+    (*node).columns = write_node_list(&stmt.columns);
+    (*node).alias = write_alias_ref(&stmt.alias);
+    (*node).location = stmt.location;
+    node
+}
+
+unsafe fn write_range_table_func_col(stmt: &protobuf::RangeTableFuncCol) -> *mut bindings_raw::RangeTableFuncCol {
+    let node = alloc_node::<bindings_raw::RangeTableFuncCol>(bindings_raw::NodeTag_T_RangeTableFuncCol);
+    (*node).colname = pstrdup(&stmt.colname);
+    (*node).typeName = write_type_name_ref(&stmt.type_name);
+    (*node).for_ordinality = stmt.for_ordinality;
+    (*node).is_not_null = stmt.is_not_null;
+    (*node).colexpr = write_node_boxed(&stmt.colexpr);
+    (*node).coldefexpr = write_node_boxed(&stmt.coldefexpr);
+    (*node).location = stmt.location;
+    node
+}
+
+unsafe fn write_range_table_sample(stmt: &protobuf::RangeTableSample) -> *mut bindings_raw::RangeTableSample {
+    let node = alloc_node::<bindings_raw::RangeTableSample>(bindings_raw::NodeTag_T_RangeTableSample);
+    (*node).relation = write_node_boxed(&stmt.relation);
+    (*node).method = write_node_list(&stmt.method);
+    (*node).args = write_node_list(&stmt.args);
+    (*node).repeatable = write_node_boxed(&stmt.repeatable);
+    (*node).location = stmt.location;
+    node
+}
+
+unsafe fn write_partition_spec(stmt: &protobuf::PartitionSpec) -> *mut bindings_raw::PartitionSpec {
+    let node = alloc_node::<bindings_raw::PartitionSpec>(bindings_raw::NodeTag_T_PartitionSpec);
+    (*node).strategy = proto_enum_to_c(stmt.strategy);
+    (*node).partParams = write_node_list(&stmt.part_params);
+    (*node).location = stmt.location;
+    node
+}
+
+unsafe fn write_partition_bound_spec(stmt: &protobuf::PartitionBoundSpec) -> *mut bindings_raw::PartitionBoundSpec {
+    let node = alloc_node::<bindings_raw::PartitionBoundSpec>(bindings_raw::NodeTag_T_PartitionBoundSpec);
+    (*node).strategy = if stmt.strategy.is_empty() { 0 } else { stmt.strategy.as_bytes()[0] as i8 };
+    (*node).is_default = stmt.is_default;
+    (*node).modulus = stmt.modulus;
+    (*node).remainder = stmt.remainder;
+    (*node).listdatums = write_node_list(&stmt.listdatums);
+    (*node).lowerdatums = write_node_list(&stmt.lowerdatums);
+    (*node).upperdatums = write_node_list(&stmt.upperdatums);
+    (*node).location = stmt.location;
+    node
+}
+
+unsafe fn write_partition_range_datum(stmt: &protobuf::PartitionRangeDatum) -> *mut bindings_raw::PartitionRangeDatum {
+    let node = alloc_node::<bindings_raw::PartitionRangeDatum>(bindings_raw::NodeTag_T_PartitionRangeDatum);
+    (*node).kind = proto_enum_to_c(stmt.kind) as i32;
+    (*node).value = write_node_boxed(&stmt.value);
+    (*node).location = stmt.location;
+    node
+}
+
+unsafe fn write_partition_elem(stmt: &protobuf::PartitionElem) -> *mut bindings_raw::PartitionElem {
+    let node = alloc_node::<bindings_raw::PartitionElem>(bindings_raw::NodeTag_T_PartitionElem);
+    (*node).name = pstrdup(&stmt.name);
+    (*node).expr = write_node_boxed(&stmt.expr);
+    (*node).collation = write_node_list(&stmt.collation);
+    (*node).opclass = write_node_list(&stmt.opclass);
+    (*node).location = stmt.location;
+    node
+}
+
+unsafe fn write_partition_cmd(stmt: &protobuf::PartitionCmd) -> *mut bindings_raw::PartitionCmd {
+    let node = alloc_node::<bindings_raw::PartitionCmd>(bindings_raw::NodeTag_T_PartitionCmd);
+    (*node).name = write_range_var_ref(&stmt.name);
+    (*node).bound = write_partition_bound_spec_ref(&stmt.bound);
+    (*node).concurrent = stmt.concurrent;
+    node
+}
+
+unsafe fn write_single_partition_spec(_stmt: &protobuf::SinglePartitionSpec) -> *mut bindings_raw::SinglePartitionSpec {
+    // SinglePartitionSpec is an empty struct in protobuf
+    let node = alloc_node::<bindings_raw::SinglePartitionSpec>(bindings_raw::NodeTag_T_SinglePartitionSpec);
+    node
+}
+
+unsafe fn write_infer_clause(stmt: &protobuf::InferClause) -> *mut bindings_raw::InferClause {
+    let node = alloc_node::<bindings_raw::InferClause>(bindings_raw::NodeTag_T_InferClause);
+    (*node).indexElems = write_node_list(&stmt.index_elems);
+    (*node).whereClause = write_node_boxed(&stmt.where_clause);
+    (*node).conname = pstrdup(&stmt.conname);
+    (*node).location = stmt.location;
+    node
+}
+
+unsafe fn write_multi_assign_ref(stmt: &protobuf::MultiAssignRef) -> *mut bindings_raw::MultiAssignRef {
+    let node = alloc_node::<bindings_raw::MultiAssignRef>(bindings_raw::NodeTag_T_MultiAssignRef);
+    (*node).source = write_node_boxed(&stmt.source);
+    (*node).colno = stmt.colno;
+    (*node).ncolumns = stmt.ncolumns;
+    node
+}
+
+unsafe fn write_trigger_transition(stmt: &protobuf::TriggerTransition) -> *mut bindings_raw::TriggerTransition {
+    let node = alloc_node::<bindings_raw::TriggerTransition>(bindings_raw::NodeTag_T_TriggerTransition);
+    (*node).name = pstrdup(&stmt.name);
+    (*node).isNew = stmt.is_new;
+    (*node).isTable = stmt.is_table;
+    node
+}
+
+// =============================================================================
+// CTE-related nodes
+// =============================================================================
+
+unsafe fn write_cte_search_clause(stmt: &protobuf::CteSearchClause) -> *mut bindings_raw::CTESearchClause {
+    let node = alloc_node::<bindings_raw::CTESearchClause>(bindings_raw::NodeTag_T_CTESearchClause);
+    (*node).search_col_list = write_node_list(&stmt.search_col_list);
+    (*node).search_breadth_first = stmt.search_breadth_first;
+    (*node).search_seq_column = pstrdup(&stmt.search_seq_column);
+    (*node).location = stmt.location;
+    node
+}
+
+unsafe fn write_cte_cycle_clause(stmt: &protobuf::CteCycleClause) -> *mut bindings_raw::CTECycleClause {
+    let node = alloc_node::<bindings_raw::CTECycleClause>(bindings_raw::NodeTag_T_CTECycleClause);
+    (*node).cycle_col_list = write_node_list(&stmt.cycle_col_list);
+    (*node).cycle_mark_column = pstrdup(&stmt.cycle_mark_column);
+    (*node).cycle_mark_value = write_node_boxed(&stmt.cycle_mark_value);
+    (*node).cycle_mark_default = write_node_boxed(&stmt.cycle_mark_default);
+    (*node).cycle_path_column = pstrdup(&stmt.cycle_path_column);
+    (*node).location = stmt.location;
+    node
+}
+
+// =============================================================================
+// Statistics nodes
+// =============================================================================
+
+unsafe fn write_create_stats_stmt(stmt: &protobuf::CreateStatsStmt) -> *mut bindings_raw::CreateStatsStmt {
+    let node = alloc_node::<bindings_raw::CreateStatsStmt>(bindings_raw::NodeTag_T_CreateStatsStmt);
+    (*node).defnames = write_node_list(&stmt.defnames);
+    (*node).stat_types = write_node_list(&stmt.stat_types);
+    (*node).exprs = write_node_list(&stmt.exprs);
+    (*node).relations = write_node_list(&stmt.relations);
+    (*node).stxcomment = pstrdup(&stmt.stxcomment);
+    (*node).transformed = stmt.transformed;
+    (*node).if_not_exists = stmt.if_not_exists;
+    node
+}
+
+unsafe fn write_alter_stats_stmt(stmt: &protobuf::AlterStatsStmt) -> *mut bindings_raw::AlterStatsStmt {
+    let node = alloc_node::<bindings_raw::AlterStatsStmt>(bindings_raw::NodeTag_T_AlterStatsStmt);
+    (*node).defnames = write_node_list(&stmt.defnames);
+    (*node).missing_ok = stmt.missing_ok;
+    (*node).stxstattarget = write_node_boxed(&stmt.stxstattarget);
+    node
+}
+
+unsafe fn write_stats_elem(stmt: &protobuf::StatsElem) -> *mut bindings_raw::StatsElem {
+    let node = alloc_node::<bindings_raw::StatsElem>(bindings_raw::NodeTag_T_StatsElem);
+    (*node).name = pstrdup(&stmt.name);
+    (*node).expr = write_node_boxed(&stmt.expr);
+    node
+}
+
+// =============================================================================
+// Publication nodes
+// =============================================================================
+
+unsafe fn write_publication_obj_spec(stmt: &protobuf::PublicationObjSpec) -> *mut bindings_raw::PublicationObjSpec {
+    let node = alloc_node::<bindings_raw::PublicationObjSpec>(bindings_raw::NodeTag_T_PublicationObjSpec);
+    (*node).pubobjtype = proto_enum_to_c(stmt.pubobjtype);
+    (*node).name = pstrdup(&stmt.name);
+    (*node).pubtable = write_publication_table_ref(&stmt.pubtable);
+    (*node).location = stmt.location;
+    node
+}
+
+unsafe fn write_publication_table(stmt: &protobuf::PublicationTable) -> *mut bindings_raw::PublicationTable {
+    let node = alloc_node::<bindings_raw::PublicationTable>(bindings_raw::NodeTag_T_PublicationTable);
+    (*node).relation = write_range_var_ref(&stmt.relation);
+    (*node).whereClause = write_node_boxed(&stmt.where_clause);
+    (*node).columns = write_node_list(&stmt.columns);
+    node
+}
+
+// =============================================================================
+// SQL Value function
+// =============================================================================
+
+unsafe fn write_sql_value_function(stmt: &protobuf::SqlValueFunction) -> *mut bindings_raw::SQLValueFunction {
+    let node = alloc_node::<bindings_raw::SQLValueFunction>(bindings_raw::NodeTag_T_SQLValueFunction);
+    (*node).op = proto_enum_to_c(stmt.op);
+    (*node).type_ = stmt.r#type;
+    (*node).typmod = stmt.typmod;
+    (*node).location = stmt.location;
+    node
+}
+
+// =============================================================================
+// XML nodes
+// =============================================================================
+
+unsafe fn write_xml_expr(stmt: &protobuf::XmlExpr) -> *mut bindings_raw::XmlExpr {
+    let node = alloc_node::<bindings_raw::XmlExpr>(bindings_raw::NodeTag_T_XmlExpr);
+    (*node).op = proto_enum_to_c(stmt.op);
+    (*node).name = pstrdup(&stmt.name);
+    (*node).named_args = write_node_list(&stmt.named_args);
+    (*node).arg_names = write_node_list(&stmt.arg_names);
+    (*node).args = write_node_list(&stmt.args);
+    (*node).xmloption = proto_enum_to_c(stmt.xmloption);
+    (*node).indent = stmt.indent;
+    (*node).type_ = stmt.r#type;
+    (*node).typmod = stmt.typmod;
+    (*node).location = stmt.location;
+    node
+}
+
+unsafe fn write_xml_serialize(stmt: &protobuf::XmlSerialize) -> *mut bindings_raw::XmlSerialize {
+    let node = alloc_node::<bindings_raw::XmlSerialize>(bindings_raw::NodeTag_T_XmlSerialize);
+    (*node).xmloption = proto_enum_to_c(stmt.xmloption);
+    (*node).expr = write_node_boxed(&stmt.expr);
+    (*node).typeName = write_type_name_ref(&stmt.type_name);
+    (*node).indent = stmt.indent;
+    (*node).location = stmt.location;
+    node
+}
+
+// =============================================================================
+// Named argument
+// =============================================================================
+
+unsafe fn write_named_arg_expr(stmt: &protobuf::NamedArgExpr) -> *mut bindings_raw::NamedArgExpr {
+    let node = alloc_node::<bindings_raw::NamedArgExpr>(bindings_raw::NodeTag_T_NamedArgExpr);
+    (*node).arg = write_node_boxed(&stmt.arg) as *mut bindings_raw::Expr;
+    (*node).name = pstrdup(&stmt.name);
+    (*node).argnumber = stmt.argnumber;
+    (*node).location = stmt.location;
+    node
+}
+
+// =============================================================================
+// JSON nodes
+// =============================================================================
+
+unsafe fn write_json_format(stmt: &protobuf::JsonFormat) -> *mut bindings_raw::JsonFormat {
+    let node = alloc_node::<bindings_raw::JsonFormat>(bindings_raw::NodeTag_T_JsonFormat);
+    (*node).format_type = proto_enum_to_c(stmt.format_type);
+    (*node).encoding = proto_enum_to_c(stmt.encoding);
+    (*node).location = stmt.location;
+    node
+}
+
+unsafe fn write_json_returning(stmt: &protobuf::JsonReturning) -> *mut bindings_raw::JsonReturning {
+    let node = alloc_node::<bindings_raw::JsonReturning>(bindings_raw::NodeTag_T_JsonReturning);
+    (*node).format = write_json_format_ref(&stmt.format);
+    (*node).typid = stmt.typid;
+    (*node).typmod = stmt.typmod;
+    node
+}
+
+unsafe fn write_json_value_expr(stmt: &protobuf::JsonValueExpr) -> *mut bindings_raw::JsonValueExpr {
+    let node = alloc_node::<bindings_raw::JsonValueExpr>(bindings_raw::NodeTag_T_JsonValueExpr);
+    (*node).raw_expr = write_node_boxed(&stmt.raw_expr) as *mut bindings_raw::Expr;
+    (*node).formatted_expr = write_node_boxed(&stmt.formatted_expr) as *mut bindings_raw::Expr;
+    (*node).format = write_json_format_ref(&stmt.format);
+    node
+}
+
+unsafe fn write_json_constructor_expr(stmt: &protobuf::JsonConstructorExpr) -> *mut bindings_raw::JsonConstructorExpr {
+    let node = alloc_node::<bindings_raw::JsonConstructorExpr>(bindings_raw::NodeTag_T_JsonConstructorExpr);
+    (*node).type_ = proto_enum_to_c(stmt.r#type);
+    (*node).args = write_node_list(&stmt.args);
+    (*node).func = write_node_boxed(&stmt.func) as *mut bindings_raw::Expr;
+    (*node).coercion = write_node_boxed(&stmt.coercion) as *mut bindings_raw::Expr;
+    (*node).returning = write_json_returning_ref(&stmt.returning);
+    (*node).absent_on_null = stmt.absent_on_null;
+    (*node).unique = stmt.unique;
+    (*node).location = stmt.location;
+    node
+}
+
+unsafe fn write_json_is_predicate(stmt: &protobuf::JsonIsPredicate) -> *mut bindings_raw::JsonIsPredicate {
+    let node = alloc_node::<bindings_raw::JsonIsPredicate>(bindings_raw::NodeTag_T_JsonIsPredicate);
+    (*node).expr = write_node_boxed(&stmt.expr);
+    (*node).format = write_json_format_ref(&stmt.format);
+    (*node).item_type = proto_enum_to_c(stmt.item_type);
+    (*node).unique_keys = stmt.unique_keys;
+    (*node).location = stmt.location;
+    node
+}
+
+unsafe fn write_json_behavior(stmt: &protobuf::JsonBehavior) -> *mut bindings_raw::JsonBehavior {
+    let node = alloc_node::<bindings_raw::JsonBehavior>(bindings_raw::NodeTag_T_JsonBehavior);
+    (*node).btype = proto_enum_to_c(stmt.btype);
+    (*node).expr = write_node_boxed(&stmt.expr);
+    (*node).coerce = stmt.coerce;
+    (*node).location = stmt.location;
+    node
+}
+
+unsafe fn write_json_expr(stmt: &protobuf::JsonExpr) -> *mut bindings_raw::JsonExpr {
+    let node = alloc_node::<bindings_raw::JsonExpr>(bindings_raw::NodeTag_T_JsonExpr);
+    (*node).op = proto_enum_to_c(stmt.op);
+    (*node).column_name = pstrdup(&stmt.column_name);
+    (*node).formatted_expr = write_node_boxed(&stmt.formatted_expr);
+    (*node).format = write_json_format_ref(&stmt.format);
+    (*node).path_spec = write_node_boxed(&stmt.path_spec);
+    (*node).returning = write_json_returning_ref(&stmt.returning);
+    (*node).passing_names = write_node_list(&stmt.passing_names);
+    (*node).passing_values = write_node_list(&stmt.passing_values);
+    (*node).on_empty = write_json_behavior_ref(&stmt.on_empty);
+    (*node).on_error = write_json_behavior_ref(&stmt.on_error);
+    (*node).use_io_coercion = stmt.use_io_coercion;
+    (*node).use_json_coercion = stmt.use_json_coercion;
+    (*node).wrapper = proto_enum_to_c(stmt.wrapper);
+    (*node).omit_quotes = stmt.omit_quotes;
+    (*node).collation = stmt.collation;
+    (*node).location = stmt.location;
+    node
+}
+
+unsafe fn write_json_table_path(stmt: &protobuf::JsonTablePath) -> *mut bindings_raw::JsonTablePath {
+    let node = alloc_node::<bindings_raw::JsonTablePath>(bindings_raw::NodeTag_T_JsonTablePath);
+    // value is only populated after semantic analysis, not in raw parse tree
+    (*node).value = std::ptr::null_mut();
+    (*node).name = pstrdup(&stmt.name);
+    node
+}
+
+unsafe fn write_json_table_path_scan(stmt: &protobuf::JsonTablePathScan) -> *mut bindings_raw::JsonTablePathScan {
+    let node = alloc_node::<bindings_raw::JsonTablePathScan>(bindings_raw::NodeTag_T_JsonTablePathScan);
+    (*node).path = write_json_table_path_opt(&stmt.path);
+    (*node).errorOnError = stmt.error_on_error;
+    (*node).child = write_node_boxed(&stmt.child) as *mut bindings_raw::JsonTablePlan;
+    (*node).colMin = stmt.col_min;
+    (*node).colMax = stmt.col_max;
+    node
+}
+
+unsafe fn write_json_table_sibling_join(stmt: &protobuf::JsonTableSiblingJoin) -> *mut bindings_raw::JsonTableSiblingJoin {
+    let node = alloc_node::<bindings_raw::JsonTableSiblingJoin>(bindings_raw::NodeTag_T_JsonTableSiblingJoin);
+    (*node).lplan = write_node_boxed(&stmt.lplan) as *mut bindings_raw::JsonTablePlan;
+    (*node).rplan = write_node_boxed(&stmt.rplan) as *mut bindings_raw::JsonTablePlan;
+    node
+}
+
+unsafe fn write_json_output(stmt: &protobuf::JsonOutput) -> *mut bindings_raw::JsonOutput {
+    let node = alloc_node::<bindings_raw::JsonOutput>(bindings_raw::NodeTag_T_JsonOutput);
+    (*node).typeName = write_type_name_ref(&stmt.type_name);
+    (*node).returning = write_json_returning_ref(&stmt.returning);
+    node
+}
+
+unsafe fn write_json_argument(stmt: &protobuf::JsonArgument) -> *mut bindings_raw::JsonArgument {
+    let node = alloc_node::<bindings_raw::JsonArgument>(bindings_raw::NodeTag_T_JsonArgument);
+    (*node).val = write_json_value_expr_ref(&stmt.val);
+    (*node).name = pstrdup(&stmt.name);
+    node
+}
+
+unsafe fn write_json_func_expr(stmt: &protobuf::JsonFuncExpr) -> *mut bindings_raw::JsonFuncExpr {
+    let node = alloc_node::<bindings_raw::JsonFuncExpr>(bindings_raw::NodeTag_T_JsonFuncExpr);
+    (*node).op = proto_enum_to_c(stmt.op);
+    (*node).column_name = pstrdup(&stmt.column_name);
+    (*node).context_item = write_json_value_expr_ref(&stmt.context_item);
+    (*node).pathspec = write_node_boxed(&stmt.pathspec);
+    (*node).passing = write_node_list(&stmt.passing);
+    (*node).output = write_json_output_ref(&stmt.output);
+    (*node).on_empty = write_json_behavior_ref(&stmt.on_empty);
+    (*node).on_error = write_json_behavior_ref(&stmt.on_error);
+    (*node).wrapper = proto_enum_to_c(stmt.wrapper);
+    (*node).quotes = proto_enum_to_c(stmt.quotes);
+    (*node).location = stmt.location;
+    node
+}
+
+unsafe fn write_json_table_path_spec(stmt: &protobuf::JsonTablePathSpec) -> *mut bindings_raw::JsonTablePathSpec {
+    let node = alloc_node::<bindings_raw::JsonTablePathSpec>(bindings_raw::NodeTag_T_JsonTablePathSpec);
+    (*node).string = write_node_boxed(&stmt.string);
+    (*node).name = pstrdup(&stmt.name);
+    (*node).name_location = stmt.name_location;
+    (*node).location = stmt.location;
+    node
+}
+
+unsafe fn write_json_table(stmt: &protobuf::JsonTable) -> *mut bindings_raw::JsonTable {
+    let node = alloc_node::<bindings_raw::JsonTable>(bindings_raw::NodeTag_T_JsonTable);
+    (*node).context_item = write_json_value_expr_ref(&stmt.context_item);
+    (*node).pathspec = write_json_table_path_spec_ref(&stmt.pathspec);
+    (*node).passing = write_node_list(&stmt.passing);
+    (*node).columns = write_node_list(&stmt.columns);
+    (*node).on_error = write_json_behavior_ref(&stmt.on_error);
+    (*node).alias = write_alias_ref(&stmt.alias);
+    (*node).lateral = stmt.lateral;
+    (*node).location = stmt.location;
+    node
+}
+
+unsafe fn write_json_table_column(stmt: &protobuf::JsonTableColumn) -> *mut bindings_raw::JsonTableColumn {
+    let node = alloc_node::<bindings_raw::JsonTableColumn>(bindings_raw::NodeTag_T_JsonTableColumn);
+    (*node).coltype = proto_enum_to_c(stmt.coltype);
+    (*node).name = pstrdup(&stmt.name);
+    (*node).typeName = write_type_name_ref(&stmt.type_name);
+    (*node).pathspec = write_json_table_path_spec_ref(&stmt.pathspec);
+    (*node).format = write_json_format_ref(&stmt.format);
+    (*node).wrapper = proto_enum_to_c(stmt.wrapper);
+    (*node).quotes = proto_enum_to_c(stmt.quotes);
+    (*node).columns = write_node_list(&stmt.columns);
+    (*node).on_empty = write_json_behavior_ref(&stmt.on_empty);
+    (*node).on_error = write_json_behavior_ref(&stmt.on_error);
+    (*node).location = stmt.location;
+    node
+}
+
+unsafe fn write_json_key_value(stmt: &protobuf::JsonKeyValue) -> *mut bindings_raw::JsonKeyValue {
+    let node = alloc_node::<bindings_raw::JsonKeyValue>(bindings_raw::NodeTag_T_JsonKeyValue);
+    (*node).key = write_node_boxed(&stmt.key) as *mut bindings_raw::Expr;
+    (*node).value = write_json_value_expr_ref(&stmt.value);
+    node
+}
+
+unsafe fn write_json_parse_expr(stmt: &protobuf::JsonParseExpr) -> *mut bindings_raw::JsonParseExpr {
+    let node = alloc_node::<bindings_raw::JsonParseExpr>(bindings_raw::NodeTag_T_JsonParseExpr);
+    (*node).expr = write_json_value_expr_ref(&stmt.expr);
+    (*node).output = write_json_output_ref(&stmt.output);
+    (*node).unique_keys = stmt.unique_keys;
+    (*node).location = stmt.location;
+    node
+}
+
+unsafe fn write_json_scalar_expr(stmt: &protobuf::JsonScalarExpr) -> *mut bindings_raw::JsonScalarExpr {
+    let node = alloc_node::<bindings_raw::JsonScalarExpr>(bindings_raw::NodeTag_T_JsonScalarExpr);
+    (*node).expr = write_node_boxed(&stmt.expr) as *mut bindings_raw::Expr;
+    (*node).output = write_json_output_ref(&stmt.output);
+    (*node).location = stmt.location;
+    node
+}
+
+unsafe fn write_json_serialize_expr(stmt: &protobuf::JsonSerializeExpr) -> *mut bindings_raw::JsonSerializeExpr {
+    let node = alloc_node::<bindings_raw::JsonSerializeExpr>(bindings_raw::NodeTag_T_JsonSerializeExpr);
+    (*node).expr = write_json_value_expr_ref(&stmt.expr);
+    (*node).output = write_json_output_ref(&stmt.output);
+    (*node).location = stmt.location;
+    node
+}
+
+unsafe fn write_json_object_constructor(stmt: &protobuf::JsonObjectConstructor) -> *mut bindings_raw::JsonObjectConstructor {
+    let node = alloc_node::<bindings_raw::JsonObjectConstructor>(bindings_raw::NodeTag_T_JsonObjectConstructor);
+    (*node).exprs = write_node_list(&stmt.exprs);
+    (*node).output = write_json_output_ref(&stmt.output);
+    (*node).absent_on_null = stmt.absent_on_null;
+    (*node).unique = stmt.unique;
+    (*node).location = stmt.location;
+    node
+}
+
+unsafe fn write_json_array_constructor(stmt: &protobuf::JsonArrayConstructor) -> *mut bindings_raw::JsonArrayConstructor {
+    let node = alloc_node::<bindings_raw::JsonArrayConstructor>(bindings_raw::NodeTag_T_JsonArrayConstructor);
+    (*node).exprs = write_node_list(&stmt.exprs);
+    (*node).output = write_json_output_ref(&stmt.output);
+    (*node).absent_on_null = stmt.absent_on_null;
+    (*node).location = stmt.location;
+    node
+}
+
+unsafe fn write_json_array_query_constructor(stmt: &protobuf::JsonArrayQueryConstructor) -> *mut bindings_raw::JsonArrayQueryConstructor {
+    let node = alloc_node::<bindings_raw::JsonArrayQueryConstructor>(bindings_raw::NodeTag_T_JsonArrayQueryConstructor);
+    (*node).query = write_node_boxed(&stmt.query);
+    (*node).output = write_json_output_ref(&stmt.output);
+    (*node).format = write_json_format_ref(&stmt.format);
+    (*node).absent_on_null = stmt.absent_on_null;
+    (*node).location = stmt.location;
+    node
+}
+
+unsafe fn write_json_agg_constructor(stmt: &protobuf::JsonAggConstructor) -> *mut bindings_raw::JsonAggConstructor {
+    let node = alloc_node::<bindings_raw::JsonAggConstructor>(bindings_raw::NodeTag_T_JsonAggConstructor);
+    (*node).output = write_json_output_ref(&stmt.output);
+    (*node).agg_filter = write_node_boxed(&stmt.agg_filter);
+    (*node).agg_order = write_node_list(&stmt.agg_order);
+    (*node).over = write_window_def_boxed_ref(&stmt.over);
+    (*node).location = stmt.location;
+    node
+}
+
+unsafe fn write_json_object_agg(stmt: &protobuf::JsonObjectAgg) -> *mut bindings_raw::JsonObjectAgg {
+    let node = alloc_node::<bindings_raw::JsonObjectAgg>(bindings_raw::NodeTag_T_JsonObjectAgg);
+    (*node).constructor = write_json_agg_constructor_ref(&stmt.constructor);
+    (*node).arg = write_json_key_value_ref(&stmt.arg);
+    (*node).absent_on_null = stmt.absent_on_null;
+    (*node).unique = stmt.unique;
+    node
+}
+
+unsafe fn write_json_array_agg(stmt: &protobuf::JsonArrayAgg) -> *mut bindings_raw::JsonArrayAgg {
+    let node = alloc_node::<bindings_raw::JsonArrayAgg>(bindings_raw::NodeTag_T_JsonArrayAgg);
+    (*node).constructor = write_json_agg_constructor_ref(&stmt.constructor);
+    (*node).arg = write_json_value_expr_ref(&stmt.arg);
+    (*node).absent_on_null = stmt.absent_on_null;
+    node
+}
+
+// =============================================================================
+// Additional helper functions for optional refs
+// =============================================================================
+
+unsafe fn write_role_spec_ref(role: &Option<protobuf::RoleSpec>) -> *mut bindings_raw::RoleSpec {
+    match role {
+        Some(r) => write_role_spec(r),
+        None => std::ptr::null_mut(),
+    }
+}
+
+unsafe fn write_variable_set_stmt_ref(stmt: &Option<protobuf::VariableSetStmt>) -> *mut bindings_raw::VariableSetStmt {
+    match stmt {
+        Some(s) => write_variable_set_stmt(s),
+        None => std::ptr::null_mut(),
+    }
+}
+
+unsafe fn write_object_with_args_ref(owa: &Option<protobuf::ObjectWithArgs>) -> *mut bindings_raw::ObjectWithArgs {
+    match owa {
+        Some(o) => write_object_with_args(o),
+        None => std::ptr::null_mut(),
+    }
+}
+
+unsafe fn write_partition_bound_spec_ref(pbs: &Option<protobuf::PartitionBoundSpec>) -> *mut bindings_raw::PartitionBoundSpec {
+    match pbs {
+        Some(p) => write_partition_bound_spec(p),
+        None => std::ptr::null_mut(),
+    }
+}
+
+unsafe fn write_partition_spec_ref(ps: &Option<protobuf::PartitionSpec>) -> *mut bindings_raw::PartitionSpec {
+    match ps {
+        Some(p) => write_partition_spec(p),
+        None => std::ptr::null_mut(),
+    }
+}
+
+unsafe fn write_grant_stmt_ref(gs: &Option<protobuf::GrantStmt>) -> *mut bindings_raw::GrantStmt {
+    match gs {
+        Some(g) => write_grant_stmt(g),
+        None => std::ptr::null_mut(),
+    }
+}
+
+unsafe fn write_string_ref(s: &Option<protobuf::String>) -> *mut bindings_raw::String {
+    match s {
+        Some(str_val) => write_string(str_val),
+        None => std::ptr::null_mut(),
+    }
+}
+
+unsafe fn write_publication_table_ref(pt: &Option<Box<protobuf::PublicationTable>>) -> *mut bindings_raw::PublicationTable {
+    match pt {
+        Some(p) => write_publication_table(p),
+        None => std::ptr::null_mut(),
+    }
+}
+
+unsafe fn write_json_format_ref(jf: &Option<protobuf::JsonFormat>) -> *mut bindings_raw::JsonFormat {
+    match jf {
+        Some(f) => write_json_format(f),
+        None => std::ptr::null_mut(),
+    }
+}
+
+unsafe fn write_json_returning_ref(jr: &Option<protobuf::JsonReturning>) -> *mut bindings_raw::JsonReturning {
+    match jr {
+        Some(r) => write_json_returning(r),
+        None => std::ptr::null_mut(),
+    }
+}
+
+unsafe fn write_json_behavior_ref(jb: &Option<Box<protobuf::JsonBehavior>>) -> *mut bindings_raw::JsonBehavior {
+    match jb {
+        Some(b) => write_json_behavior(b),
+        None => std::ptr::null_mut(),
+    }
+}
+
+unsafe fn write_json_output_ref(jo: &Option<protobuf::JsonOutput>) -> *mut bindings_raw::JsonOutput {
+    match jo {
+        Some(o) => write_json_output(o),
+        None => std::ptr::null_mut(),
+    }
+}
+
+unsafe fn write_json_value_expr_ref(jve: &Option<Box<protobuf::JsonValueExpr>>) -> *mut bindings_raw::JsonValueExpr {
+    match jve {
+        Some(v) => write_json_value_expr(v),
+        None => std::ptr::null_mut(),
+    }
+}
+
+unsafe fn write_json_table_path_spec_ref(jtps: &Option<Box<protobuf::JsonTablePathSpec>>) -> *mut bindings_raw::JsonTablePathSpec {
+    match jtps {
+        Some(p) => write_json_table_path_spec(p),
+        None => std::ptr::null_mut(),
+    }
+}
+
+unsafe fn write_window_def_boxed_ref(wd: &Option<Box<protobuf::WindowDef>>) -> *mut bindings_raw::WindowDef {
+    match wd {
+        Some(w) => write_window_def(w),
+        None => std::ptr::null_mut(),
+    }
+}
+
+unsafe fn write_json_table_path_opt(jtp: &Option<protobuf::JsonTablePath>) -> *mut bindings_raw::JsonTablePath {
+    match jtp {
+        Some(p) => write_json_table_path(p),
+        None => std::ptr::null_mut(),
+    }
+}
+
+unsafe fn write_json_agg_constructor_ref(jac: &Option<Box<protobuf::JsonAggConstructor>>) -> *mut bindings_raw::JsonAggConstructor {
+    match jac {
+        Some(c) => write_json_agg_constructor(c),
+        None => std::ptr::null_mut(),
+    }
+}
+
+unsafe fn write_json_key_value_ref(jkv: &Option<Box<protobuf::JsonKeyValue>>) -> *mut bindings_raw::JsonKeyValue {
+    match jkv {
+        Some(k) => write_json_key_value(k),
+        None => std::ptr::null_mut(),
+    }
 }

@@ -498,6 +498,456 @@ unsafe fn convert_node(node_ptr: *mut bindings_raw::Node) -> Option<protobuf::No
             let rs = node_ptr as *mut bindings_raw::RoleSpec;
             Some(protobuf::node::Node::RoleSpec(convert_role_spec(&*rs)))
         }
+        bindings_raw::NodeTag_T_BitString => {
+            let bs = node_ptr as *mut bindings_raw::BitString;
+            Some(protobuf::node::Node::BitString(convert_bit_string(&*bs)))
+        }
+        bindings_raw::NodeTag_T_BooleanTest => {
+            let bt = node_ptr as *mut bindings_raw::BooleanTest;
+            Some(protobuf::node::Node::BooleanTest(Box::new(convert_boolean_test(&*bt))))
+        }
+        bindings_raw::NodeTag_T_CreateRangeStmt => {
+            let crs = node_ptr as *mut bindings_raw::CreateRangeStmt;
+            Some(protobuf::node::Node::CreateRangeStmt(convert_create_range_stmt(&*crs)))
+        }
+        bindings_raw::NodeTag_T_AlterEnumStmt => {
+            let aes = node_ptr as *mut bindings_raw::AlterEnumStmt;
+            Some(protobuf::node::Node::AlterEnumStmt(convert_alter_enum_stmt(&*aes)))
+        }
+        bindings_raw::NodeTag_T_ClosePortalStmt => {
+            let cps = node_ptr as *mut bindings_raw::ClosePortalStmt;
+            Some(protobuf::node::Node::ClosePortalStmt(convert_close_portal_stmt(&*cps)))
+        }
+        bindings_raw::NodeTag_T_FetchStmt => {
+            let fs = node_ptr as *mut bindings_raw::FetchStmt;
+            Some(protobuf::node::Node::FetchStmt(convert_fetch_stmt(&*fs)))
+        }
+        bindings_raw::NodeTag_T_DeclareCursorStmt => {
+            let dcs = node_ptr as *mut bindings_raw::DeclareCursorStmt;
+            Some(protobuf::node::Node::DeclareCursorStmt(Box::new(convert_declare_cursor_stmt(&*dcs))))
+        }
+        bindings_raw::NodeTag_T_DefineStmt => {
+            let ds = node_ptr as *mut bindings_raw::DefineStmt;
+            Some(protobuf::node::Node::DefineStmt(convert_define_stmt(&*ds)))
+        }
+        bindings_raw::NodeTag_T_CommentStmt => {
+            let cs = node_ptr as *mut bindings_raw::CommentStmt;
+            Some(protobuf::node::Node::CommentStmt(Box::new(convert_comment_stmt(&*cs))))
+        }
+        bindings_raw::NodeTag_T_SecLabelStmt => {
+            let sls = node_ptr as *mut bindings_raw::SecLabelStmt;
+            Some(protobuf::node::Node::SecLabelStmt(Box::new(convert_sec_label_stmt(&*sls))))
+        }
+        bindings_raw::NodeTag_T_CreateRoleStmt => {
+            let crs = node_ptr as *mut bindings_raw::CreateRoleStmt;
+            Some(protobuf::node::Node::CreateRoleStmt(convert_create_role_stmt(&*crs)))
+        }
+        bindings_raw::NodeTag_T_AlterRoleStmt => {
+            let ars = node_ptr as *mut bindings_raw::AlterRoleStmt;
+            Some(protobuf::node::Node::AlterRoleStmt(convert_alter_role_stmt(&*ars)))
+        }
+        bindings_raw::NodeTag_T_AlterRoleSetStmt => {
+            let arss = node_ptr as *mut bindings_raw::AlterRoleSetStmt;
+            Some(protobuf::node::Node::AlterRoleSetStmt(convert_alter_role_set_stmt(&*arss)))
+        }
+        bindings_raw::NodeTag_T_DropRoleStmt => {
+            let drs = node_ptr as *mut bindings_raw::DropRoleStmt;
+            Some(protobuf::node::Node::DropRoleStmt(convert_drop_role_stmt(&*drs)))
+        }
+        bindings_raw::NodeTag_T_CreatePolicyStmt => {
+            let cps = node_ptr as *mut bindings_raw::CreatePolicyStmt;
+            Some(protobuf::node::Node::CreatePolicyStmt(Box::new(convert_create_policy_stmt(&*cps))))
+        }
+        bindings_raw::NodeTag_T_AlterPolicyStmt => {
+            let aps = node_ptr as *mut bindings_raw::AlterPolicyStmt;
+            Some(protobuf::node::Node::AlterPolicyStmt(Box::new(convert_alter_policy_stmt(&*aps))))
+        }
+        bindings_raw::NodeTag_T_CreateEventTrigStmt => {
+            let cets = node_ptr as *mut bindings_raw::CreateEventTrigStmt;
+            Some(protobuf::node::Node::CreateEventTrigStmt(convert_create_event_trig_stmt(&*cets)))
+        }
+        bindings_raw::NodeTag_T_AlterEventTrigStmt => {
+            let aets = node_ptr as *mut bindings_raw::AlterEventTrigStmt;
+            Some(protobuf::node::Node::AlterEventTrigStmt(convert_alter_event_trig_stmt(&*aets)))
+        }
+        bindings_raw::NodeTag_T_CreatePLangStmt => {
+            let cpls = node_ptr as *mut bindings_raw::CreatePLangStmt;
+            Some(protobuf::node::Node::CreatePlangStmt(convert_create_plang_stmt(&*cpls)))
+        }
+        bindings_raw::NodeTag_T_CreateAmStmt => {
+            let cas = node_ptr as *mut bindings_raw::CreateAmStmt;
+            Some(protobuf::node::Node::CreateAmStmt(convert_create_am_stmt(&*cas)))
+        }
+        bindings_raw::NodeTag_T_CreateOpClassStmt => {
+            let cocs = node_ptr as *mut bindings_raw::CreateOpClassStmt;
+            Some(protobuf::node::Node::CreateOpClassStmt(convert_create_op_class_stmt(&*cocs)))
+        }
+        bindings_raw::NodeTag_T_CreateOpClassItem => {
+            let coci = node_ptr as *mut bindings_raw::CreateOpClassItem;
+            Some(protobuf::node::Node::CreateOpClassItem(convert_create_op_class_item(&*coci)))
+        }
+        bindings_raw::NodeTag_T_CreateOpFamilyStmt => {
+            let cofs = node_ptr as *mut bindings_raw::CreateOpFamilyStmt;
+            Some(protobuf::node::Node::CreateOpFamilyStmt(convert_create_op_family_stmt(&*cofs)))
+        }
+        bindings_raw::NodeTag_T_AlterOpFamilyStmt => {
+            let aofs = node_ptr as *mut bindings_raw::AlterOpFamilyStmt;
+            Some(protobuf::node::Node::AlterOpFamilyStmt(convert_alter_op_family_stmt(&*aofs)))
+        }
+        bindings_raw::NodeTag_T_CreateFdwStmt => {
+            let cfds = node_ptr as *mut bindings_raw::CreateFdwStmt;
+            Some(protobuf::node::Node::CreateFdwStmt(convert_create_fdw_stmt(&*cfds)))
+        }
+        bindings_raw::NodeTag_T_AlterFdwStmt => {
+            let afds = node_ptr as *mut bindings_raw::AlterFdwStmt;
+            Some(protobuf::node::Node::AlterFdwStmt(convert_alter_fdw_stmt(&*afds)))
+        }
+        bindings_raw::NodeTag_T_CreateForeignServerStmt => {
+            let cfss = node_ptr as *mut bindings_raw::CreateForeignServerStmt;
+            Some(protobuf::node::Node::CreateForeignServerStmt(convert_create_foreign_server_stmt(&*cfss)))
+        }
+        bindings_raw::NodeTag_T_AlterForeignServerStmt => {
+            let afss = node_ptr as *mut bindings_raw::AlterForeignServerStmt;
+            Some(protobuf::node::Node::AlterForeignServerStmt(convert_alter_foreign_server_stmt(&*afss)))
+        }
+        bindings_raw::NodeTag_T_CreateForeignTableStmt => {
+            let cfts = node_ptr as *mut bindings_raw::CreateForeignTableStmt;
+            Some(protobuf::node::Node::CreateForeignTableStmt(convert_create_foreign_table_stmt(&*cfts)))
+        }
+        bindings_raw::NodeTag_T_CreateUserMappingStmt => {
+            let cums = node_ptr as *mut bindings_raw::CreateUserMappingStmt;
+            Some(protobuf::node::Node::CreateUserMappingStmt(convert_create_user_mapping_stmt(&*cums)))
+        }
+        bindings_raw::NodeTag_T_AlterUserMappingStmt => {
+            let aums = node_ptr as *mut bindings_raw::AlterUserMappingStmt;
+            Some(protobuf::node::Node::AlterUserMappingStmt(convert_alter_user_mapping_stmt(&*aums)))
+        }
+        bindings_raw::NodeTag_T_DropUserMappingStmt => {
+            let dums = node_ptr as *mut bindings_raw::DropUserMappingStmt;
+            Some(protobuf::node::Node::DropUserMappingStmt(convert_drop_user_mapping_stmt(&*dums)))
+        }
+        bindings_raw::NodeTag_T_ImportForeignSchemaStmt => {
+            let ifss = node_ptr as *mut bindings_raw::ImportForeignSchemaStmt;
+            Some(protobuf::node::Node::ImportForeignSchemaStmt(convert_import_foreign_schema_stmt(&*ifss)))
+        }
+        bindings_raw::NodeTag_T_CreateTableSpaceStmt => {
+            let ctss = node_ptr as *mut bindings_raw::CreateTableSpaceStmt;
+            Some(protobuf::node::Node::CreateTableSpaceStmt(convert_create_table_space_stmt(&*ctss)))
+        }
+        bindings_raw::NodeTag_T_DropTableSpaceStmt => {
+            let dtss = node_ptr as *mut bindings_raw::DropTableSpaceStmt;
+            Some(protobuf::node::Node::DropTableSpaceStmt(convert_drop_table_space_stmt(&*dtss)))
+        }
+        bindings_raw::NodeTag_T_AlterTableSpaceOptionsStmt => {
+            let atsos = node_ptr as *mut bindings_raw::AlterTableSpaceOptionsStmt;
+            Some(protobuf::node::Node::AlterTableSpaceOptionsStmt(convert_alter_table_space_options_stmt(&*atsos)))
+        }
+        bindings_raw::NodeTag_T_AlterTableMoveAllStmt => {
+            let atmas = node_ptr as *mut bindings_raw::AlterTableMoveAllStmt;
+            Some(protobuf::node::Node::AlterTableMoveAllStmt(convert_alter_table_move_all_stmt(&*atmas)))
+        }
+        bindings_raw::NodeTag_T_AlterExtensionStmt => {
+            let aes = node_ptr as *mut bindings_raw::AlterExtensionStmt;
+            Some(protobuf::node::Node::AlterExtensionStmt(convert_alter_extension_stmt(&*aes)))
+        }
+        bindings_raw::NodeTag_T_AlterExtensionContentsStmt => {
+            let aecs = node_ptr as *mut bindings_raw::AlterExtensionContentsStmt;
+            Some(protobuf::node::Node::AlterExtensionContentsStmt(Box::new(convert_alter_extension_contents_stmt(&*aecs))))
+        }
+        bindings_raw::NodeTag_T_AlterDomainStmt => {
+            let ads = node_ptr as *mut bindings_raw::AlterDomainStmt;
+            Some(protobuf::node::Node::AlterDomainStmt(Box::new(convert_alter_domain_stmt(&*ads))))
+        }
+        bindings_raw::NodeTag_T_AlterFunctionStmt => {
+            let afs = node_ptr as *mut bindings_raw::AlterFunctionStmt;
+            Some(protobuf::node::Node::AlterFunctionStmt(convert_alter_function_stmt(&*afs)))
+        }
+        bindings_raw::NodeTag_T_AlterOperatorStmt => {
+            let aos = node_ptr as *mut bindings_raw::AlterOperatorStmt;
+            Some(protobuf::node::Node::AlterOperatorStmt(convert_alter_operator_stmt(&*aos)))
+        }
+        bindings_raw::NodeTag_T_AlterTypeStmt => {
+            let ats = node_ptr as *mut bindings_raw::AlterTypeStmt;
+            Some(protobuf::node::Node::AlterTypeStmt(convert_alter_type_stmt(&*ats)))
+        }
+        bindings_raw::NodeTag_T_AlterObjectSchemaStmt => {
+            let aoss = node_ptr as *mut bindings_raw::AlterObjectSchemaStmt;
+            Some(protobuf::node::Node::AlterObjectSchemaStmt(Box::new(convert_alter_object_schema_stmt(&*aoss))))
+        }
+        bindings_raw::NodeTag_T_AlterObjectDependsStmt => {
+            let aods = node_ptr as *mut bindings_raw::AlterObjectDependsStmt;
+            Some(protobuf::node::Node::AlterObjectDependsStmt(Box::new(convert_alter_object_depends_stmt(&*aods))))
+        }
+        bindings_raw::NodeTag_T_AlterCollationStmt => {
+            let acs = node_ptr as *mut bindings_raw::AlterCollationStmt;
+            Some(protobuf::node::Node::AlterCollationStmt(convert_alter_collation_stmt(&*acs)))
+        }
+        bindings_raw::NodeTag_T_AlterDefaultPrivilegesStmt => {
+            let adps = node_ptr as *mut bindings_raw::AlterDefaultPrivilegesStmt;
+            Some(protobuf::node::Node::AlterDefaultPrivilegesStmt(convert_alter_default_privileges_stmt(&*adps)))
+        }
+        bindings_raw::NodeTag_T_CreateCastStmt => {
+            let ccs = node_ptr as *mut bindings_raw::CreateCastStmt;
+            Some(protobuf::node::Node::CreateCastStmt(convert_create_cast_stmt(&*ccs)))
+        }
+        bindings_raw::NodeTag_T_CreateTransformStmt => {
+            let cts = node_ptr as *mut bindings_raw::CreateTransformStmt;
+            Some(protobuf::node::Node::CreateTransformStmt(convert_create_transform_stmt(&*cts)))
+        }
+        bindings_raw::NodeTag_T_CreateConversionStmt => {
+            let ccs = node_ptr as *mut bindings_raw::CreateConversionStmt;
+            Some(protobuf::node::Node::CreateConversionStmt(convert_create_conversion_stmt(&*ccs)))
+        }
+        bindings_raw::NodeTag_T_AlterTSDictionaryStmt => {
+            let atds = node_ptr as *mut bindings_raw::AlterTSDictionaryStmt;
+            Some(protobuf::node::Node::AlterTsdictionaryStmt(convert_alter_ts_dictionary_stmt(&*atds)))
+        }
+        bindings_raw::NodeTag_T_AlterTSConfigurationStmt => {
+            let atcs = node_ptr as *mut bindings_raw::AlterTSConfigurationStmt;
+            Some(protobuf::node::Node::AlterTsconfigurationStmt(convert_alter_ts_configuration_stmt(&*atcs)))
+        }
+        bindings_raw::NodeTag_T_CreatedbStmt => {
+            let cds = node_ptr as *mut bindings_raw::CreatedbStmt;
+            Some(protobuf::node::Node::CreatedbStmt(convert_createdb_stmt(&*cds)))
+        }
+        bindings_raw::NodeTag_T_DropdbStmt => {
+            let dds = node_ptr as *mut bindings_raw::DropdbStmt;
+            Some(protobuf::node::Node::DropdbStmt(convert_dropdb_stmt(&*dds)))
+        }
+        bindings_raw::NodeTag_T_AlterDatabaseStmt => {
+            let ads = node_ptr as *mut bindings_raw::AlterDatabaseStmt;
+            Some(protobuf::node::Node::AlterDatabaseStmt(convert_alter_database_stmt(&*ads)))
+        }
+        bindings_raw::NodeTag_T_AlterDatabaseSetStmt => {
+            let adss = node_ptr as *mut bindings_raw::AlterDatabaseSetStmt;
+            Some(protobuf::node::Node::AlterDatabaseSetStmt(convert_alter_database_set_stmt(&*adss)))
+        }
+        bindings_raw::NodeTag_T_AlterDatabaseRefreshCollStmt => {
+            let adrcs = node_ptr as *mut bindings_raw::AlterDatabaseRefreshCollStmt;
+            Some(protobuf::node::Node::AlterDatabaseRefreshCollStmt(convert_alter_database_refresh_coll_stmt(&*adrcs)))
+        }
+        bindings_raw::NodeTag_T_AlterSystemStmt => {
+            let ass = node_ptr as *mut bindings_raw::AlterSystemStmt;
+            Some(protobuf::node::Node::AlterSystemStmt(convert_alter_system_stmt(&*ass)))
+        }
+        bindings_raw::NodeTag_T_ClusterStmt => {
+            let cs = node_ptr as *mut bindings_raw::ClusterStmt;
+            Some(protobuf::node::Node::ClusterStmt(convert_cluster_stmt(&*cs)))
+        }
+        bindings_raw::NodeTag_T_ReindexStmt => {
+            let rs = node_ptr as *mut bindings_raw::ReindexStmt;
+            Some(protobuf::node::Node::ReindexStmt(convert_reindex_stmt(&*rs)))
+        }
+        bindings_raw::NodeTag_T_ConstraintsSetStmt => {
+            let css = node_ptr as *mut bindings_raw::ConstraintsSetStmt;
+            Some(protobuf::node::Node::ConstraintsSetStmt(convert_constraints_set_stmt(&*css)))
+        }
+        bindings_raw::NodeTag_T_LoadStmt => {
+            let ls = node_ptr as *mut bindings_raw::LoadStmt;
+            Some(protobuf::node::Node::LoadStmt(convert_load_stmt(&*ls)))
+        }
+        bindings_raw::NodeTag_T_DropOwnedStmt => {
+            let dos = node_ptr as *mut bindings_raw::DropOwnedStmt;
+            Some(protobuf::node::Node::DropOwnedStmt(convert_drop_owned_stmt(&*dos)))
+        }
+        bindings_raw::NodeTag_T_ReassignOwnedStmt => {
+            let ros = node_ptr as *mut bindings_raw::ReassignOwnedStmt;
+            Some(protobuf::node::Node::ReassignOwnedStmt(convert_reassign_owned_stmt(&*ros)))
+        }
+        bindings_raw::NodeTag_T_DropSubscriptionStmt => {
+            let dss = node_ptr as *mut bindings_raw::DropSubscriptionStmt;
+            Some(protobuf::node::Node::DropSubscriptionStmt(convert_drop_subscription_stmt(&*dss)))
+        }
+        bindings_raw::NodeTag_T_TableFunc => {
+            let tf = node_ptr as *mut bindings_raw::TableFunc;
+            Some(protobuf::node::Node::TableFunc(Box::new(convert_table_func(&*tf))))
+        }
+        bindings_raw::NodeTag_T_IntoClause => {
+            let ic = node_ptr as *mut bindings_raw::IntoClause;
+            Some(protobuf::node::Node::IntoClause(Box::new(convert_into_clause_node(&*ic))))
+        }
+        bindings_raw::NodeTag_T_TableLikeClause => {
+            let tlc = node_ptr as *mut bindings_raw::TableLikeClause;
+            Some(protobuf::node::Node::TableLikeClause(convert_table_like_clause(&*tlc)))
+        }
+        bindings_raw::NodeTag_T_RangeTableFunc => {
+            let rtf = node_ptr as *mut bindings_raw::RangeTableFunc;
+            Some(protobuf::node::Node::RangeTableFunc(Box::new(convert_range_table_func(&*rtf))))
+        }
+        bindings_raw::NodeTag_T_RangeTableFuncCol => {
+            let rtfc = node_ptr as *mut bindings_raw::RangeTableFuncCol;
+            Some(protobuf::node::Node::RangeTableFuncCol(Box::new(convert_range_table_func_col(&*rtfc))))
+        }
+        bindings_raw::NodeTag_T_RangeTableSample => {
+            let rts = node_ptr as *mut bindings_raw::RangeTableSample;
+            Some(protobuf::node::Node::RangeTableSample(Box::new(convert_range_table_sample(&*rts))))
+        }
+        bindings_raw::NodeTag_T_PartitionSpec => {
+            let ps = node_ptr as *mut bindings_raw::PartitionSpec;
+            Some(protobuf::node::Node::PartitionSpec(convert_partition_spec(&*ps)))
+        }
+        bindings_raw::NodeTag_T_PartitionBoundSpec => {
+            let pbs = node_ptr as *mut bindings_raw::PartitionBoundSpec;
+            Some(protobuf::node::Node::PartitionBoundSpec(convert_partition_bound_spec(&*pbs)))
+        }
+        bindings_raw::NodeTag_T_PartitionCmd => {
+            let pc = node_ptr as *mut bindings_raw::PartitionCmd;
+            Some(protobuf::node::Node::PartitionCmd(convert_partition_cmd(&*pc)))
+        }
+        bindings_raw::NodeTag_T_SinglePartitionSpec => Some(protobuf::node::Node::SinglePartitionSpec(protobuf::SinglePartitionSpec {})),
+        bindings_raw::NodeTag_T_InferClause => {
+            let ic = node_ptr as *mut bindings_raw::InferClause;
+            convert_infer_clause(ic).map(|c| protobuf::node::Node::InferClause(c))
+        }
+        bindings_raw::NodeTag_T_OnConflictClause => {
+            let occ = node_ptr as *mut bindings_raw::OnConflictClause;
+            Some(protobuf::node::Node::OnConflictClause(Box::new(convert_on_conflict_clause_node(&*occ))))
+        }
+        bindings_raw::NodeTag_T_TriggerTransition => {
+            let tt = node_ptr as *mut bindings_raw::TriggerTransition;
+            Some(protobuf::node::Node::TriggerTransition(convert_trigger_transition(&*tt)))
+        }
+        bindings_raw::NodeTag_T_CTESearchClause => {
+            let csc = node_ptr as *mut bindings_raw::CTESearchClause;
+            Some(protobuf::node::Node::CtesearchClause(convert_cte_search_clause(&*csc)))
+        }
+        bindings_raw::NodeTag_T_CTECycleClause => {
+            let ccc = node_ptr as *mut bindings_raw::CTECycleClause;
+            Some(protobuf::node::Node::CtecycleClause(Box::new(convert_cte_cycle_clause(&*ccc))))
+        }
+        bindings_raw::NodeTag_T_CreateStatsStmt => {
+            let css = node_ptr as *mut bindings_raw::CreateStatsStmt;
+            Some(protobuf::node::Node::CreateStatsStmt(convert_create_stats_stmt(&*css)))
+        }
+        bindings_raw::NodeTag_T_AlterStatsStmt => {
+            let ass = node_ptr as *mut bindings_raw::AlterStatsStmt;
+            Some(protobuf::node::Node::AlterStatsStmt(Box::new(convert_alter_stats_stmt(&*ass))))
+        }
+        bindings_raw::NodeTag_T_StatsElem => {
+            let se = node_ptr as *mut bindings_raw::StatsElem;
+            Some(protobuf::node::Node::StatsElem(Box::new(convert_stats_elem(&*se))))
+        }
+        bindings_raw::NodeTag_T_SQLValueFunction => {
+            let svf = node_ptr as *mut bindings_raw::SQLValueFunction;
+            Some(protobuf::node::Node::SqlvalueFunction(Box::new(convert_sql_value_function(&*svf))))
+        }
+        bindings_raw::NodeTag_T_XmlExpr => {
+            let xe = node_ptr as *mut bindings_raw::XmlExpr;
+            Some(protobuf::node::Node::XmlExpr(Box::new(convert_xml_expr(&*xe))))
+        }
+        bindings_raw::NodeTag_T_XmlSerialize => {
+            let xs = node_ptr as *mut bindings_raw::XmlSerialize;
+            Some(protobuf::node::Node::XmlSerialize(Box::new(convert_xml_serialize(&*xs))))
+        }
+        bindings_raw::NodeTag_T_NamedArgExpr => {
+            let nae = node_ptr as *mut bindings_raw::NamedArgExpr;
+            Some(protobuf::node::Node::NamedArgExpr(Box::new(convert_named_arg_expr(&*nae))))
+        }
+        // JSON nodes
+        bindings_raw::NodeTag_T_JsonFormat => {
+            let jf = node_ptr as *mut bindings_raw::JsonFormat;
+            Some(protobuf::node::Node::JsonFormat(convert_json_format(&*jf)))
+        }
+        bindings_raw::NodeTag_T_JsonReturning => {
+            let jr = node_ptr as *mut bindings_raw::JsonReturning;
+            Some(protobuf::node::Node::JsonReturning(convert_json_returning(&*jr)))
+        }
+        bindings_raw::NodeTag_T_JsonValueExpr => {
+            let jve = node_ptr as *mut bindings_raw::JsonValueExpr;
+            Some(protobuf::node::Node::JsonValueExpr(Box::new(convert_json_value_expr(&*jve))))
+        }
+        bindings_raw::NodeTag_T_JsonConstructorExpr => {
+            let jce = node_ptr as *mut bindings_raw::JsonConstructorExpr;
+            Some(protobuf::node::Node::JsonConstructorExpr(Box::new(convert_json_constructor_expr(&*jce))))
+        }
+        bindings_raw::NodeTag_T_JsonIsPredicate => {
+            let jip = node_ptr as *mut bindings_raw::JsonIsPredicate;
+            Some(protobuf::node::Node::JsonIsPredicate(Box::new(convert_json_is_predicate(&*jip))))
+        }
+        bindings_raw::NodeTag_T_JsonBehavior => {
+            let jb = node_ptr as *mut bindings_raw::JsonBehavior;
+            Some(protobuf::node::Node::JsonBehavior(Box::new(convert_json_behavior(&*jb))))
+        }
+        bindings_raw::NodeTag_T_JsonExpr => {
+            let je = node_ptr as *mut bindings_raw::JsonExpr;
+            Some(protobuf::node::Node::JsonExpr(Box::new(convert_json_expr(&*je))))
+        }
+        bindings_raw::NodeTag_T_JsonTablePath => {
+            let jtp = node_ptr as *mut bindings_raw::JsonTablePath;
+            Some(protobuf::node::Node::JsonTablePath(convert_json_table_path(&*jtp)))
+        }
+        bindings_raw::NodeTag_T_JsonTablePathScan => {
+            let jtps = node_ptr as *mut bindings_raw::JsonTablePathScan;
+            Some(protobuf::node::Node::JsonTablePathScan(Box::new(convert_json_table_path_scan(&*jtps))))
+        }
+        bindings_raw::NodeTag_T_JsonTableSiblingJoin => {
+            let jtsj = node_ptr as *mut bindings_raw::JsonTableSiblingJoin;
+            Some(protobuf::node::Node::JsonTableSiblingJoin(Box::new(convert_json_table_sibling_join(&*jtsj))))
+        }
+        bindings_raw::NodeTag_T_JsonOutput => {
+            let jo = node_ptr as *mut bindings_raw::JsonOutput;
+            Some(protobuf::node::Node::JsonOutput(convert_json_output(&*jo)))
+        }
+        bindings_raw::NodeTag_T_JsonArgument => {
+            let ja = node_ptr as *mut bindings_raw::JsonArgument;
+            Some(protobuf::node::Node::JsonArgument(Box::new(convert_json_argument(&*ja))))
+        }
+        bindings_raw::NodeTag_T_JsonFuncExpr => {
+            let jfe = node_ptr as *mut bindings_raw::JsonFuncExpr;
+            Some(protobuf::node::Node::JsonFuncExpr(Box::new(convert_json_func_expr(&*jfe))))
+        }
+        bindings_raw::NodeTag_T_JsonTablePathSpec => {
+            let jtps = node_ptr as *mut bindings_raw::JsonTablePathSpec;
+            Some(protobuf::node::Node::JsonTablePathSpec(Box::new(convert_json_table_path_spec(&*jtps))))
+        }
+        bindings_raw::NodeTag_T_JsonTable => {
+            let jt = node_ptr as *mut bindings_raw::JsonTable;
+            Some(protobuf::node::Node::JsonTable(Box::new(convert_json_table(&*jt))))
+        }
+        bindings_raw::NodeTag_T_JsonTableColumn => {
+            let jtc = node_ptr as *mut bindings_raw::JsonTableColumn;
+            Some(protobuf::node::Node::JsonTableColumn(Box::new(convert_json_table_column(&*jtc))))
+        }
+        bindings_raw::NodeTag_T_JsonKeyValue => {
+            let jkv = node_ptr as *mut bindings_raw::JsonKeyValue;
+            Some(protobuf::node::Node::JsonKeyValue(Box::new(convert_json_key_value(&*jkv))))
+        }
+        bindings_raw::NodeTag_T_JsonParseExpr => {
+            let jpe = node_ptr as *mut bindings_raw::JsonParseExpr;
+            Some(protobuf::node::Node::JsonParseExpr(Box::new(convert_json_parse_expr(&*jpe))))
+        }
+        bindings_raw::NodeTag_T_JsonScalarExpr => {
+            let jse = node_ptr as *mut bindings_raw::JsonScalarExpr;
+            Some(protobuf::node::Node::JsonScalarExpr(Box::new(convert_json_scalar_expr(&*jse))))
+        }
+        bindings_raw::NodeTag_T_JsonSerializeExpr => {
+            let jse = node_ptr as *mut bindings_raw::JsonSerializeExpr;
+            Some(protobuf::node::Node::JsonSerializeExpr(Box::new(convert_json_serialize_expr(&*jse))))
+        }
+        bindings_raw::NodeTag_T_JsonObjectConstructor => {
+            let joc = node_ptr as *mut bindings_raw::JsonObjectConstructor;
+            Some(protobuf::node::Node::JsonObjectConstructor(convert_json_object_constructor(&*joc)))
+        }
+        bindings_raw::NodeTag_T_JsonArrayConstructor => {
+            let jac = node_ptr as *mut bindings_raw::JsonArrayConstructor;
+            Some(protobuf::node::Node::JsonArrayConstructor(convert_json_array_constructor(&*jac)))
+        }
+        bindings_raw::NodeTag_T_JsonArrayQueryConstructor => {
+            let jaqc = node_ptr as *mut bindings_raw::JsonArrayQueryConstructor;
+            Some(protobuf::node::Node::JsonArrayQueryConstructor(Box::new(convert_json_array_query_constructor(&*jaqc))))
+        }
+        bindings_raw::NodeTag_T_JsonAggConstructor => {
+            let jac = node_ptr as *mut bindings_raw::JsonAggConstructor;
+            Some(protobuf::node::Node::JsonAggConstructor(Box::new(convert_json_agg_constructor(&*jac))))
+        }
+        bindings_raw::NodeTag_T_JsonObjectAgg => {
+            let joa = node_ptr as *mut bindings_raw::JsonObjectAgg;
+            Some(protobuf::node::Node::JsonObjectAgg(Box::new(convert_json_object_agg(&*joa))))
+        }
+        bindings_raw::NodeTag_T_JsonArrayAgg => {
+            let jaa = node_ptr as *mut bindings_raw::JsonArrayAgg;
+            Some(protobuf::node::Node::JsonArrayAgg(Box::new(convert_json_array_agg(&*jaa))))
+        }
         _ => {
             // For unhandled node types, return None
             // In the future, we could add more node types here
@@ -1688,5 +2138,940 @@ unsafe fn convert_c_string(ptr: *const i8) -> std::string::String {
         std::string::String::new()
     } else {
         CStr::from_ptr(ptr).to_string_lossy().to_string()
+    }
+}
+
+// ============================================================================
+// New Node Conversions (matching raw_deparse.rs)
+// ============================================================================
+
+unsafe fn convert_bit_string(bs: &bindings_raw::BitString) -> protobuf::BitString {
+    protobuf::BitString { bsval: convert_c_string(bs.bsval) }
+}
+
+unsafe fn convert_boolean_test(bt: &bindings_raw::BooleanTest) -> protobuf::BooleanTest {
+    let xpr_ptr = &bt.xpr as *const bindings_raw::Expr as *mut bindings_raw::Node;
+    protobuf::BooleanTest {
+        xpr: convert_node_boxed(xpr_ptr),
+        arg: convert_node_boxed(bt.arg as *mut bindings_raw::Node),
+        booltesttype: bt.booltesttype as i32 + 1,
+        location: bt.location,
+    }
+}
+
+unsafe fn convert_create_range_stmt(crs: &bindings_raw::CreateRangeStmt) -> protobuf::CreateRangeStmt {
+    protobuf::CreateRangeStmt { type_name: convert_list_to_nodes(crs.typeName), params: convert_list_to_nodes(crs.params) }
+}
+
+unsafe fn convert_alter_enum_stmt(aes: &bindings_raw::AlterEnumStmt) -> protobuf::AlterEnumStmt {
+    protobuf::AlterEnumStmt {
+        type_name: convert_list_to_nodes(aes.typeName),
+        old_val: convert_c_string(aes.oldVal),
+        new_val: convert_c_string(aes.newVal),
+        new_val_neighbor: convert_c_string(aes.newValNeighbor),
+        new_val_is_after: aes.newValIsAfter,
+        skip_if_new_val_exists: aes.skipIfNewValExists,
+    }
+}
+
+unsafe fn convert_close_portal_stmt(cps: &bindings_raw::ClosePortalStmt) -> protobuf::ClosePortalStmt {
+    protobuf::ClosePortalStmt { portalname: convert_c_string(cps.portalname) }
+}
+
+unsafe fn convert_fetch_stmt(fs: &bindings_raw::FetchStmt) -> protobuf::FetchStmt {
+    protobuf::FetchStmt { direction: fs.direction as i32 + 1, how_many: fs.howMany, portalname: convert_c_string(fs.portalname), ismove: fs.ismove }
+}
+
+unsafe fn convert_declare_cursor_stmt(dcs: &bindings_raw::DeclareCursorStmt) -> protobuf::DeclareCursorStmt {
+    protobuf::DeclareCursorStmt { portalname: convert_c_string(dcs.portalname), options: dcs.options, query: convert_node_boxed(dcs.query) }
+}
+
+unsafe fn convert_define_stmt(ds: &bindings_raw::DefineStmt) -> protobuf::DefineStmt {
+    protobuf::DefineStmt {
+        kind: ds.kind as i32 + 1,
+        oldstyle: ds.oldstyle,
+        defnames: convert_list_to_nodes(ds.defnames),
+        args: convert_list_to_nodes(ds.args),
+        definition: convert_list_to_nodes(ds.definition),
+        if_not_exists: ds.if_not_exists,
+        replace: ds.replace,
+    }
+}
+
+unsafe fn convert_comment_stmt(cs: &bindings_raw::CommentStmt) -> protobuf::CommentStmt {
+    protobuf::CommentStmt { objtype: cs.objtype as i32 + 1, object: convert_node_boxed(cs.object), comment: convert_c_string(cs.comment) }
+}
+
+unsafe fn convert_sec_label_stmt(sls: &bindings_raw::SecLabelStmt) -> protobuf::SecLabelStmt {
+    protobuf::SecLabelStmt {
+        objtype: sls.objtype as i32 + 1,
+        object: convert_node_boxed(sls.object),
+        provider: convert_c_string(sls.provider),
+        label: convert_c_string(sls.label),
+    }
+}
+
+unsafe fn convert_create_role_stmt(crs: &bindings_raw::CreateRoleStmt) -> protobuf::CreateRoleStmt {
+    protobuf::CreateRoleStmt { stmt_type: crs.stmt_type as i32 + 1, role: convert_c_string(crs.role), options: convert_list_to_nodes(crs.options) }
+}
+
+unsafe fn convert_alter_role_stmt(ars: &bindings_raw::AlterRoleStmt) -> protobuf::AlterRoleStmt {
+    protobuf::AlterRoleStmt {
+        role: if ars.role.is_null() { None } else { Some(convert_role_spec(&*ars.role)) },
+        options: convert_list_to_nodes(ars.options),
+        action: ars.action,
+    }
+}
+
+unsafe fn convert_alter_role_set_stmt(arss: &bindings_raw::AlterRoleSetStmt) -> protobuf::AlterRoleSetStmt {
+    protobuf::AlterRoleSetStmt {
+        role: if arss.role.is_null() { None } else { Some(convert_role_spec(&*arss.role)) },
+        database: convert_c_string(arss.database),
+        setstmt: convert_variable_set_stmt_opt(arss.setstmt),
+    }
+}
+
+unsafe fn convert_drop_role_stmt(drs: &bindings_raw::DropRoleStmt) -> protobuf::DropRoleStmt {
+    protobuf::DropRoleStmt { roles: convert_list_to_nodes(drs.roles), missing_ok: drs.missing_ok }
+}
+
+unsafe fn convert_create_policy_stmt(cps: &bindings_raw::CreatePolicyStmt) -> protobuf::CreatePolicyStmt {
+    protobuf::CreatePolicyStmt {
+        policy_name: convert_c_string(cps.policy_name),
+        table: if cps.table.is_null() { None } else { Some(convert_range_var(&*cps.table)) },
+        cmd_name: convert_c_string(cps.cmd_name),
+        permissive: cps.permissive,
+        roles: convert_list_to_nodes(cps.roles),
+        qual: convert_node_boxed(cps.qual),
+        with_check: convert_node_boxed(cps.with_check),
+    }
+}
+
+unsafe fn convert_alter_policy_stmt(aps: &bindings_raw::AlterPolicyStmt) -> protobuf::AlterPolicyStmt {
+    protobuf::AlterPolicyStmt {
+        policy_name: convert_c_string(aps.policy_name),
+        table: if aps.table.is_null() { None } else { Some(convert_range_var(&*aps.table)) },
+        roles: convert_list_to_nodes(aps.roles),
+        qual: convert_node_boxed(aps.qual),
+        with_check: convert_node_boxed(aps.with_check),
+    }
+}
+
+unsafe fn convert_create_event_trig_stmt(cets: &bindings_raw::CreateEventTrigStmt) -> protobuf::CreateEventTrigStmt {
+    protobuf::CreateEventTrigStmt {
+        trigname: convert_c_string(cets.trigname),
+        eventname: convert_c_string(cets.eventname),
+        whenclause: convert_list_to_nodes(cets.whenclause),
+        funcname: convert_list_to_nodes(cets.funcname),
+    }
+}
+
+unsafe fn convert_alter_event_trig_stmt(aets: &bindings_raw::AlterEventTrigStmt) -> protobuf::AlterEventTrigStmt {
+    protobuf::AlterEventTrigStmt {
+        trigname: convert_c_string(aets.trigname),
+        tgenabled: String::from_utf8_lossy(&[aets.tgenabled as u8]).to_string(),
+    }
+}
+
+unsafe fn convert_create_plang_stmt(cpls: &bindings_raw::CreatePLangStmt) -> protobuf::CreatePLangStmt {
+    protobuf::CreatePLangStmt {
+        replace: cpls.replace,
+        plname: convert_c_string(cpls.plname),
+        plhandler: convert_list_to_nodes(cpls.plhandler),
+        plinline: convert_list_to_nodes(cpls.plinline),
+        plvalidator: convert_list_to_nodes(cpls.plvalidator),
+        pltrusted: cpls.pltrusted,
+    }
+}
+
+unsafe fn convert_create_am_stmt(cas: &bindings_raw::CreateAmStmt) -> protobuf::CreateAmStmt {
+    protobuf::CreateAmStmt {
+        amname: convert_c_string(cas.amname),
+        handler_name: convert_list_to_nodes(cas.handler_name),
+        amtype: String::from_utf8_lossy(&[cas.amtype as u8]).to_string(),
+    }
+}
+
+unsafe fn convert_create_op_class_stmt(cocs: &bindings_raw::CreateOpClassStmt) -> protobuf::CreateOpClassStmt {
+    protobuf::CreateOpClassStmt {
+        opclassname: convert_list_to_nodes(cocs.opclassname),
+        opfamilyname: convert_list_to_nodes(cocs.opfamilyname),
+        amname: convert_c_string(cocs.amname),
+        datatype: if cocs.datatype.is_null() { None } else { Some(convert_type_name(&*cocs.datatype)) },
+        items: convert_list_to_nodes(cocs.items),
+        is_default: cocs.isDefault,
+    }
+}
+
+unsafe fn convert_create_op_class_item(coci: &bindings_raw::CreateOpClassItem) -> protobuf::CreateOpClassItem {
+    protobuf::CreateOpClassItem {
+        itemtype: coci.itemtype,
+        name: if coci.name.is_null() { None } else { Some(convert_object_with_args(&*coci.name)) },
+        number: coci.number,
+        order_family: convert_list_to_nodes(coci.order_family),
+        class_args: convert_list_to_nodes(coci.class_args),
+        storedtype: if coci.storedtype.is_null() { None } else { Some(convert_type_name(&*coci.storedtype)) },
+    }
+}
+
+unsafe fn convert_create_op_family_stmt(cofs: &bindings_raw::CreateOpFamilyStmt) -> protobuf::CreateOpFamilyStmt {
+    protobuf::CreateOpFamilyStmt { opfamilyname: convert_list_to_nodes(cofs.opfamilyname), amname: convert_c_string(cofs.amname) }
+}
+
+unsafe fn convert_alter_op_family_stmt(aofs: &bindings_raw::AlterOpFamilyStmt) -> protobuf::AlterOpFamilyStmt {
+    protobuf::AlterOpFamilyStmt {
+        opfamilyname: convert_list_to_nodes(aofs.opfamilyname),
+        amname: convert_c_string(aofs.amname),
+        is_drop: aofs.isDrop,
+        items: convert_list_to_nodes(aofs.items),
+    }
+}
+
+unsafe fn convert_create_fdw_stmt(cfds: &bindings_raw::CreateFdwStmt) -> protobuf::CreateFdwStmt {
+    protobuf::CreateFdwStmt {
+        fdwname: convert_c_string(cfds.fdwname),
+        func_options: convert_list_to_nodes(cfds.func_options),
+        options: convert_list_to_nodes(cfds.options),
+    }
+}
+
+unsafe fn convert_alter_fdw_stmt(afds: &bindings_raw::AlterFdwStmt) -> protobuf::AlterFdwStmt {
+    protobuf::AlterFdwStmt {
+        fdwname: convert_c_string(afds.fdwname),
+        func_options: convert_list_to_nodes(afds.func_options),
+        options: convert_list_to_nodes(afds.options),
+    }
+}
+
+unsafe fn convert_create_foreign_server_stmt(cfss: &bindings_raw::CreateForeignServerStmt) -> protobuf::CreateForeignServerStmt {
+    protobuf::CreateForeignServerStmt {
+        servername: convert_c_string(cfss.servername),
+        servertype: convert_c_string(cfss.servertype),
+        version: convert_c_string(cfss.version),
+        fdwname: convert_c_string(cfss.fdwname),
+        if_not_exists: cfss.if_not_exists,
+        options: convert_list_to_nodes(cfss.options),
+    }
+}
+
+unsafe fn convert_alter_foreign_server_stmt(afss: &bindings_raw::AlterForeignServerStmt) -> protobuf::AlterForeignServerStmt {
+    protobuf::AlterForeignServerStmt {
+        servername: convert_c_string(afss.servername),
+        version: convert_c_string(afss.version),
+        options: convert_list_to_nodes(afss.options),
+        has_version: afss.has_version,
+    }
+}
+
+unsafe fn convert_create_foreign_table_stmt(cfts: &bindings_raw::CreateForeignTableStmt) -> protobuf::CreateForeignTableStmt {
+    protobuf::CreateForeignTableStmt {
+        base_stmt: Some(convert_create_stmt(&cfts.base)),
+        servername: convert_c_string(cfts.servername),
+        options: convert_list_to_nodes(cfts.options),
+    }
+}
+
+unsafe fn convert_create_user_mapping_stmt(cums: &bindings_raw::CreateUserMappingStmt) -> protobuf::CreateUserMappingStmt {
+    protobuf::CreateUserMappingStmt {
+        user: if cums.user.is_null() { None } else { Some(convert_role_spec(&*cums.user)) },
+        servername: convert_c_string(cums.servername),
+        if_not_exists: cums.if_not_exists,
+        options: convert_list_to_nodes(cums.options),
+    }
+}
+
+unsafe fn convert_alter_user_mapping_stmt(aums: &bindings_raw::AlterUserMappingStmt) -> protobuf::AlterUserMappingStmt {
+    protobuf::AlterUserMappingStmt {
+        user: if aums.user.is_null() { None } else { Some(convert_role_spec(&*aums.user)) },
+        servername: convert_c_string(aums.servername),
+        options: convert_list_to_nodes(aums.options),
+    }
+}
+
+unsafe fn convert_drop_user_mapping_stmt(dums: &bindings_raw::DropUserMappingStmt) -> protobuf::DropUserMappingStmt {
+    protobuf::DropUserMappingStmt {
+        user: if dums.user.is_null() { None } else { Some(convert_role_spec(&*dums.user)) },
+        servername: convert_c_string(dums.servername),
+        missing_ok: dums.missing_ok,
+    }
+}
+
+unsafe fn convert_import_foreign_schema_stmt(ifss: &bindings_raw::ImportForeignSchemaStmt) -> protobuf::ImportForeignSchemaStmt {
+    protobuf::ImportForeignSchemaStmt {
+        server_name: convert_c_string(ifss.server_name),
+        remote_schema: convert_c_string(ifss.remote_schema),
+        local_schema: convert_c_string(ifss.local_schema),
+        list_type: ifss.list_type as i32 + 1,
+        table_list: convert_list_to_nodes(ifss.table_list),
+        options: convert_list_to_nodes(ifss.options),
+    }
+}
+
+unsafe fn convert_create_table_space_stmt(ctss: &bindings_raw::CreateTableSpaceStmt) -> protobuf::CreateTableSpaceStmt {
+    protobuf::CreateTableSpaceStmt {
+        tablespacename: convert_c_string(ctss.tablespacename),
+        owner: if ctss.owner.is_null() { None } else { Some(convert_role_spec(&*ctss.owner)) },
+        location: convert_c_string(ctss.location),
+        options: convert_list_to_nodes(ctss.options),
+    }
+}
+
+unsafe fn convert_drop_table_space_stmt(dtss: &bindings_raw::DropTableSpaceStmt) -> protobuf::DropTableSpaceStmt {
+    protobuf::DropTableSpaceStmt { tablespacename: convert_c_string(dtss.tablespacename), missing_ok: dtss.missing_ok }
+}
+
+unsafe fn convert_alter_table_space_options_stmt(atsos: &bindings_raw::AlterTableSpaceOptionsStmt) -> protobuf::AlterTableSpaceOptionsStmt {
+    protobuf::AlterTableSpaceOptionsStmt {
+        tablespacename: convert_c_string(atsos.tablespacename),
+        options: convert_list_to_nodes(atsos.options),
+        is_reset: atsos.isReset,
+    }
+}
+
+unsafe fn convert_alter_table_move_all_stmt(atmas: &bindings_raw::AlterTableMoveAllStmt) -> protobuf::AlterTableMoveAllStmt {
+    protobuf::AlterTableMoveAllStmt {
+        orig_tablespacename: convert_c_string(atmas.orig_tablespacename),
+        objtype: atmas.objtype as i32 + 1,
+        roles: convert_list_to_nodes(atmas.roles),
+        new_tablespacename: convert_c_string(atmas.new_tablespacename),
+        nowait: atmas.nowait,
+    }
+}
+
+unsafe fn convert_alter_extension_stmt(aes: &bindings_raw::AlterExtensionStmt) -> protobuf::AlterExtensionStmt {
+    protobuf::AlterExtensionStmt { extname: convert_c_string(aes.extname), options: convert_list_to_nodes(aes.options) }
+}
+
+unsafe fn convert_alter_extension_contents_stmt(aecs: &bindings_raw::AlterExtensionContentsStmt) -> protobuf::AlterExtensionContentsStmt {
+    protobuf::AlterExtensionContentsStmt {
+        extname: convert_c_string(aecs.extname),
+        action: aecs.action,
+        objtype: aecs.objtype as i32 + 1,
+        object: convert_node_boxed(aecs.object),
+    }
+}
+
+unsafe fn convert_alter_domain_stmt(ads: &bindings_raw::AlterDomainStmt) -> protobuf::AlterDomainStmt {
+    protobuf::AlterDomainStmt {
+        subtype: String::from_utf8_lossy(&[ads.subtype as u8]).to_string(),
+        type_name: convert_list_to_nodes(ads.typeName),
+        name: convert_c_string(ads.name),
+        def: convert_node_boxed(ads.def),
+        behavior: ads.behavior as i32 + 1,
+        missing_ok: ads.missing_ok,
+    }
+}
+
+unsafe fn convert_alter_function_stmt(afs: &bindings_raw::AlterFunctionStmt) -> protobuf::AlterFunctionStmt {
+    protobuf::AlterFunctionStmt {
+        objtype: afs.objtype as i32 + 1,
+        func: if afs.func.is_null() { None } else { Some(convert_object_with_args(&*afs.func)) },
+        actions: convert_list_to_nodes(afs.actions),
+    }
+}
+
+unsafe fn convert_alter_operator_stmt(aos: &bindings_raw::AlterOperatorStmt) -> protobuf::AlterOperatorStmt {
+    protobuf::AlterOperatorStmt {
+        opername: if aos.opername.is_null() { None } else { Some(convert_object_with_args(&*aos.opername)) },
+        options: convert_list_to_nodes(aos.options),
+    }
+}
+
+unsafe fn convert_alter_type_stmt(ats: &bindings_raw::AlterTypeStmt) -> protobuf::AlterTypeStmt {
+    protobuf::AlterTypeStmt { type_name: convert_list_to_nodes(ats.typeName), options: convert_list_to_nodes(ats.options) }
+}
+
+unsafe fn convert_alter_object_schema_stmt(aoss: &bindings_raw::AlterObjectSchemaStmt) -> protobuf::AlterObjectSchemaStmt {
+    protobuf::AlterObjectSchemaStmt {
+        object_type: aoss.objectType as i32 + 1,
+        relation: if aoss.relation.is_null() { None } else { Some(convert_range_var(&*aoss.relation)) },
+        object: convert_node_boxed(aoss.object),
+        newschema: convert_c_string(aoss.newschema),
+        missing_ok: aoss.missing_ok,
+    }
+}
+
+unsafe fn convert_alter_object_depends_stmt(aods: &bindings_raw::AlterObjectDependsStmt) -> protobuf::AlterObjectDependsStmt {
+    protobuf::AlterObjectDependsStmt {
+        object_type: aods.objectType as i32 + 1,
+        relation: if aods.relation.is_null() { None } else { Some(convert_range_var(&*aods.relation)) },
+        object: convert_node_boxed(aods.object),
+        extname: Some(protobuf::String { sval: convert_c_string(aods.extname as *mut i8) }),
+        remove: aods.remove,
+    }
+}
+
+unsafe fn convert_alter_collation_stmt(acs: &bindings_raw::AlterCollationStmt) -> protobuf::AlterCollationStmt {
+    protobuf::AlterCollationStmt { collname: convert_list_to_nodes(acs.collname) }
+}
+
+unsafe fn convert_alter_default_privileges_stmt(adps: &bindings_raw::AlterDefaultPrivilegesStmt) -> protobuf::AlterDefaultPrivilegesStmt {
+    protobuf::AlterDefaultPrivilegesStmt {
+        options: convert_list_to_nodes(adps.options),
+        action: if adps.action.is_null() { None } else { Some(convert_grant_stmt(&*adps.action)) },
+    }
+}
+
+unsafe fn convert_create_cast_stmt(ccs: &bindings_raw::CreateCastStmt) -> protobuf::CreateCastStmt {
+    protobuf::CreateCastStmt {
+        sourcetype: if ccs.sourcetype.is_null() { None } else { Some(convert_type_name(&*ccs.sourcetype)) },
+        targettype: if ccs.targettype.is_null() { None } else { Some(convert_type_name(&*ccs.targettype)) },
+        func: if ccs.func.is_null() { None } else { Some(convert_object_with_args(&*ccs.func)) },
+        context: ccs.context as i32 + 1,
+        inout: ccs.inout,
+    }
+}
+
+unsafe fn convert_create_transform_stmt(cts: &bindings_raw::CreateTransformStmt) -> protobuf::CreateTransformStmt {
+    protobuf::CreateTransformStmt {
+        replace: cts.replace,
+        type_name: if cts.type_name.is_null() { None } else { Some(convert_type_name(&*cts.type_name)) },
+        lang: convert_c_string(cts.lang),
+        fromsql: if cts.fromsql.is_null() { None } else { Some(convert_object_with_args(&*cts.fromsql)) },
+        tosql: if cts.tosql.is_null() { None } else { Some(convert_object_with_args(&*cts.tosql)) },
+    }
+}
+
+unsafe fn convert_create_conversion_stmt(ccs: &bindings_raw::CreateConversionStmt) -> protobuf::CreateConversionStmt {
+    protobuf::CreateConversionStmt {
+        conversion_name: convert_list_to_nodes(ccs.conversion_name),
+        for_encoding_name: convert_c_string(ccs.for_encoding_name),
+        to_encoding_name: convert_c_string(ccs.to_encoding_name),
+        func_name: convert_list_to_nodes(ccs.func_name),
+        def: ccs.def,
+    }
+}
+
+unsafe fn convert_alter_ts_dictionary_stmt(atds: &bindings_raw::AlterTSDictionaryStmt) -> protobuf::AlterTsDictionaryStmt {
+    protobuf::AlterTsDictionaryStmt { dictname: convert_list_to_nodes(atds.dictname), options: convert_list_to_nodes(atds.options) }
+}
+
+unsafe fn convert_alter_ts_configuration_stmt(atcs: &bindings_raw::AlterTSConfigurationStmt) -> protobuf::AlterTsConfigurationStmt {
+    protobuf::AlterTsConfigurationStmt {
+        kind: atcs.kind as i32 + 1,
+        cfgname: convert_list_to_nodes(atcs.cfgname),
+        tokentype: convert_list_to_nodes(atcs.tokentype),
+        dicts: convert_list_to_nodes(atcs.dicts),
+        r#override: atcs.override_,
+        replace: atcs.replace,
+        missing_ok: atcs.missing_ok,
+    }
+}
+
+unsafe fn convert_createdb_stmt(cds: &bindings_raw::CreatedbStmt) -> protobuf::CreatedbStmt {
+    protobuf::CreatedbStmt { dbname: convert_c_string(cds.dbname), options: convert_list_to_nodes(cds.options) }
+}
+
+unsafe fn convert_dropdb_stmt(dds: &bindings_raw::DropdbStmt) -> protobuf::DropdbStmt {
+    protobuf::DropdbStmt { dbname: convert_c_string(dds.dbname), missing_ok: dds.missing_ok, options: convert_list_to_nodes(dds.options) }
+}
+
+unsafe fn convert_alter_database_stmt(ads: &bindings_raw::AlterDatabaseStmt) -> protobuf::AlterDatabaseStmt {
+    protobuf::AlterDatabaseStmt { dbname: convert_c_string(ads.dbname), options: convert_list_to_nodes(ads.options) }
+}
+
+unsafe fn convert_alter_database_set_stmt(adss: &bindings_raw::AlterDatabaseSetStmt) -> protobuf::AlterDatabaseSetStmt {
+    protobuf::AlterDatabaseSetStmt { dbname: convert_c_string(adss.dbname), setstmt: convert_variable_set_stmt_opt(adss.setstmt) }
+}
+
+unsafe fn convert_alter_database_refresh_coll_stmt(adrcs: &bindings_raw::AlterDatabaseRefreshCollStmt) -> protobuf::AlterDatabaseRefreshCollStmt {
+    protobuf::AlterDatabaseRefreshCollStmt { dbname: convert_c_string(adrcs.dbname) }
+}
+
+unsafe fn convert_alter_system_stmt(ass: &bindings_raw::AlterSystemStmt) -> protobuf::AlterSystemStmt {
+    protobuf::AlterSystemStmt { setstmt: convert_variable_set_stmt_opt(ass.setstmt) }
+}
+
+unsafe fn convert_cluster_stmt(cs: &bindings_raw::ClusterStmt) -> protobuf::ClusterStmt {
+    protobuf::ClusterStmt {
+        relation: if cs.relation.is_null() { None } else { Some(convert_range_var(&*cs.relation)) },
+        indexname: convert_c_string(cs.indexname),
+        params: convert_list_to_nodes(cs.params),
+    }
+}
+
+unsafe fn convert_reindex_stmt(rs: &bindings_raw::ReindexStmt) -> protobuf::ReindexStmt {
+    protobuf::ReindexStmt {
+        kind: rs.kind as i32 + 1,
+        relation: if rs.relation.is_null() { None } else { Some(convert_range_var(&*rs.relation)) },
+        name: convert_c_string(rs.name),
+        params: convert_list_to_nodes(rs.params),
+    }
+}
+
+unsafe fn convert_constraints_set_stmt(css: &bindings_raw::ConstraintsSetStmt) -> protobuf::ConstraintsSetStmt {
+    protobuf::ConstraintsSetStmt { constraints: convert_list_to_nodes(css.constraints), deferred: css.deferred }
+}
+
+unsafe fn convert_load_stmt(ls: &bindings_raw::LoadStmt) -> protobuf::LoadStmt {
+    protobuf::LoadStmt { filename: convert_c_string(ls.filename) }
+}
+
+unsafe fn convert_drop_owned_stmt(dos: &bindings_raw::DropOwnedStmt) -> protobuf::DropOwnedStmt {
+    protobuf::DropOwnedStmt { roles: convert_list_to_nodes(dos.roles), behavior: dos.behavior as i32 + 1 }
+}
+
+unsafe fn convert_reassign_owned_stmt(ros: &bindings_raw::ReassignOwnedStmt) -> protobuf::ReassignOwnedStmt {
+    protobuf::ReassignOwnedStmt {
+        roles: convert_list_to_nodes(ros.roles),
+        newrole: if ros.newrole.is_null() { None } else { Some(convert_role_spec(&*ros.newrole)) },
+    }
+}
+
+unsafe fn convert_drop_subscription_stmt(dss: &bindings_raw::DropSubscriptionStmt) -> protobuf::DropSubscriptionStmt {
+    protobuf::DropSubscriptionStmt { subname: convert_c_string(dss.subname), missing_ok: dss.missing_ok, behavior: dss.behavior as i32 + 1 }
+}
+
+unsafe fn convert_table_func(tf: &bindings_raw::TableFunc) -> protobuf::TableFunc {
+    protobuf::TableFunc {
+        functype: tf.functype as i32,
+        ns_uris: convert_list_to_nodes(tf.ns_uris),
+        ns_names: convert_list_to_nodes(tf.ns_names),
+        docexpr: convert_node_boxed(tf.docexpr),
+        rowexpr: convert_node_boxed(tf.rowexpr),
+        colnames: convert_list_to_nodes(tf.colnames),
+        coltypes: convert_list_to_nodes(tf.coltypes),
+        coltypmods: convert_list_to_nodes(tf.coltypmods),
+        colcollations: convert_list_to_nodes(tf.colcollations),
+        colexprs: convert_list_to_nodes(tf.colexprs),
+        coldefexprs: convert_list_to_nodes(tf.coldefexprs),
+        colvalexprs: convert_list_to_nodes(tf.colvalexprs),
+        passingvalexprs: convert_list_to_nodes(tf.passingvalexprs),
+        notnulls: vec![], // Bitmapset conversion not yet supported
+        plan: convert_node_boxed(tf.plan),
+        ordinalitycol: tf.ordinalitycol,
+        location: tf.location,
+    }
+}
+
+unsafe fn convert_into_clause_node(ic: &bindings_raw::IntoClause) -> protobuf::IntoClause {
+    protobuf::IntoClause {
+        rel: if ic.rel.is_null() { None } else { Some(convert_range_var(&*ic.rel)) },
+        col_names: convert_list_to_nodes(ic.colNames),
+        access_method: convert_c_string(ic.accessMethod),
+        options: convert_list_to_nodes(ic.options),
+        on_commit: ic.onCommit as i32 + 1,
+        table_space_name: convert_c_string(ic.tableSpaceName),
+        view_query: convert_node_boxed(ic.viewQuery),
+        skip_data: ic.skipData,
+    }
+}
+
+unsafe fn convert_table_like_clause(tlc: &bindings_raw::TableLikeClause) -> protobuf::TableLikeClause {
+    protobuf::TableLikeClause {
+        relation: if tlc.relation.is_null() { None } else { Some(convert_range_var(&*tlc.relation)) },
+        options: tlc.options,
+        relation_oid: tlc.relationOid,
+    }
+}
+
+unsafe fn convert_range_table_func(rtf: &bindings_raw::RangeTableFunc) -> protobuf::RangeTableFunc {
+    protobuf::RangeTableFunc {
+        lateral: rtf.lateral,
+        docexpr: convert_node_boxed(rtf.docexpr),
+        rowexpr: convert_node_boxed(rtf.rowexpr),
+        namespaces: convert_list_to_nodes(rtf.namespaces),
+        columns: convert_list_to_nodes(rtf.columns),
+        alias: if rtf.alias.is_null() { None } else { Some(convert_alias(&*rtf.alias)) },
+        location: rtf.location,
+    }
+}
+
+unsafe fn convert_range_table_func_col(rtfc: &bindings_raw::RangeTableFuncCol) -> protobuf::RangeTableFuncCol {
+    protobuf::RangeTableFuncCol {
+        colname: convert_c_string(rtfc.colname),
+        type_name: if rtfc.typeName.is_null() { None } else { Some(convert_type_name(&*rtfc.typeName)) },
+        for_ordinality: rtfc.for_ordinality,
+        is_not_null: rtfc.is_not_null,
+        colexpr: convert_node_boxed(rtfc.colexpr),
+        coldefexpr: convert_node_boxed(rtfc.coldefexpr),
+        location: rtfc.location,
+    }
+}
+
+unsafe fn convert_range_table_sample(rts: &bindings_raw::RangeTableSample) -> protobuf::RangeTableSample {
+    protobuf::RangeTableSample {
+        relation: convert_node_boxed(rts.relation),
+        method: convert_list_to_nodes(rts.method),
+        args: convert_list_to_nodes(rts.args),
+        repeatable: convert_node_boxed(rts.repeatable),
+        location: rts.location,
+    }
+}
+
+unsafe fn convert_partition_cmd(pc: &bindings_raw::PartitionCmd) -> protobuf::PartitionCmd {
+    protobuf::PartitionCmd {
+        name: if pc.name.is_null() { None } else { Some(convert_range_var(&*pc.name)) },
+        bound: convert_partition_bound_spec_opt(pc.bound),
+        concurrent: pc.concurrent,
+    }
+}
+
+unsafe fn convert_on_conflict_clause_node(occ: &bindings_raw::OnConflictClause) -> protobuf::OnConflictClause {
+    protobuf::OnConflictClause {
+        action: occ.action as i32 + 1,
+        infer: convert_infer_clause_opt(occ.infer),
+        target_list: convert_list_to_nodes(occ.targetList),
+        where_clause: convert_node_boxed(occ.whereClause),
+        location: occ.location,
+    }
+}
+
+unsafe fn convert_trigger_transition(tt: &bindings_raw::TriggerTransition) -> protobuf::TriggerTransition {
+    protobuf::TriggerTransition { name: convert_c_string(tt.name), is_new: tt.isNew, is_table: tt.isTable }
+}
+
+unsafe fn convert_create_stats_stmt(css: &bindings_raw::CreateStatsStmt) -> protobuf::CreateStatsStmt {
+    protobuf::CreateStatsStmt {
+        defnames: convert_list_to_nodes(css.defnames),
+        stat_types: convert_list_to_nodes(css.stat_types),
+        exprs: convert_list_to_nodes(css.exprs),
+        relations: convert_list_to_nodes(css.relations),
+        stxcomment: convert_c_string(css.stxcomment),
+        transformed: css.transformed,
+        if_not_exists: css.if_not_exists,
+    }
+}
+
+unsafe fn convert_alter_stats_stmt(ass: &bindings_raw::AlterStatsStmt) -> protobuf::AlterStatsStmt {
+    protobuf::AlterStatsStmt {
+        defnames: convert_list_to_nodes(ass.defnames),
+        stxstattarget: convert_node_boxed(ass.stxstattarget),
+        missing_ok: ass.missing_ok,
+    }
+}
+
+unsafe fn convert_stats_elem(se: &bindings_raw::StatsElem) -> protobuf::StatsElem {
+    protobuf::StatsElem { name: convert_c_string(se.name), expr: convert_node_boxed(se.expr) }
+}
+
+unsafe fn convert_sql_value_function(svf: &bindings_raw::SQLValueFunction) -> protobuf::SqlValueFunction {
+    let xpr_ptr = &svf.xpr as *const bindings_raw::Expr as *mut bindings_raw::Node;
+    protobuf::SqlValueFunction {
+        xpr: convert_node_boxed(xpr_ptr),
+        op: svf.op as i32 + 1,
+        r#type: svf.type_,
+        typmod: svf.typmod,
+        location: svf.location,
+    }
+}
+
+unsafe fn convert_xml_expr(xe: &bindings_raw::XmlExpr) -> protobuf::XmlExpr {
+    let xpr_ptr = &xe.xpr as *const bindings_raw::Expr as *mut bindings_raw::Node;
+    protobuf::XmlExpr {
+        xpr: convert_node_boxed(xpr_ptr),
+        op: xe.op as i32 + 1,
+        name: convert_c_string(xe.name),
+        named_args: convert_list_to_nodes(xe.named_args),
+        arg_names: convert_list_to_nodes(xe.arg_names),
+        args: convert_list_to_nodes(xe.args),
+        xmloption: xe.xmloption as i32 + 1,
+        indent: xe.indent,
+        r#type: xe.type_,
+        typmod: xe.typmod,
+        location: xe.location,
+    }
+}
+
+unsafe fn convert_xml_serialize(xs: &bindings_raw::XmlSerialize) -> protobuf::XmlSerialize {
+    protobuf::XmlSerialize {
+        xmloption: xs.xmloption as i32 + 1,
+        expr: convert_node_boxed(xs.expr),
+        type_name: if xs.typeName.is_null() { None } else { Some(convert_type_name(&*xs.typeName)) },
+        indent: xs.indent,
+        location: xs.location,
+    }
+}
+
+unsafe fn convert_named_arg_expr(nae: &bindings_raw::NamedArgExpr) -> protobuf::NamedArgExpr {
+    let xpr_ptr = &nae.xpr as *const bindings_raw::Expr as *mut bindings_raw::Node;
+    protobuf::NamedArgExpr {
+        xpr: convert_node_boxed(xpr_ptr),
+        arg: convert_node_boxed(nae.arg as *mut bindings_raw::Node),
+        name: convert_c_string(nae.name),
+        argnumber: nae.argnumber,
+        location: nae.location,
+    }
+}
+
+// ============================================================================
+// JSON Node Conversions
+// ============================================================================
+
+unsafe fn convert_json_format(jf: &bindings_raw::JsonFormat) -> protobuf::JsonFormat {
+    protobuf::JsonFormat { format_type: jf.format_type as i32 + 1, encoding: jf.encoding as i32 + 1, location: jf.location }
+}
+
+unsafe fn convert_json_returning(jr: &bindings_raw::JsonReturning) -> protobuf::JsonReturning {
+    protobuf::JsonReturning {
+        format: if jr.format.is_null() { None } else { Some(convert_json_format(&*jr.format)) },
+        typid: jr.typid,
+        typmod: jr.typmod,
+    }
+}
+
+unsafe fn convert_json_value_expr(jve: &bindings_raw::JsonValueExpr) -> protobuf::JsonValueExpr {
+    protobuf::JsonValueExpr {
+        raw_expr: convert_node_boxed(jve.raw_expr as *mut bindings_raw::Node),
+        formatted_expr: convert_node_boxed(jve.formatted_expr as *mut bindings_raw::Node),
+        format: if jve.format.is_null() { None } else { Some(convert_json_format(&*jve.format)) },
+    }
+}
+
+unsafe fn convert_json_constructor_expr(jce: &bindings_raw::JsonConstructorExpr) -> protobuf::JsonConstructorExpr {
+    let xpr_ptr = &jce.xpr as *const bindings_raw::Expr as *mut bindings_raw::Node;
+    protobuf::JsonConstructorExpr {
+        xpr: convert_node_boxed(xpr_ptr),
+        r#type: jce.type_ as i32 + 1,
+        args: convert_list_to_nodes(jce.args),
+        func: convert_node_boxed(jce.func as *mut bindings_raw::Node),
+        coercion: convert_node_boxed(jce.coercion as *mut bindings_raw::Node),
+        returning: if jce.returning.is_null() { None } else { Some(convert_json_returning(&*jce.returning)) },
+        absent_on_null: jce.absent_on_null,
+        unique: jce.unique,
+        location: jce.location,
+    }
+}
+
+unsafe fn convert_json_is_predicate(jip: &bindings_raw::JsonIsPredicate) -> protobuf::JsonIsPredicate {
+    protobuf::JsonIsPredicate {
+        expr: convert_node_boxed(jip.expr),
+        format: if jip.format.is_null() { None } else { Some(convert_json_format(&*jip.format)) },
+        item_type: jip.item_type as i32 + 1,
+        unique_keys: jip.unique_keys,
+        location: jip.location,
+    }
+}
+
+unsafe fn convert_json_behavior(jb: &bindings_raw::JsonBehavior) -> protobuf::JsonBehavior {
+    protobuf::JsonBehavior { btype: jb.btype as i32 + 1, expr: convert_node_boxed(jb.expr), coerce: jb.coerce, location: jb.location }
+}
+
+unsafe fn convert_json_expr(je: &bindings_raw::JsonExpr) -> protobuf::JsonExpr {
+    let xpr_ptr = &je.xpr as *const bindings_raw::Expr as *mut bindings_raw::Node;
+    protobuf::JsonExpr {
+        xpr: convert_node_boxed(xpr_ptr),
+        op: je.op as i32 + 1,
+        column_name: convert_c_string(je.column_name),
+        formatted_expr: convert_node_boxed(je.formatted_expr as *mut bindings_raw::Node),
+        format: if je.format.is_null() { None } else { Some(convert_json_format(&*je.format)) },
+        path_spec: convert_node_boxed(je.path_spec),
+        returning: if je.returning.is_null() { None } else { Some(convert_json_returning(&*je.returning)) },
+        passing_names: convert_list_to_nodes(je.passing_names),
+        passing_values: convert_list_to_nodes(je.passing_values),
+        on_empty: if je.on_empty.is_null() { None } else { Some(Box::new(convert_json_behavior(&*je.on_empty))) },
+        on_error: if je.on_error.is_null() { None } else { Some(Box::new(convert_json_behavior(&*je.on_error))) },
+        use_io_coercion: je.use_io_coercion,
+        use_json_coercion: je.use_json_coercion,
+        wrapper: je.wrapper as i32 + 1,
+        omit_quotes: je.omit_quotes,
+        collation: je.collation,
+        location: je.location,
+    }
+}
+
+unsafe fn convert_json_table_path(jtp: &bindings_raw::JsonTablePath) -> protobuf::JsonTablePath {
+    // In raw parse tree, value is not populated - only name
+    protobuf::JsonTablePath { name: convert_c_string(jtp.name) }
+}
+
+unsafe fn convert_json_table_path_scan(jtps: &bindings_raw::JsonTablePathScan) -> protobuf::JsonTablePathScan {
+    protobuf::JsonTablePathScan {
+        plan: convert_node_boxed(&jtps.plan as *const bindings_raw::JsonTablePlan as *mut bindings_raw::Node),
+        path: if jtps.path.is_null() { None } else { Some(convert_json_table_path(&*jtps.path)) },
+        error_on_error: jtps.errorOnError,
+        child: convert_node_boxed(jtps.child as *mut bindings_raw::Node),
+        col_min: jtps.colMin,
+        col_max: jtps.colMax,
+    }
+}
+
+unsafe fn convert_json_table_sibling_join(jtsj: &bindings_raw::JsonTableSiblingJoin) -> protobuf::JsonTableSiblingJoin {
+    protobuf::JsonTableSiblingJoin {
+        plan: convert_node_boxed(&jtsj.plan as *const bindings_raw::JsonTablePlan as *mut bindings_raw::Node),
+        lplan: convert_node_boxed(jtsj.lplan as *mut bindings_raw::Node),
+        rplan: convert_node_boxed(jtsj.rplan as *mut bindings_raw::Node),
+    }
+}
+
+unsafe fn convert_json_output(jo: &bindings_raw::JsonOutput) -> protobuf::JsonOutput {
+    protobuf::JsonOutput {
+        type_name: if jo.typeName.is_null() { None } else { Some(convert_type_name(&*jo.typeName)) },
+        returning: if jo.returning.is_null() { None } else { Some(convert_json_returning(&*jo.returning)) },
+    }
+}
+
+unsafe fn convert_json_argument(ja: &bindings_raw::JsonArgument) -> protobuf::JsonArgument {
+    protobuf::JsonArgument {
+        val: if ja.val.is_null() { None } else { Some(Box::new(convert_json_value_expr(&*ja.val))) },
+        name: convert_c_string(ja.name),
+    }
+}
+
+unsafe fn convert_json_func_expr(jfe: &bindings_raw::JsonFuncExpr) -> protobuf::JsonFuncExpr {
+    protobuf::JsonFuncExpr {
+        op: jfe.op as i32 + 1,
+        column_name: convert_c_string(jfe.column_name),
+        context_item: if jfe.context_item.is_null() { None } else { Some(Box::new(convert_json_value_expr(&*jfe.context_item))) },
+        pathspec: convert_node_boxed(jfe.pathspec),
+        passing: convert_list_to_nodes(jfe.passing),
+        output: if jfe.output.is_null() { None } else { Some(convert_json_output(&*jfe.output)) },
+        on_empty: if jfe.on_empty.is_null() { None } else { Some(Box::new(convert_json_behavior(&*jfe.on_empty))) },
+        on_error: if jfe.on_error.is_null() { None } else { Some(Box::new(convert_json_behavior(&*jfe.on_error))) },
+        wrapper: jfe.wrapper as i32 + 1,
+        quotes: jfe.quotes as i32 + 1,
+        location: jfe.location,
+    }
+}
+
+unsafe fn convert_json_table_path_spec(jtps: &bindings_raw::JsonTablePathSpec) -> protobuf::JsonTablePathSpec {
+    protobuf::JsonTablePathSpec {
+        string: convert_node_boxed(jtps.string),
+        name: convert_c_string(jtps.name),
+        name_location: jtps.name_location,
+        location: jtps.location,
+    }
+}
+
+unsafe fn convert_json_table(jt: &bindings_raw::JsonTable) -> protobuf::JsonTable {
+    protobuf::JsonTable {
+        context_item: if jt.context_item.is_null() { None } else { Some(Box::new(convert_json_value_expr(&*jt.context_item))) },
+        pathspec: if jt.pathspec.is_null() { None } else { Some(Box::new(convert_json_table_path_spec(&*jt.pathspec))) },
+        passing: convert_list_to_nodes(jt.passing),
+        columns: convert_list_to_nodes(jt.columns),
+        on_error: if jt.on_error.is_null() { None } else { Some(Box::new(convert_json_behavior(&*jt.on_error))) },
+        alias: if jt.alias.is_null() { None } else { Some(convert_alias(&*jt.alias)) },
+        lateral: jt.lateral,
+        location: jt.location,
+    }
+}
+
+unsafe fn convert_json_table_column(jtc: &bindings_raw::JsonTableColumn) -> protobuf::JsonTableColumn {
+    protobuf::JsonTableColumn {
+        coltype: jtc.coltype as i32 + 1,
+        name: convert_c_string(jtc.name),
+        type_name: if jtc.typeName.is_null() { None } else { Some(convert_type_name(&*jtc.typeName)) },
+        pathspec: if jtc.pathspec.is_null() { None } else { Some(Box::new(convert_json_table_path_spec(&*jtc.pathspec))) },
+        format: if jtc.format.is_null() { None } else { Some(convert_json_format(&*jtc.format)) },
+        wrapper: jtc.wrapper as i32 + 1,
+        quotes: jtc.quotes as i32 + 1,
+        columns: convert_list_to_nodes(jtc.columns),
+        on_empty: if jtc.on_empty.is_null() { None } else { Some(Box::new(convert_json_behavior(&*jtc.on_empty))) },
+        on_error: if jtc.on_error.is_null() { None } else { Some(Box::new(convert_json_behavior(&*jtc.on_error))) },
+        location: jtc.location,
+    }
+}
+
+unsafe fn convert_json_key_value(jkv: &bindings_raw::JsonKeyValue) -> protobuf::JsonKeyValue {
+    protobuf::JsonKeyValue {
+        key: convert_node_boxed(jkv.key as *mut bindings_raw::Node),
+        value: if jkv.value.is_null() { None } else { Some(Box::new(convert_json_value_expr(&*jkv.value))) },
+    }
+}
+
+unsafe fn convert_json_parse_expr(jpe: &bindings_raw::JsonParseExpr) -> protobuf::JsonParseExpr {
+    protobuf::JsonParseExpr {
+        expr: if jpe.expr.is_null() { None } else { Some(Box::new(convert_json_value_expr(&*jpe.expr))) },
+        output: if jpe.output.is_null() { None } else { Some(convert_json_output(&*jpe.output)) },
+        unique_keys: jpe.unique_keys,
+        location: jpe.location,
+    }
+}
+
+unsafe fn convert_json_scalar_expr(jse: &bindings_raw::JsonScalarExpr) -> protobuf::JsonScalarExpr {
+    protobuf::JsonScalarExpr {
+        expr: convert_node_boxed(jse.expr as *mut bindings_raw::Node),
+        output: if jse.output.is_null() { None } else { Some(convert_json_output(&*jse.output)) },
+        location: jse.location,
+    }
+}
+
+unsafe fn convert_json_serialize_expr(jse: &bindings_raw::JsonSerializeExpr) -> protobuf::JsonSerializeExpr {
+    protobuf::JsonSerializeExpr {
+        expr: if jse.expr.is_null() { None } else { Some(Box::new(convert_json_value_expr(&*jse.expr))) },
+        output: if jse.output.is_null() { None } else { Some(convert_json_output(&*jse.output)) },
+        location: jse.location,
+    }
+}
+
+unsafe fn convert_json_object_constructor(joc: &bindings_raw::JsonObjectConstructor) -> protobuf::JsonObjectConstructor {
+    protobuf::JsonObjectConstructor {
+        exprs: convert_list_to_nodes(joc.exprs),
+        output: if joc.output.is_null() { None } else { Some(convert_json_output(&*joc.output)) },
+        absent_on_null: joc.absent_on_null,
+        unique: joc.unique,
+        location: joc.location,
+    }
+}
+
+unsafe fn convert_json_array_constructor(jac: &bindings_raw::JsonArrayConstructor) -> protobuf::JsonArrayConstructor {
+    protobuf::JsonArrayConstructor {
+        exprs: convert_list_to_nodes(jac.exprs),
+        output: if jac.output.is_null() { None } else { Some(convert_json_output(&*jac.output)) },
+        absent_on_null: jac.absent_on_null,
+        location: jac.location,
+    }
+}
+
+unsafe fn convert_json_array_query_constructor(jaqc: &bindings_raw::JsonArrayQueryConstructor) -> protobuf::JsonArrayQueryConstructor {
+    protobuf::JsonArrayQueryConstructor {
+        query: convert_node_boxed(jaqc.query),
+        output: if jaqc.output.is_null() { None } else { Some(convert_json_output(&*jaqc.output)) },
+        format: if jaqc.format.is_null() { None } else { Some(convert_json_format(&*jaqc.format)) },
+        absent_on_null: jaqc.absent_on_null,
+        location: jaqc.location,
+    }
+}
+
+unsafe fn convert_json_agg_constructor(jac: &bindings_raw::JsonAggConstructor) -> protobuf::JsonAggConstructor {
+    protobuf::JsonAggConstructor {
+        output: if jac.output.is_null() { None } else { Some(convert_json_output(&*jac.output)) },
+        agg_filter: convert_node_boxed(jac.agg_filter),
+        agg_order: convert_list_to_nodes(jac.agg_order),
+        over: if jac.over.is_null() { None } else { Some(Box::new(convert_window_def(&*jac.over))) },
+        location: jac.location,
+    }
+}
+
+unsafe fn convert_json_object_agg(joa: &bindings_raw::JsonObjectAgg) -> protobuf::JsonObjectAgg {
+    protobuf::JsonObjectAgg {
+        constructor: if joa.constructor.is_null() { None } else { Some(Box::new(convert_json_agg_constructor(&*joa.constructor))) },
+        arg: if joa.arg.is_null() { None } else { Some(Box::new(convert_json_key_value(&*joa.arg))) },
+        absent_on_null: joa.absent_on_null,
+        unique: joa.unique,
+    }
+}
+
+unsafe fn convert_json_array_agg(jaa: &bindings_raw::JsonArrayAgg) -> protobuf::JsonArrayAgg {
+    protobuf::JsonArrayAgg {
+        constructor: if jaa.constructor.is_null() { None } else { Some(Box::new(convert_json_agg_constructor(&*jaa.constructor))) },
+        arg: if jaa.arg.is_null() { None } else { Some(Box::new(convert_json_value_expr(&*jaa.arg))) },
+        absent_on_null: jaa.absent_on_null,
+    }
+}
+
+// ============================================================================
+// Additional Helper Functions
+// ============================================================================
+
+unsafe fn convert_variable_set_stmt_opt(stmt: *mut bindings_raw::VariableSetStmt) -> Option<protobuf::VariableSetStmt> {
+    if stmt.is_null() {
+        None
+    } else {
+        Some(convert_variable_set_stmt(&*stmt))
+    }
+}
+
+unsafe fn convert_infer_clause_opt(ic: *mut bindings_raw::InferClause) -> Option<Box<protobuf::InferClause>> {
+    if ic.is_null() {
+        None
+    } else {
+        let ic_ref = &*ic;
+        Some(Box::new(protobuf::InferClause {
+            index_elems: convert_list_to_nodes(ic_ref.indexElems),
+            where_clause: convert_node_boxed(ic_ref.whereClause),
+            conname: convert_c_string(ic_ref.conname),
+            location: ic_ref.location,
+        }))
     }
 }
