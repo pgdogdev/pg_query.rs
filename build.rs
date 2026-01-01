@@ -69,6 +69,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         // Blocklist raw deparse functions that use types from bindings_raw
         .blocklist_function("pg_query_deparse_raw")
         .blocklist_function("pg_query_deparse_raw_opts")
+        // Blocklist raw fingerprint function that uses types from bindings_raw
+        .blocklist_function("pg_query_fingerprint_raw")
         .generate()
         .map_err(|_| "Unable to generate bindings")?
         .write_to_file(out_dir.join("bindings.rs"))?;
@@ -433,6 +435,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .allowlist_function("pg_query_list_make1")
         .allowlist_function("pg_query_list_append")
         .allowlist_function("pg_query_deparse_nodes")
+        // Raw scan functions (bypasses protobuf)
+        .allowlist_type("PgQueryRawScanToken")
+        .allowlist_type("PgQueryRawScanResult")
+        .allowlist_function("pg_query_scan_raw")
+        .allowlist_function("pg_query_free_raw_scan_result")
+        // Raw fingerprint (works with raw parse result)
+        .allowlist_type("PgQueryFingerprintResult")
+        .allowlist_function("pg_query_fingerprint_raw")
+        .allowlist_function("pg_query_free_fingerprint_result")
         .generate()
         .map_err(|_| "Unable to generate raw bindings")?
         .write_to_file(out_dir.join("bindings_raw.rs"))?;

@@ -19,6 +19,13 @@ impl NodeEnum {
         })
     }
 
+    pub fn deparse_raw(&self) -> Result<String> {
+        crate::deparse_raw(&protobuf::ParseResult {
+            version: crate::bindings::PG_VERSION_NUM as i32,
+            stmts: vec![protobuf::RawStmt { stmt: Some(Box::new(Node { node: Some(self.clone()) })), stmt_location: 0, stmt_len: 0 }],
+        })
+    }
+
     pub fn nodes(&self) -> Vec<(NodeRef<'_>, i32, Context, bool)> {
         let mut iter = vec![(self.to_ref(), 0, Context::None, false)];
         let mut nodes = Vec::new();
