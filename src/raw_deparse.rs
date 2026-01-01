@@ -1749,7 +1749,7 @@ unsafe fn write_close_portal_stmt(stmt: &protobuf::ClosePortalStmt) -> *mut bind
 unsafe fn write_fetch_stmt(stmt: &protobuf::FetchStmt) -> *mut bindings_raw::FetchStmt {
     let node = alloc_node::<bindings_raw::FetchStmt>(bindings_raw::NodeTag_T_FetchStmt);
     (*node).direction = proto_enum_to_c(stmt.direction) as _;
-    (*node).howMany = stmt.how_many;
+    (*node).howMany = stmt.how_many as _;
     (*node).portalname = pstrdup(&stmt.portalname);
     (*node).ismove = stmt.ismove;
     node
