@@ -280,6 +280,13 @@ impl NodeMut {
         })
     }
 
+    pub fn deparse_raw(&self) -> Result<String> {
+        crate::deparse_raw(&protobuf::ParseResult {
+            version: crate::bindings::PG_VERSION_NUM as i32,
+            stmts: vec![protobuf::RawStmt { stmt: Some(Box::new(Node { node: Some(self.to_enum()?) })), stmt_location: 0, stmt_len: 0 }],
+        })
+    }
+
     pub fn to_enum(&self) -> Result<NodeEnum> {
         unsafe {
             let err = Error::InvalidPointer;
