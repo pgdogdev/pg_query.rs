@@ -23,6 +23,10 @@ impl protobuf::ParseResult {
         crate::deparse(self)
     }
 
+    pub fn deparse_raw(&self) -> Result<String> {
+        crate::deparse_raw(self)
+    }
+
     // Note: this doesn't iterate over every possible node type, since we only care about a subset of nodes.
     pub fn nodes(&self) -> Vec<(NodeRef<'_>, i32, Context, bool)> {
         self.stmts
@@ -251,6 +255,11 @@ impl ParseResult {
     /// Converts the parsed query back into a SQL string
     pub fn deparse(&self) -> Result<String> {
         crate::deparse(&self.protobuf)
+    }
+
+    /// Converts the parsed query back into a SQL string (bypasses protobuf serialization)
+    pub fn deparse_raw(&self) -> Result<String> {
+        crate::deparse_raw(&self.protobuf)
     }
 
     /// Intelligently truncates queries to a max length.

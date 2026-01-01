@@ -12,11 +12,14 @@ use pg_query::{
 
 #[macro_use]
 mod support;
-use support::*;
+use support::{assert_deparse_raw_roundtrip, assert_parse_raw_equals_parse, *};
 
 #[test]
 fn it_parses_simple_query() {
-    let result = parse("SELECT 1").unwrap();
+    let query = "SELECT 1";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.tables().len(), 0);
     assert_eq!(result.statement_types(), ["SelectStmt"]);
 }
@@ -32,7 +35,10 @@ fn it_handles_errors() {
 
 #[test]
 fn it_serializes_as_json() {
-    let result = parse("SELECT 1 FROM pg_class").unwrap();
+    let query = "SELECT 1 FROM pg_class";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     let json = serde_json::to_string(&result.protobuf);
 
     assert!(json.is_ok(), "Protobuf should be serializable: {json:?}");
@@ -56,17 +62,27 @@ fn it_handles_recursion_error() {
 
 #[test]
 fn it_handles_recursion_without_error() {
-    // The Ruby version of pg_query fails here because of Ruby protobuf limitations
-    let query = r#"SELECT * FROM "t0"
-        JOIN "t1" ON (1) JOIN "t2" ON (1) JOIN "t3" ON (1) JOIN "t4" ON (1) JOIN "t5" ON (1)
-        JOIN "t6" ON (1) JOIN "t7" ON (1) JOIN "t8" ON (1) JOIN "t9" ON (1) JOIN "t10" ON (1)
-        JOIN "t11" ON (1) JOIN "t12" ON (1) JOIN "t13" ON (1) JOIN "t14" ON (1) JOIN "t15" ON (1)
-        JOIN "t16" ON (1) JOIN "t17" ON (1) JOIN "t18" ON (1) JOIN "t19" ON (1) JOIN "t20" ON (1)
-        JOIN "t21" ON (1) JOIN "t22" ON (1) JOIN "t23" ON (1) JOIN "t24" ON (1) JOIN "t25" ON (1)
-        JOIN "t26" ON (1) JOIN "t27" ON (1) JOIN "t28" ON (1) JOIN "t29" ON (1)"#;
-    let result = parse(query).unwrap();
-    assert_eq!(result.tables().len(), 30);
-    assert_eq!(result.statement_types(), ["SelectStmt"]);
+    // Run in a thread with a larger stack to avoid stack overflow in parse_raw
+    // when processing deeply nested JoinExpr nodes.
+    let handle = std::thread::Builder::new()
+        .stack_size(32 * 1024 * 1024) // 32 MB stack
+        .spawn(|| {
+            // The Ruby version of pg_query fails here because of Ruby protobuf limitations
+            let query = r#"SELECT * FROM "t0"
+                JOIN "t1" ON (1) JOIN "t2" ON (1) JOIN "t3" ON (1) JOIN "t4" ON (1) JOIN "t5" ON (1)
+                JOIN "t6" ON (1) JOIN "t7" ON (1) JOIN "t8" ON (1) JOIN "t9" ON (1) JOIN "t10" ON (1)
+                JOIN "t11" ON (1) JOIN "t12" ON (1) JOIN "t13" ON (1) JOIN "t14" ON (1) JOIN "t15" ON (1)
+                JOIN "t16" ON (1) JOIN "t17" ON (1) JOIN "t18" ON (1) JOIN "t19" ON (1) JOIN "t20" ON (1)
+                JOIN "t21" ON (1) JOIN "t22" ON (1) JOIN "t23" ON (1) JOIN "t24" ON (1) JOIN "t25" ON (1)
+                JOIN "t26" ON (1) JOIN "t27" ON (1) JOIN "t28" ON (1) JOIN "t29" ON (1)"#;
+            assert_parse_raw_equals_parse(query);
+            assert_deparse_raw_roundtrip(query);
+            let result = parse(query).unwrap();
+            assert_eq!(result.tables().len(), 30);
+            assert_eq!(result.statement_types(), ["SelectStmt"]);
+        })
+        .unwrap();
+    handle.join().unwrap();
 }
 
 #[test]
@@ -77,6 +93,9 @@ fn it_parses_real_queries() {
         FROM snapshots s JOIN system_snapshots ON (snapshot_id = s.id)
         WHERE s.database_id = $0 AND s.collected_at BETWEEN $0 AND $0
         ORDER BY collected_at";
+    assert_parse_raw_equals_parse(query);
+    // Note: Skip deparse_raw roundtrip because $0 is deparsed as ? by libpg_query,
+    // which is not valid PostgreSQL syntax for reparsing ($0 is non-standard anyway)
     let result = parse(query).unwrap();
     let tables: Vec<String> = sorted(result.tables()).collect();
     let select_tables: Vec<String> = sorted(result.select_tables()).collect();
@@ -87,7 +106,10 @@ fn it_parses_real_queries() {
 
 #[test]
 fn it_parses_empty_queries() {
-    let result = parse("-- nothing").unwrap();
+    let query = "-- nothing";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.protobuf.nodes().len(), 0);
     assert_eq!(result.tables().len(), 0);
     assert_eq!(result.warnings.len(), 0);
@@ -96,7 +118,10 @@ fn it_parses_empty_queries() {
 
 #[test]
 fn it_parses_floats_with_leading_dot() {
-    let result = parse("SELECT .1").unwrap();
+    let query = "SELECT .1";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     let select = cast!(result.protobuf.nodes()[0].0, NodeRef::SelectStmt);
     let target = cast!(select.target_list[0].node.as_ref().unwrap(), NodeEnum::ResTarget);
     let a_const = cast!(target.val.as_ref().unwrap().node.as_ref().unwrap(), NodeEnum::AConst);
@@ -107,7 +132,10 @@ fn it_parses_floats_with_leading_dot() {
 
 #[test]
 fn it_parses_bit_strings_hex_notation() {
-    let result = parse("SELECT X'EFFF'").unwrap();
+    let query = "SELECT X'EFFF'";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     let select = cast!(result.protobuf.nodes()[0].0, NodeRef::SelectStmt);
     let target = cast!(select.target_list[0].node.as_ref().unwrap(), NodeEnum::ResTarget);
     let a_const = cast!(target.val.as_ref().unwrap().node.as_ref().unwrap(), NodeEnum::AConst);
@@ -118,7 +146,10 @@ fn it_parses_bit_strings_hex_notation() {
 
 #[test]
 fn it_parses_ALTER_TABLE() {
-    let result = parse("ALTER TABLE test ADD PRIMARY KEY (gid)").unwrap();
+    let query = "ALTER TABLE test ADD PRIMARY KEY (gid)";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.tables(), ["test"]);
     assert_eq!(result.ddl_tables(), ["test"]);
@@ -192,7 +223,10 @@ fn it_parses_ALTER_TABLE() {
 
 #[test]
 fn it_parses_SET() {
-    let result = parse("SET statement_timeout=1").unwrap();
+    let query = "SET statement_timeout=1";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.tables().len(), 0);
     assert_eq!(result.ddl_tables().len(), 0);
@@ -206,7 +240,10 @@ fn it_parses_SET() {
 
 #[test]
 fn it_parses_SHOW() {
-    let result = parse("SHOW work_mem").unwrap();
+    let query = "SHOW work_mem";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.tables().len(), 0);
     assert_eq!(result.statement_types(), ["VariableShowStmt"]);
@@ -216,7 +253,10 @@ fn it_parses_SHOW() {
 
 #[test]
 fn it_parses_COPY() {
-    let result = parse("COPY test (id) TO stdout").unwrap();
+    let query = "COPY test (id) TO stdout";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.tables(), ["test"]);
     assert_eq!(result.statement_types(), ["CopyStmt"]);
@@ -258,7 +298,10 @@ fn it_parses_COPY() {
 
 #[test]
 fn it_parses_DROP_TABLE() {
-    let result = parse("drop table abc.test123 cascade").unwrap();
+    let query = "drop table abc.test123 cascade";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.tables(), ["abc.test123"]);
     assert_eq!(result.ddl_tables(), ["abc.test123"]);
@@ -266,7 +309,9 @@ fn it_parses_DROP_TABLE() {
     let drop = cast!(result.protobuf.nodes()[0].0, NodeRef::DropStmt);
     assert_eq!(protobuf::DropBehavior::from_i32(drop.behavior), Some(protobuf::DropBehavior::DropCascade));
 
-    let result = parse("drop table abc.test123, test").unwrap();
+    let query2 = "drop table abc.test123, test";
+    assert_parse_raw_equals_parse(query2);
+    let result = parse(query2).unwrap();
     let tables: Vec<String> = sorted(result.tables()).collect();
     let ddl_tables: Vec<String> = sorted(result.ddl_tables()).collect();
     assert_eq!(tables, ["abc.test123", "test"]);
@@ -275,7 +320,10 @@ fn it_parses_DROP_TABLE() {
 
 #[test]
 fn it_parses_COMMIT() {
-    let result = parse("COMMIT").unwrap();
+    let query = "COMMIT";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.statement_types(), ["TransactionStmt"]);
     let stmt = cast!(result.protobuf.nodes()[0].0, NodeRef::TransactionStmt);
@@ -284,7 +332,10 @@ fn it_parses_COMMIT() {
 
 #[test]
 fn it_parses_CHECKPOINT() {
-    let result = parse("CHECKPOINT").unwrap();
+    let query = "CHECKPOINT";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.statement_types(), ["CheckPointStmt"]);
     cast!(result.protobuf.nodes()[0].0, NodeRef::CheckPointStmt);
@@ -292,7 +343,10 @@ fn it_parses_CHECKPOINT() {
 
 #[test]
 fn it_parses_VACUUM() {
-    let result = parse("VACUUM my_table").unwrap();
+    let query = "VACUUM my_table";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.tables(), ["my_table"]);
     assert_eq!(result.ddl_tables(), ["my_table"]);
@@ -302,10 +356,10 @@ fn it_parses_VACUUM() {
 
 #[test]
 fn it_parses_MERGE() {
-    let result = parse(
-        "WITH cte AS (SELECT * FROM g.other_table CROSS JOIN p) MERGE INTO my_table USING cte ON (id=oid) WHEN MATCHED THEN UPDATE SET a=b WHEN NOT MATCHED THEN INSERT (id, a) VALUES (oid, b);",
-    )
-    .unwrap();
+    let query = "WITH cte AS (SELECT * FROM g.other_table CROSS JOIN p) MERGE INTO my_table USING cte ON (id=oid) WHEN MATCHED THEN UPDATE SET a=b WHEN NOT MATCHED THEN INSERT (id, a) VALUES (oid, b);";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
 
     let select_tables: Vec<String> = sorted(result.select_tables()).collect();
@@ -325,7 +379,10 @@ fn it_parses_MERGE() {
 
 #[test]
 fn it_parses_EXPLAIN() {
-    let result = parse("EXPLAIN DELETE FROM test").unwrap();
+    let query = "EXPLAIN DELETE FROM test";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.tables(), ["test"]);
     assert_eq!(result.statement_types(), ["ExplainStmt"]);
@@ -335,7 +392,10 @@ fn it_parses_EXPLAIN() {
 
 #[test]
 fn it_parses_SELECT_INTO() {
-    let result = parse("CREATE TEMP TABLE test AS SELECT 1").unwrap();
+    let query = "CREATE TEMP TABLE test AS SELECT 1";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.tables(), ["test"]);
     assert_eq!(result.ddl_tables(), ["test"]);
@@ -374,7 +434,10 @@ fn it_parses_SELECT_INTO() {
 
 #[test]
 fn it_parses_LOCK() {
-    let result = parse("LOCK TABLE public.schema_migrations IN ACCESS SHARE MODE").unwrap();
+    let query = "LOCK TABLE public.schema_migrations IN ACCESS SHARE MODE";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.tables(), ["public.schema_migrations"]);
     assert_eq!(result.statement_types(), ["LockStmt"]);
@@ -384,7 +447,10 @@ fn it_parses_LOCK() {
 
 #[test]
 fn it_parses_CREATE_TABLE() {
-    let result = parse("CREATE TABLE test (a int4)").unwrap();
+    let query = "CREATE TABLE test (a int4)";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.tables(), ["test"]);
     assert_eq!(result.ddl_tables(), ["test"]);
@@ -440,7 +506,10 @@ fn it_parses_CREATE_TABLE() {
 
 #[test]
 fn it_parses_CREATE_TABLE_AS() {
-    let result = parse("CREATE TABLE foo AS SELECT * FROM bar;").unwrap();
+    let query = "CREATE TABLE foo AS SELECT * FROM bar;";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     let tables: Vec<String> = sorted(result.tables()).collect();
     assert_eq!(tables, ["bar", "foo"]);
@@ -448,8 +517,9 @@ fn it_parses_CREATE_TABLE_AS() {
     assert_eq!(result.select_tables(), ["bar"]);
     assert_eq!(result.statement_types(), ["CreateTableAsStmt"]);
 
-    let sql = "CREATE TABLE foo AS SELECT id FROM bar UNION SELECT id from baz;";
-    let result = parse(sql).unwrap();
+    let query2 = "CREATE TABLE foo AS SELECT id FROM bar UNION SELECT id from baz;";
+    assert_parse_raw_equals_parse(query2);
+    let result = parse(query2).unwrap();
     assert_eq!(result.warnings.len(), 0);
     let tables: Vec<String> = sorted(result.tables()).collect();
     let select_tables: Vec<String> = sorted(result.select_tables()).collect();
@@ -467,7 +537,10 @@ fn it_fails_to_parse_CREATE_TABLE_WITH_OIDS() {
 
 #[test]
 fn it_parses_CREATE_INDEX() {
-    let result = parse("CREATE INDEX testidx ON test USING btree (a, (lower(b) || upper(c))) WHERE pow(a, 2) > 25").unwrap();
+    let query = "CREATE INDEX testidx ON test USING btree (a, (lower(b) || upper(c))) WHERE pow(a, 2) > 25";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.tables(), ["test"]);
     assert_eq!(result.ddl_tables(), ["test"]);
@@ -480,7 +553,10 @@ fn it_parses_CREATE_INDEX() {
 
 #[test]
 fn it_parses_CREATE_SCHEMA() {
-    let result = parse("CREATE SCHEMA IF NOT EXISTS test AUTHORIZATION joe").unwrap();
+    let query = "CREATE SCHEMA IF NOT EXISTS test AUTHORIZATION joe";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.tables().len(), 0);
     assert_eq!(result.statement_types(), ["CreateSchemaStmt"]);
@@ -504,7 +580,10 @@ fn it_parses_CREATE_SCHEMA() {
 
 #[test]
 fn it_parses_CREATE_VIEW() {
-    let result = parse("CREATE VIEW myview AS SELECT * FROM mytab").unwrap();
+    let query = "CREATE VIEW myview AS SELECT * FROM mytab";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     let tables: Vec<String> = sorted(result.tables()).collect();
     assert_eq!(tables, ["mytab", "myview"]);
@@ -614,7 +693,10 @@ fn it_parses_CREATE_VIEW() {
 
 #[test]
 fn it_parses_REFRESH_MATERIALIZED_VIEW() {
-    let result = parse("REFRESH MATERIALIZED VIEW myview").unwrap();
+    let query = "REFRESH MATERIALIZED VIEW myview";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.tables(), ["myview"]);
     assert_eq!(result.ddl_tables(), ["myview"]);
@@ -624,8 +706,10 @@ fn it_parses_REFRESH_MATERIALIZED_VIEW() {
 
 #[test]
 fn it_parses_CREATE_RULE() {
-    let sql = "CREATE RULE shoe_ins_protect AS ON INSERT TO shoe DO INSTEAD NOTHING";
-    let result = parse(sql).unwrap();
+    let query = "CREATE RULE shoe_ins_protect AS ON INSERT TO shoe DO INSTEAD NOTHING";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.tables(), ["shoe"]);
     assert_eq!(result.ddl_tables(), ["shoe"]);
@@ -637,8 +721,10 @@ fn it_parses_CREATE_RULE() {
 
 #[test]
 fn it_parses_CREATE_TRIGGER() {
-    let sql = "CREATE TRIGGER check_update BEFORE UPDATE ON accounts FOR EACH ROW EXECUTE PROCEDURE check_account_update()";
-    let result = parse(sql).unwrap();
+    let query = "CREATE TRIGGER check_update BEFORE UPDATE ON accounts FOR EACH ROW EXECUTE PROCEDURE check_account_update()";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.tables(), ["accounts"]);
     assert_eq!(result.ddl_tables(), ["accounts"]);
@@ -652,7 +738,10 @@ fn it_parses_CREATE_TRIGGER() {
 
 #[test]
 fn it_parses_DROP_SCHEMA() {
-    let result = parse("DROP SCHEMA myschema").unwrap();
+    let query = "DROP SCHEMA myschema";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.tables().len(), 0);
     assert_eq!(result.statement_types(), ["DropStmt"]);
@@ -681,7 +770,10 @@ fn it_parses_DROP_SCHEMA() {
 
 #[test]
 fn it_parses_DROP_VIEW() {
-    let result = parse("DROP VIEW myview, myview2").unwrap();
+    let query = "DROP VIEW myview, myview2";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.tables().len(), 0);
     assert_eq!(result.statement_types(), ["DropStmt"]);
@@ -739,7 +831,10 @@ fn it_parses_DROP_VIEW() {
 
 #[test]
 fn it_parses_DROP_INDEX() {
-    let result = parse("DROP INDEX CONCURRENTLY myindex").unwrap();
+    let query = "DROP INDEX CONCURRENTLY myindex";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.tables().len(), 0);
     assert_eq!(result.statement_types(), ["DropStmt"]);
@@ -778,7 +873,10 @@ fn it_parses_DROP_INDEX() {
 
 #[test]
 fn it_parses_DROP_RULE() {
-    let result = parse("DROP RULE myrule ON mytable CASCADE").unwrap();
+    let query = "DROP RULE myrule ON mytable CASCADE";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.tables(), ["mytable"]);
     assert_eq!(result.ddl_tables(), ["mytable"]);
@@ -827,7 +925,10 @@ fn it_parses_DROP_RULE() {
 
 #[test]
 fn it_parses_DROP_TRIGGER() {
-    let result = parse("DROP TRIGGER IF EXISTS mytrigger ON mytable RESTRICT").unwrap();
+    let query = "DROP TRIGGER IF EXISTS mytrigger ON mytable RESTRICT";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.tables(), ["mytable"]);
     assert_eq!(result.ddl_tables(), ["mytable"]);
@@ -876,7 +977,10 @@ fn it_parses_DROP_TRIGGER() {
 
 #[test]
 fn it_parses_GRANT() {
-    let result = parse("GRANT INSERT, UPDATE ON mytable TO myuser").unwrap();
+    let query = "GRANT INSERT, UPDATE ON mytable TO myuser";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.tables(), ["mytable"]);
     assert_eq!(result.ddl_tables(), ["mytable"]);
@@ -949,7 +1053,10 @@ fn it_parses_GRANT() {
 
 #[test]
 fn it_parses_REVOKE() {
-    let result = parse("REVOKE admins FROM joe").unwrap();
+    let query = "REVOKE admins FROM joe";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.tables().len(), 0);
     assert_eq!(result.statement_types(), ["GrantRoleStmt"]);
@@ -992,7 +1099,10 @@ fn it_parses_REVOKE() {
 
 #[test]
 fn it_parses_TRUNCATE() {
-    let result = parse(r#"TRUNCATE bigtable, "fattable" RESTART IDENTITY"#).unwrap();
+    let query = r#"TRUNCATE bigtable, "fattable" RESTART IDENTITY"#;
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     let tables: Vec<String> = sorted(result.tables()).collect();
     let ddl_tables: Vec<String> = sorted(result.ddl_tables()).collect();
@@ -1043,7 +1153,10 @@ fn it_parses_TRUNCATE() {
 
 #[test]
 fn it_parses_WITH() {
-    let result = parse("WITH a AS (SELECT * FROM x WHERE x.y = $1 AND x.z = 1) SELECT * FROM a").unwrap();
+    let query = "WITH a AS (SELECT * FROM x WHERE x.y = $1 AND x.z = 1) SELECT * FROM a";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.tables(), ["x"]);
     assert_eq!(result.cte_names, ["a"]);
@@ -1052,7 +1165,7 @@ fn it_parses_WITH() {
 
 #[test]
 fn it_parses_multi_line_functions() {
-    let sql = "CREATE OR REPLACE FUNCTION thing(parameter_thing text)
+    let query = "CREATE OR REPLACE FUNCTION thing(parameter_thing text)
   RETURNS bigint AS
 $BODY$
 DECLARE
@@ -1070,7 +1183,9 @@ BEGIN
 END;
 $BODY$
   LANGUAGE plpgsql STABLE";
-    let result = parse(sql).unwrap();
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.tables().len(), 0);
     assert_eq!(result.functions(), ["thing"]);
@@ -1248,8 +1363,10 @@ $BODY$
 
 #[test]
 fn it_parses_table_functions() {
-    let sql = "CREATE FUNCTION getfoo(int) RETURNS TABLE (f1 int) AS 'SELECT * FROM foo WHERE fooid = $1;' LANGUAGE SQL";
-    let result = parse(sql).unwrap();
+    let query = "CREATE FUNCTION getfoo(int) RETURNS TABLE (f1 int) AS 'SELECT * FROM foo WHERE fooid = $1;' LANGUAGE SQL";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.tables().len(), 0);
     assert_eq!(result.functions(), ["getfoo"]);
@@ -1260,7 +1377,10 @@ fn it_parses_table_functions() {
 
 #[test]
 fn it_finds_called_functions() {
-    let result = parse("SELECT testfunc(1);").unwrap();
+    let query = "SELECT testfunc(1);";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.tables().len(), 0);
     assert_eq!(result.functions(), ["testfunc"]);
@@ -1271,7 +1391,10 @@ fn it_finds_called_functions() {
 
 #[test]
 fn it_finds_functions_invoked_with_CALL() {
-    let result = parse("CALL testfunc(1);").unwrap();
+    let query = "CALL testfunc(1);";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.tables().len(), 0);
     assert_eq!(result.functions(), ["testfunc"]);
@@ -1282,7 +1405,10 @@ fn it_finds_functions_invoked_with_CALL() {
 
 #[test]
 fn it_finds_dropped_functions() {
-    let result = parse("DROP FUNCTION IF EXISTS testfunc(x integer);").unwrap();
+    let query = "DROP FUNCTION IF EXISTS testfunc(x integer);";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.tables().len(), 0);
     assert_eq!(result.functions(), ["testfunc"]);
@@ -1293,7 +1419,10 @@ fn it_finds_dropped_functions() {
 
 #[test]
 fn it_finds_renamed_functions() {
-    let result = parse("ALTER FUNCTION testfunc(integer) RENAME TO testfunc2;").unwrap();
+    let query = "ALTER FUNCTION testfunc(integer) RENAME TO testfunc2;";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.tables().len(), 0);
     let functions: Vec<String> = sorted(result.functions()).collect();
@@ -1307,8 +1436,10 @@ fn it_finds_renamed_functions() {
 // https://github.com/pganalyze/pg_query/issues/38
 #[test]
 fn it_finds_nested_tables_in_SELECT() {
-    let sql = "select u.email, (select count(*) from enrollments e where e.user_id = u.id) as num_enrollments from users u";
-    let result = parse(sql).unwrap();
+    let query = "select u.email, (select count(*) from enrollments e where e.user_id = u.id) as num_enrollments from users u";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     let tables: Vec<String> = sorted(result.tables()).collect();
     let select_tables: Vec<String> = sorted(result.select_tables()).collect();
@@ -1320,8 +1451,10 @@ fn it_finds_nested_tables_in_SELECT() {
 // https://github.com/pganalyze/pg_query/issues/52
 #[test]
 fn it_separates_CTE_names_from_table_names() {
-    let sql = "WITH cte_name AS (SELECT 1) SELECT * FROM table_name, cte_name";
-    let result = parse(sql).unwrap();
+    let query = "WITH cte_name AS (SELECT 1) SELECT * FROM table_name, cte_name";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.tables(), ["table_name"]);
     assert_eq!(result.select_tables(), ["table_name"]);
@@ -1331,7 +1464,10 @@ fn it_separates_CTE_names_from_table_names() {
 
 #[test]
 fn it_finds_nested_tables_in_FROM_clause() {
-    let result = parse("select u.* from (select * from users) u").unwrap();
+    let query = "select u.* from (select * from users) u";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.tables(), ["users"]);
     assert_eq!(result.select_tables(), ["users"]);
@@ -1340,7 +1476,10 @@ fn it_finds_nested_tables_in_FROM_clause() {
 
 #[test]
 fn it_finds_nested_tables_in_WHERE_clause() {
-    let result = parse("select users.id from users where 1 = (select count(*) from user_roles)").unwrap();
+    let query = "select users.id from users where 1 = (select count(*) from user_roles)";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     let tables: Vec<String> = sorted(result.tables()).collect();
     let select_tables: Vec<String> = sorted(result.select_tables()).collect();
@@ -1360,6 +1499,8 @@ fn it_finds_tables_in_SELECT_with_subselects_without_FROM() {
             SELECT 17663 AS oid
         ) vals ON c.oid = vals.oid
     ";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
     let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.tables(), ["pg_catalog.pg_class"]);
@@ -1371,13 +1512,15 @@ fn it_finds_tables_in_SELECT_with_subselects_without_FROM() {
 
 #[test]
 fn it_finds_nested_tables_in_IN_clause() {
-    let sql = "
+    let query = "
         select users.*
         from users
         where users.id IN (select user_roles.user_id from user_roles)
             and (users.created_at between '2016-06-01' and '2016-06-30')
     ";
-    let result = parse(sql).unwrap();
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     let tables: Vec<String> = sorted(result.tables()).collect();
     let select_tables: Vec<String> = sorted(result.select_tables()).collect();
@@ -1388,7 +1531,7 @@ fn it_finds_nested_tables_in_IN_clause() {
 
 #[test]
 fn it_finds_nested_tables_in_ORDER_BY_clause() {
-    let sql = "
+    let query = "
         select users.*
         from users
         order by (
@@ -1397,7 +1540,9 @@ fn it_finds_nested_tables_in_ORDER_BY_clause() {
             where user_roles.user_id = users.id
         )
     ";
-    let result = parse(sql).unwrap();
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     let tables: Vec<String> = sorted(result.tables()).collect();
     let select_tables: Vec<String> = sorted(result.select_tables()).collect();
@@ -1408,7 +1553,7 @@ fn it_finds_nested_tables_in_ORDER_BY_clause() {
 
 #[test]
 fn it_finds_nested_tables_in_ORDER_BY_clause_with_multiple_entries() {
-    let sql = "
+    let query = "
         select users.*
         from users
         order by (
@@ -1421,7 +1566,9 @@ fn it_finds_nested_tables_in_ORDER_BY_clause_with_multiple_entries() {
             where user_logins.user_id = users.id
         ) desc
     ";
-    let result = parse(sql).unwrap();
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     let tables: Vec<String> = sorted(result.tables()).collect();
     let select_tables: Vec<String> = sorted(result.select_tables()).collect();
@@ -1432,7 +1579,7 @@ fn it_finds_nested_tables_in_ORDER_BY_clause_with_multiple_entries() {
 
 #[test]
 fn it_finds_nested_tables_in_GROUP_BY_clause() {
-    let sql = "
+    let query = "
         select users.*
         from users
         group by (
@@ -1441,7 +1588,9 @@ fn it_finds_nested_tables_in_GROUP_BY_clause() {
             where user_roles.user_id = users.id
         )
     ";
-    let result = parse(sql).unwrap();
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     let tables: Vec<String> = sorted(result.tables()).collect();
     let select_tables: Vec<String> = sorted(result.select_tables()).collect();
@@ -1452,7 +1601,7 @@ fn it_finds_nested_tables_in_GROUP_BY_clause() {
 
 #[test]
 fn it_finds_nested_tables_in_GROUP_BY_clause_with_multiple_entries() {
-    let sql = "
+    let query = "
         select users.*
         from users
         group by (
@@ -1465,7 +1614,9 @@ fn it_finds_nested_tables_in_GROUP_BY_clause_with_multiple_entries() {
             where user_logins.user_id = users.id
         )
     ";
-    let result = parse(sql).unwrap();
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     let tables: Vec<String> = sorted(result.tables()).collect();
     let select_tables: Vec<String> = sorted(result.select_tables()).collect();
@@ -1476,7 +1627,7 @@ fn it_finds_nested_tables_in_GROUP_BY_clause_with_multiple_entries() {
 
 #[test]
 fn it_finds_nested_tables_in_HAVING_clause() {
-    let sql = "
+    let query = "
         select users.*
         from users
         group by users.id
@@ -1486,7 +1637,9 @@ fn it_finds_nested_tables_in_HAVING_clause() {
             where user_roles.user_id = users.id
         )
     ";
-    let result = parse(sql).unwrap();
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     let tables: Vec<String> = sorted(result.tables()).collect();
     let select_tables: Vec<String> = sorted(result.select_tables()).collect();
@@ -1497,7 +1650,7 @@ fn it_finds_nested_tables_in_HAVING_clause() {
 
 #[test]
 fn it_finds_nested_tables_in_HAVING_clause_with_boolean_expression() {
-    let sql = "
+    let query = "
         select users.*
         from users
         group by users.id
@@ -1507,7 +1660,9 @@ fn it_finds_nested_tables_in_HAVING_clause_with_boolean_expression() {
             where user_roles.user_id = users.id
         )
     ";
-    let result = parse(sql).unwrap();
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     let tables: Vec<String> = sorted(result.tables()).collect();
     let select_tables: Vec<String> = sorted(result.select_tables()).collect();
@@ -1518,13 +1673,15 @@ fn it_finds_nested_tables_in_HAVING_clause_with_boolean_expression() {
 
 #[test]
 fn it_finds_nested_tables_in_a_subselect_on_a_JOIN() {
-    let sql = "
+    let query = "
         select foo.*
         from foo
         join ( select * from bar ) b
         on b.baz = foo.quux
     ";
-    let result = parse(sql).unwrap();
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     let tables: Vec<String> = sorted(result.tables()).collect();
     let select_tables: Vec<String> = sorted(result.select_tables()).collect();
@@ -1535,7 +1692,7 @@ fn it_finds_nested_tables_in_a_subselect_on_a_JOIN() {
 
 #[test]
 fn it_finds_nested_tables_in_a_subselect_in_a_JOIN_condition() {
-    let sql = "
+    let query = "
         SELECT *
         FROM foo
         INNER JOIN join_a ON foo.id = join_a.id AND join_a.id IN (
@@ -1551,7 +1708,9 @@ fn it_finds_nested_tables_in_a_subselect_in_a_JOIN_condition() {
           SELECT id FROM sub_f
         )
     ";
-    let result = parse(sql).unwrap();
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     let tables: Vec<String> = sorted(result.tables()).collect();
     let select_tables: Vec<String> = sorted(result.select_tables()).collect();
@@ -1562,7 +1721,7 @@ fn it_finds_nested_tables_in_a_subselect_in_a_JOIN_condition() {
 
 #[test]
 fn it_correctly_categorizes_CTEs_after_UNION_SELECT() {
-    let sql = "
+    let query = "
         WITH cte_a AS (
             SELECT * FROM table_a
         ), cte_b AS (
@@ -1573,7 +1732,9 @@ fn it_correctly_categorizes_CTEs_after_UNION_SELECT() {
         UNION
         SELECT * FROM cte_a
     ";
-    let result = parse(sql).unwrap();
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     let tables: Vec<String> = sorted(result.tables()).collect();
     let cte_names: Vec<String> = sorted(result.cte_names.clone()).collect();
@@ -1584,7 +1745,7 @@ fn it_correctly_categorizes_CTEs_after_UNION_SELECT() {
 
 #[test]
 fn it_correctly_categorizes_CTEs_after_EXCEPT_SELECT() {
-    let sql = "
+    let query = "
         WITH cte_a AS (
             SELECT * FROM table_a
         ), cte_b AS (
@@ -1595,7 +1756,9 @@ fn it_correctly_categorizes_CTEs_after_EXCEPT_SELECT() {
         EXCEPT
         SELECT * FROM cte_a
     ";
-    let result = parse(sql).unwrap();
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     let tables: Vec<String> = sorted(result.tables()).collect();
     let cte_names: Vec<String> = sorted(result.cte_names.clone()).collect();
@@ -1606,7 +1769,7 @@ fn it_correctly_categorizes_CTEs_after_EXCEPT_SELECT() {
 
 #[test]
 fn it_correctly_categorizes_CTEs_after_INTERSECT_SELECT() {
-    let sql = "
+    let query = "
         WITH cte_a AS (
             SELECT * FROM table_a
         ), cte_b AS (
@@ -1617,7 +1780,9 @@ fn it_correctly_categorizes_CTEs_after_INTERSECT_SELECT() {
         INTERSECT
         SELECT * FROM cte_a
     ";
-    let result = parse(sql).unwrap();
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     let tables: Vec<String> = sorted(result.tables()).collect();
     let cte_names: Vec<String> = sorted(result.cte_names.clone()).collect();
@@ -1628,7 +1793,7 @@ fn it_correctly_categorizes_CTEs_after_INTERSECT_SELECT() {
 
 #[test]
 fn it_finds_tables_inside_subselectes_in_MIN_MAX_COALESCE() {
-    let sql = "
+    let query = "
         SELECT GREATEST(
             date_trunc($1, $2::timestamptz) + $3::interval,
             COALESCE(
@@ -1641,7 +1806,9 @@ fn it_finds_tables_inside_subselectes_in_MIN_MAX_COALESCE() {
             )
         ) AS first_hourly_start_ts
     ";
-    let result = parse(sql).unwrap();
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.tables(), ["schema_aggregate_infos"]);
     assert_eq!(result.select_tables(), ["schema_aggregate_infos"]);
@@ -1650,7 +1817,7 @@ fn it_finds_tables_inside_subselectes_in_MIN_MAX_COALESCE() {
 
 #[test]
 fn it_finds_tables_inside_CASE_statements() {
-    let sql = "
+    let query = "
         SELECT
         CASE
             WHEN id IN (SELECT foo_id FROM when_a) THEN (SELECT MAX(id) FROM then_a)
@@ -1659,7 +1826,9 @@ fn it_finds_tables_inside_CASE_statements() {
         END
         FROM foo
     ";
-    let result = parse(sql).unwrap();
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     let tables: Vec<String> = sorted(result.tables()).collect();
     let select_tables: Vec<String> = sorted(result.select_tables()).collect();
@@ -1670,13 +1839,15 @@ fn it_finds_tables_inside_CASE_statements() {
 
 #[test]
 fn it_finds_tables_inside_casts() {
-    let sql = "
+    let query = "
         SELECT 1
         FROM   foo
         WHERE  x = any(cast(array(SELECT a FROM bar) as bigint[]))
             OR x = any(array(SELECT a FROM baz)::bigint[])
     ";
-    let result = parse(sql).unwrap();
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     let tables: Vec<String> = sorted(result.tables()).collect();
     assert_eq!(tables, ["bar", "baz", "foo"]);
@@ -1687,8 +1858,10 @@ fn it_finds_tables_inside_casts() {
 
 #[test]
 fn it_finds_functions_in_FROM_clause() {
-    let sql = "SELECT * FROM my_custom_func()";
-    let result = parse(sql).unwrap();
+    let query = "SELECT * FROM my_custom_func()";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.tables().len(), 0);
     assert_eq!(result.functions(), ["my_custom_func"]);
@@ -1698,7 +1871,7 @@ fn it_finds_functions_in_FROM_clause() {
 
 #[test]
 fn it_finds_functions_in_LATERAL_clause() {
-    let sql = "
+    let query = "
         SELECT *
         FROM unnest($1::text[]) AS a(x)
         LEFT OUTER JOIN LATERAL (
@@ -1713,7 +1886,9 @@ fn it_finds_functions_in_LATERAL_clause() {
             ) f
         ) AS g ON (1)
     ";
-    let result = parse(sql).unwrap();
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.tables(), ["public.c"]);
     let functions: Vec<String> = sorted(result.functions()).collect();
@@ -1725,22 +1900,27 @@ fn it_finds_functions_in_LATERAL_clause() {
 
 #[test]
 fn it_parses_INSERT() {
-    let result = parse("insert into users(pk, name) values (1, 'bob');").unwrap();
+    let query1 = "insert into users(pk, name) values (1, 'bob');";
+    assert_parse_raw_equals_parse(query1);
+    let result = parse(query1).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.tables(), ["users"]);
 
-    let result = parse("insert into users(pk, name) select pk, name from other_users;").unwrap();
+    let query2 = "insert into users(pk, name) select pk, name from other_users;";
+    assert_parse_raw_equals_parse(query2);
+    let result = parse(query2).unwrap();
     assert_eq!(result.warnings.len(), 0);
     let tables: Vec<String> = sorted(result.tables()).collect();
     assert_eq!(tables, ["other_users", "users"]);
 
-    let sql = "
+    let query3 = "
         with cte as (
             select pk, name from other_users
         )
         insert into users(pk, name) select * from cte;
     ";
-    let result = parse(sql).unwrap();
+    assert_parse_raw_equals_parse(query3);
+    let result = parse(query3).unwrap();
     assert_eq!(result.warnings.len(), 0);
     let tables: Vec<String> = sorted(result.tables()).collect();
     assert_eq!(tables, ["other_users", "users"]);
@@ -1752,24 +1932,29 @@ fn it_parses_INSERT() {
 
 #[test]
 fn it_parses_UPDATE() {
-    let result = parse("update users set name = 'bob';").unwrap();
+    let query1 = "update users set name = 'bob';";
+    assert_parse_raw_equals_parse(query1);
+    let result = parse(query1).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.tables(), ["users"]);
     assert_eq!(result.statement_types(), ["UpdateStmt"]);
 
-    let result = parse("update users set name = (select name from other_users limit 1);").unwrap();
+    let query2 = "update users set name = (select name from other_users limit 1);";
+    assert_parse_raw_equals_parse(query2);
+    let result = parse(query2).unwrap();
     assert_eq!(result.warnings.len(), 0);
     let tables: Vec<String> = sorted(result.tables()).collect();
     assert_eq!(tables, ["other_users", "users"]);
     assert_eq!(result.statement_types(), ["UpdateStmt"]);
 
-    let sql = "
+    let query3 = "
         with cte as (
             select name from other_users limit 1
         )
         update users set name = (select name from cte);
     ";
-    let result = parse(sql).unwrap();
+    assert_parse_raw_equals_parse(query3);
+    let result = parse(query3).unwrap();
     assert_eq!(result.warnings.len(), 0);
     let tables: Vec<String> = sorted(result.tables()).collect();
     assert_eq!(tables, ["other_users", "users"]);
@@ -1778,13 +1963,14 @@ fn it_parses_UPDATE() {
     assert_eq!(result.cte_names, ["cte"]);
     assert_eq!(result.statement_types(), ["UpdateStmt"]);
 
-    let sql = "
+    let query4 = "
         UPDATE users SET name = users_new.name
         FROM users_new
         INNER JOIN join_table ON join_table.user_id = new_users.id
         WHERE users.id = users_new.id
     ";
-    let result = parse(sql).unwrap();
+    assert_parse_raw_equals_parse(query4);
+    let result = parse(query4).unwrap();
     assert_eq!(result.warnings.len(), 0);
     let tables: Vec<String> = sorted(result.tables()).collect();
     let select_tables: Vec<String> = sorted(result.select_tables()).collect();
@@ -1796,17 +1982,20 @@ fn it_parses_UPDATE() {
 
 #[test]
 fn it_parses_DELETE() {
-    let result = parse("DELETE FROM users;").unwrap();
+    let query1 = "DELETE FROM users;";
+    assert_parse_raw_equals_parse(query1);
+    let result = parse(query1).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.tables(), ["users"]);
     assert_eq!(result.dml_tables(), ["users"]);
     assert_eq!(result.statement_types(), ["DeleteStmt"]);
 
-    let sql = "
+    let query2 = "
         DELETE FROM users USING foo
         WHERE foo_id = foo.id AND foo.action = 'delete';
     ";
-    let result = parse(sql).unwrap();
+    assert_parse_raw_equals_parse(query2);
+    let result = parse(query2).unwrap();
     assert_eq!(result.warnings.len(), 0);
     let tables: Vec<String> = sorted(result.tables()).collect();
     assert_eq!(tables, ["foo", "users"]);
@@ -1814,11 +2003,12 @@ fn it_parses_DELETE() {
     assert_eq!(result.select_tables(), ["foo"]);
     assert_eq!(result.statement_types(), ["DeleteStmt"]);
 
-    let sql = "
+    let query3 = "
         DELETE FROM users
         WHERE foo_id IN (SELECT id FROM foo WHERE action = 'delete');
     ";
-    let result = parse(sql).unwrap();
+    assert_parse_raw_equals_parse(query3);
+    let result = parse(query3).unwrap();
     assert_eq!(result.warnings.len(), 0);
     let tables: Vec<String> = sorted(result.tables()).collect();
     assert_eq!(tables, ["foo", "users"]);
@@ -1829,7 +2019,10 @@ fn it_parses_DELETE() {
 
 #[test]
 fn it_parses_DROP_TYPE() {
-    let result = parse("DROP TYPE IF EXISTS repack.pk_something").unwrap();
+    let query = "DROP TYPE IF EXISTS repack.pk_something";
+    assert_parse_raw_equals_parse(query);
+    assert_deparse_raw_roundtrip(query);
+    let result = parse(query).unwrap();
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.statement_types(), ["DropStmt"]);
     assert_debug_eq!(

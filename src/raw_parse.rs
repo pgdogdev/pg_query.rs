@@ -453,6 +453,51 @@ unsafe fn convert_node(node_ptr: *mut bindings_raw::Node) -> Option<protobuf::No
             let pt = node_ptr as *mut bindings_raw::PublicationTable;
             Some(protobuf::node::Node::PublicationTable(Box::new(convert_publication_table(&*pt))))
         }
+        bindings_raw::NodeTag_T_CheckPointStmt => Some(protobuf::node::Node::CheckPointStmt(protobuf::CheckPointStmt {})),
+        bindings_raw::NodeTag_T_CallStmt => {
+            let cs = node_ptr as *mut bindings_raw::CallStmt;
+            Some(protobuf::node::Node::CallStmt(Box::new(convert_call_stmt(&*cs))))
+        }
+        bindings_raw::NodeTag_T_RuleStmt => {
+            let rs = node_ptr as *mut bindings_raw::RuleStmt;
+            Some(protobuf::node::Node::RuleStmt(Box::new(convert_rule_stmt(&*rs))))
+        }
+        bindings_raw::NodeTag_T_GrantStmt => {
+            let gs = node_ptr as *mut bindings_raw::GrantStmt;
+            Some(protobuf::node::Node::GrantStmt(convert_grant_stmt(&*gs)))
+        }
+        bindings_raw::NodeTag_T_GrantRoleStmt => {
+            let grs = node_ptr as *mut bindings_raw::GrantRoleStmt;
+            Some(protobuf::node::Node::GrantRoleStmt(convert_grant_role_stmt(&*grs)))
+        }
+        bindings_raw::NodeTag_T_RefreshMatViewStmt => {
+            let rmvs = node_ptr as *mut bindings_raw::RefreshMatViewStmt;
+            Some(protobuf::node::Node::RefreshMatViewStmt(convert_refresh_mat_view_stmt(&*rmvs)))
+        }
+        bindings_raw::NodeTag_T_MergeStmt => {
+            let ms = node_ptr as *mut bindings_raw::MergeStmt;
+            Some(protobuf::node::Node::MergeStmt(Box::new(convert_merge_stmt(&*ms))))
+        }
+        bindings_raw::NodeTag_T_MergeAction => {
+            let ma = node_ptr as *mut bindings_raw::MergeAction;
+            Some(protobuf::node::Node::MergeAction(Box::new(convert_merge_action(&*ma))))
+        }
+        bindings_raw::NodeTag_T_RangeFunction => {
+            let rf = node_ptr as *mut bindings_raw::RangeFunction;
+            Some(protobuf::node::Node::RangeFunction(convert_range_function(&*rf)))
+        }
+        bindings_raw::NodeTag_T_MergeWhenClause => {
+            let mwc = node_ptr as *mut bindings_raw::MergeWhenClause;
+            Some(protobuf::node::Node::MergeWhenClause(Box::new(convert_merge_when_clause(&*mwc))))
+        }
+        bindings_raw::NodeTag_T_AccessPriv => {
+            let ap = node_ptr as *mut bindings_raw::AccessPriv;
+            Some(protobuf::node::Node::AccessPriv(convert_access_priv(&*ap)))
+        }
+        bindings_raw::NodeTag_T_RoleSpec => {
+            let rs = node_ptr as *mut bindings_raw::RoleSpec;
+            Some(protobuf::node::Node::RoleSpec(convert_role_spec(&*rs)))
+        }
         _ => {
             // For unhandled node types, return None
             // In the future, we could add more node types here
@@ -1386,8 +1431,21 @@ unsafe fn convert_function_parameter(fp: &bindings_raw::FunctionParameter) -> pr
     protobuf::FunctionParameter {
         name: convert_c_string(fp.name),
         arg_type: if fp.argType.is_null() { None } else { Some(convert_type_name(&*fp.argType)) },
-        mode: fp.mode as i32 + 1, // Protobuf FunctionParameterMode has UNDEFINED=0
+        mode: convert_function_parameter_mode(fp.mode),
         defexpr: convert_node_boxed(fp.defexpr),
+    }
+}
+
+/// Converts raw FunctionParameterMode (ASCII char codes) to protobuf enum values
+fn convert_function_parameter_mode(mode: bindings_raw::FunctionParameterMode) -> i32 {
+    match mode {
+        bindings_raw::FunctionParameterMode_FUNC_PARAM_IN => protobuf::FunctionParameterMode::FuncParamIn as i32,
+        bindings_raw::FunctionParameterMode_FUNC_PARAM_OUT => protobuf::FunctionParameterMode::FuncParamOut as i32,
+        bindings_raw::FunctionParameterMode_FUNC_PARAM_INOUT => protobuf::FunctionParameterMode::FuncParamInout as i32,
+        bindings_raw::FunctionParameterMode_FUNC_PARAM_VARIADIC => protobuf::FunctionParameterMode::FuncParamVariadic as i32,
+        bindings_raw::FunctionParameterMode_FUNC_PARAM_TABLE => protobuf::FunctionParameterMode::FuncParamTable as i32,
+        bindings_raw::FunctionParameterMode_FUNC_PARAM_DEFAULT => protobuf::FunctionParameterMode::FuncParamDefault as i32,
+        _ => 0, // Undefined
     }
 }
 
@@ -1517,6 +1575,107 @@ unsafe fn convert_create_trig_stmt(cts: &bindings_raw::CreateTrigStmt) -> protob
         initdeferred: cts.initdeferred,
         constrrel: if cts.constrrel.is_null() { None } else { Some(convert_range_var(&*cts.constrrel)) },
     }
+}
+
+unsafe fn convert_call_stmt(cs: &bindings_raw::CallStmt) -> protobuf::CallStmt {
+    protobuf::CallStmt {
+        funccall: if cs.funccall.is_null() { None } else { Some(Box::new(convert_func_call(&*cs.funccall))) },
+        funcexpr: None, // This is a post-analysis field, not available in raw parse tree
+        outargs: convert_list_to_nodes(cs.outargs),
+    }
+}
+
+unsafe fn convert_rule_stmt(rs: &bindings_raw::RuleStmt) -> protobuf::RuleStmt {
+    protobuf::RuleStmt {
+        relation: if rs.relation.is_null() { None } else { Some(convert_range_var(&*rs.relation)) },
+        rulename: convert_c_string(rs.rulename),
+        where_clause: convert_node_boxed(rs.whereClause),
+        event: rs.event as i32 + 1, // CmdType enum
+        instead: rs.instead,
+        actions: convert_list_to_nodes(rs.actions),
+        replace: rs.replace,
+    }
+}
+
+unsafe fn convert_grant_stmt(gs: &bindings_raw::GrantStmt) -> protobuf::GrantStmt {
+    protobuf::GrantStmt {
+        is_grant: gs.is_grant,
+        targtype: gs.targtype as i32 + 1,
+        objtype: gs.objtype as i32 + 1,
+        objects: convert_list_to_nodes(gs.objects),
+        privileges: convert_list_to_nodes(gs.privileges),
+        grantees: convert_list_to_nodes(gs.grantees),
+        grant_option: gs.grant_option,
+        grantor: if gs.grantor.is_null() { None } else { Some(convert_role_spec(&*gs.grantor)) },
+        behavior: gs.behavior as i32 + 1,
+    }
+}
+
+unsafe fn convert_grant_role_stmt(grs: &bindings_raw::GrantRoleStmt) -> protobuf::GrantRoleStmt {
+    protobuf::GrantRoleStmt {
+        granted_roles: convert_list_to_nodes(grs.granted_roles),
+        grantee_roles: convert_list_to_nodes(grs.grantee_roles),
+        is_grant: grs.is_grant,
+        opt: convert_list_to_nodes(grs.opt),
+        grantor: if grs.grantor.is_null() { None } else { Some(convert_role_spec(&*grs.grantor)) },
+        behavior: grs.behavior as i32 + 1,
+    }
+}
+
+unsafe fn convert_refresh_mat_view_stmt(rmvs: &bindings_raw::RefreshMatViewStmt) -> protobuf::RefreshMatViewStmt {
+    protobuf::RefreshMatViewStmt {
+        concurrent: rmvs.concurrent,
+        skip_data: rmvs.skipData,
+        relation: if rmvs.relation.is_null() { None } else { Some(convert_range_var(&*rmvs.relation)) },
+    }
+}
+
+unsafe fn convert_merge_stmt(ms: &bindings_raw::MergeStmt) -> protobuf::MergeStmt {
+    protobuf::MergeStmt {
+        relation: if ms.relation.is_null() { None } else { Some(convert_range_var(&*ms.relation)) },
+        source_relation: convert_node_boxed(ms.sourceRelation),
+        join_condition: convert_node_boxed(ms.joinCondition),
+        merge_when_clauses: convert_list_to_nodes(ms.mergeWhenClauses),
+        returning_list: convert_list_to_nodes(ms.returningList),
+        with_clause: convert_with_clause_opt(ms.withClause),
+    }
+}
+
+unsafe fn convert_merge_action(ma: &bindings_raw::MergeAction) -> protobuf::MergeAction {
+    protobuf::MergeAction {
+        match_kind: ma.matchKind as i32 + 1,
+        command_type: ma.commandType as i32 + 1,
+        r#override: ma.override_ as i32 + 1,
+        qual: convert_node_boxed(ma.qual),
+        target_list: convert_list_to_nodes(ma.targetList),
+        update_colnos: convert_list_to_nodes(ma.updateColnos),
+    }
+}
+
+unsafe fn convert_merge_when_clause(mwc: &bindings_raw::MergeWhenClause) -> protobuf::MergeWhenClause {
+    protobuf::MergeWhenClause {
+        match_kind: mwc.matchKind as i32 + 1,
+        command_type: mwc.commandType as i32 + 1,
+        r#override: mwc.override_ as i32 + 1,
+        condition: convert_node_boxed(mwc.condition),
+        target_list: convert_list_to_nodes(mwc.targetList),
+        values: convert_list_to_nodes(mwc.values),
+    }
+}
+
+unsafe fn convert_range_function(rf: &bindings_raw::RangeFunction) -> protobuf::RangeFunction {
+    protobuf::RangeFunction {
+        lateral: rf.lateral,
+        ordinality: rf.ordinality,
+        is_rowsfrom: rf.is_rowsfrom,
+        functions: convert_list_to_nodes(rf.functions),
+        alias: if rf.alias.is_null() { None } else { Some(convert_alias(&*rf.alias)) },
+        coldeflist: convert_list_to_nodes(rf.coldeflist),
+    }
+}
+
+unsafe fn convert_access_priv(ap: &bindings_raw::AccessPriv) -> protobuf::AccessPriv {
+    protobuf::AccessPriv { priv_name: convert_c_string(ap.priv_name), cols: convert_list_to_nodes(ap.cols) }
 }
 
 // ============================================================================

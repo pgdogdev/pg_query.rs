@@ -212,3 +212,66 @@ fn it_deparse_raw_multiple_statements() {
     let deparsed = pg_query::deparse_raw(&result.protobuf).unwrap();
     assert_eq!(deparsed, query);
 }
+
+// ============================================================================
+// deparse_raw method tests (on structs)
+// ============================================================================
+
+/// Test that ParseResult.deparse_raw() method works
+#[test]
+fn it_deparse_raw_method_on_parse_result() {
+    let query = "SELECT * FROM users WHERE id = 1";
+    let result = pg_query::parse(query).unwrap();
+    // Test the new method on ParseResult
+    let deparsed = result.deparse_raw().unwrap();
+    assert_eq!(deparsed, query);
+}
+
+/// Test that protobuf::ParseResult.deparse_raw() method works
+#[test]
+fn it_deparse_raw_method_on_protobuf_parse_result() {
+    let query = "SELECT a, b, c FROM table1 JOIN table2 ON table1.id = table2.id";
+    let result = pg_query::parse(query).unwrap();
+    // Test the new method on protobuf::ParseResult
+    let deparsed = result.protobuf.deparse_raw().unwrap();
+    assert_eq!(deparsed, query);
+}
+
+/// Test that NodeRef.deparse_raw() method works
+#[test]
+fn it_deparse_raw_method_on_node_ref() {
+    let query = "SELECT * FROM users";
+    let result = pg_query::parse(query).unwrap();
+    // Get the first node (SelectStmt)
+    let nodes = result.protobuf.nodes();
+    assert!(!nodes.is_empty());
+    // Find the SelectStmt node
+    for (node, _depth, _context, _has_filter) in nodes {
+        if let pg_query::NodeRef::SelectStmt(_) = node {
+            let deparsed = node.deparse_raw().unwrap();
+            assert_eq!(deparsed, query);
+            return;
+        }
+    }
+    panic!("SelectStmt node not found");
+}
+
+/// Test that deparse_raw method produces same result as deparse method
+#[test]
+fn it_deparse_raw_matches_deparse() {
+    let queries = vec![
+        "SELECT 1",
+        "SELECT * FROM users",
+        "INSERT INTO t (a) VALUES (1)",
+        "UPDATE t SET a = 1 WHERE b = 2",
+        "DELETE FROM t WHERE id = 1",
+        "SELECT a, b FROM t1 JOIN t2 ON t1.id = t2.id WHERE t1.x > 5 ORDER BY a",
+    ];
+
+    for query in queries {
+        let result = pg_query::parse(query).unwrap();
+        let deparse_result = result.deparse().unwrap();
+        let deparse_raw_result = result.deparse_raw().unwrap();
+        assert_eq!(deparse_result, deparse_raw_result);
+    }
+}
