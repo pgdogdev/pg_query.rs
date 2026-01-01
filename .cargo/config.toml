@@ -1,0 +1,3 @@
+[env]
+# Increase default stack size for tests due to deep recursion in parse tree conversion
+RUST_MIN_STACK = "16777216"
