@@ -969,6 +969,14 @@ unsafe fn convert_node(node_ptr: *mut bindings_raw::Node) -> Option<protobuf::No
             let jaa = node_ptr as *mut bindings_raw::JsonArrayAgg;
             Some(protobuf::node::Node::JsonArrayAgg(Box::new(convert_json_array_agg(&*jaa))))
         }
+        bindings_raw::NodeTag_T_ReplicaIdentityStmt => {
+            let ris = node_ptr as *mut bindings_raw::ReplicaIdentityStmt;
+            Some(protobuf::node::Node::ReplicaIdentityStmt(convert_replica_identity_stmt(&*ris)))
+        }
+        bindings_raw::NodeTag_T_GroupingFunc => {
+            let gf = node_ptr as *mut bindings_raw::GroupingFunc;
+            Some(protobuf::node::Node::GroupingFunc(Box::new(convert_grouping_func(&*gf))))
+        }
         _ => {
             // For unhandled node types, return None
             // In the future, we could add more node types here
@@ -1507,6 +1515,20 @@ unsafe fn convert_def_elem(de: &bindings_raw::DefElem) -> protobuf::DefElem {
 
 unsafe fn convert_string(s: &bindings_raw::String) -> protobuf::String {
     protobuf::String { sval: convert_c_string(s.sval) }
+}
+
+unsafe fn convert_replica_identity_stmt(ris: &bindings_raw::ReplicaIdentityStmt) -> protobuf::ReplicaIdentityStmt {
+    protobuf::ReplicaIdentityStmt { identity_type: String::from_utf8_lossy(&[ris.identity_type as u8]).to_string(), name: convert_c_string(ris.name) }
+}
+
+unsafe fn convert_grouping_func(gf: &bindings_raw::GroupingFunc) -> protobuf::GroupingFunc {
+    protobuf::GroupingFunc {
+        xpr: None,
+        args: convert_list_to_nodes(gf.args),
+        refs: convert_list_to_nodes(gf.refs),
+        agglevelsup: gf.agglevelsup,
+        location: gf.location,
+    }
 }
 
 unsafe fn convert_locking_clause(lc: &bindings_raw::LockingClause) -> protobuf::LockingClause {
@@ -2519,7 +2541,7 @@ unsafe fn convert_alter_object_depends_stmt(aods: &bindings_raw::AlterObjectDepe
         object_type: aods.objectType as i32 + 1,
         relation: if aods.relation.is_null() { None } else { Some(convert_range_var(&*aods.relation)) },
         object: convert_node_boxed(aods.object),
-        extname: Some(protobuf::String { sval: convert_c_string(aods.extname as *mut c_char) }),
+        extname: if aods.extname.is_null() { None } else { Some(convert_string(&*aods.extname)) },
         remove: aods.remove,
     }
 }
