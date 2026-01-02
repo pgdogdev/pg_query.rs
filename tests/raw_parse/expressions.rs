@@ -476,8 +476,7 @@ fn it_parses_params_in_insert() {
 /// Test CURRENT_TIMESTAMP (was causing infinite recursion)
 #[test]
 fn it_parses_current_timestamp() {
-    let query =
-        "INSERT INTO pgbench_history (tid, bid, aid, delta, mtime) VALUES (6, 1, 37553, -2309, CURRENT_TIMESTAMP)";
+    let query = "INSERT INTO pgbench_history (tid, bid, aid, delta, mtime) VALUES (6, 1, 37553, -2309, CURRENT_TIMESTAMP)";
     let raw_result = parse_raw(query).unwrap();
     let proto_result = parse(query).unwrap();
 

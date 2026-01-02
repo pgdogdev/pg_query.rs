@@ -2768,13 +2768,7 @@ unsafe fn convert_stats_elem(se: &bindings_raw::StatsElem) -> protobuf::StatsEle
 }
 
 unsafe fn convert_sql_value_function(svf: &bindings_raw::SQLValueFunction) -> protobuf::SqlValueFunction {
-    protobuf::SqlValueFunction {
-        xpr: None,
-        op: svf.op as i32 + 1,
-        r#type: svf.type_,
-        typmod: svf.typmod,
-        location: svf.location,
-    }
+    protobuf::SqlValueFunction { xpr: None, op: svf.op as i32 + 1, r#type: svf.type_, typmod: svf.typmod, location: svf.location }
 }
 
 unsafe fn convert_xml_expr(xe: &bindings_raw::XmlExpr) -> protobuf::XmlExpr {
