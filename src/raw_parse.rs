@@ -41,6 +41,26 @@ pub fn parse_raw(statement: &str) -> Result<ParseResult> {
     parse_result
 }
 
+/// Parses a SQL statement with a custom stack size.
+///
+/// This function is useful for parsing deeply nested queries that might overflow the stack.
+/// It uses the `stacker` crate to grow the stack if needed.
+///
+/// # Arguments
+///
+/// * `statement` - The SQL statement to parse
+/// * `stack_size` - The stack size in bytes to ensure is available for parsing
+///
+/// # Example
+///
+/// ```rust
+/// let result = pg_query::parse_raw_with_stack("SELECT * FROM users", 8 * 1024 * 1024).unwrap();
+/// assert_eq!(result.tables(), vec!["users"]);
+/// ```
+pub fn parse_raw_with_stack(statement: &str, stack_size: usize) -> Result<ParseResult> {
+    stacker::maybe_grow(32 * 1024, stack_size, || parse_raw(statement))
+}
+
 /// Converts a PostgreSQL List of RawStmt nodes to protobuf RawStmt vector.
 unsafe fn convert_list_to_raw_stmts(list: *mut bindings_raw::List) -> Vec<protobuf::RawStmt> {
     if list.is_null() {
@@ -1918,10 +1938,8 @@ unsafe fn convert_discard_stmt(ds: &bindings_raw::DiscardStmt) -> protobuf::Disc
 }
 
 unsafe fn convert_coerce_to_domain(ctd: &bindings_raw::CoerceToDomain) -> protobuf::CoerceToDomain {
-    // xpr is an embedded Expr, convert it as a node pointer
-    let xpr_ptr = &ctd.xpr as *const bindings_raw::Expr as *mut bindings_raw::Node;
     protobuf::CoerceToDomain {
-        xpr: convert_node_boxed(xpr_ptr),
+        xpr: None,
         arg: convert_node_boxed(ctd.arg as *mut bindings_raw::Node),
         resulttype: ctd.resulttype,
         resulttypmod: ctd.resulttypmod,
@@ -2150,9 +2168,8 @@ unsafe fn convert_bit_string(bs: &bindings_raw::BitString) -> protobuf::BitStrin
 }
 
 unsafe fn convert_boolean_test(bt: &bindings_raw::BooleanTest) -> protobuf::BooleanTest {
-    let xpr_ptr = &bt.xpr as *const bindings_raw::Expr as *mut bindings_raw::Node;
     protobuf::BooleanTest {
-        xpr: convert_node_boxed(xpr_ptr),
+        xpr: None,
         arg: convert_node_boxed(bt.arg as *mut bindings_raw::Node),
         booltesttype: bt.booltesttype as i32 + 1,
         location: bt.location,
@@ -2751,9 +2768,8 @@ unsafe fn convert_stats_elem(se: &bindings_raw::StatsElem) -> protobuf::StatsEle
 }
 
 unsafe fn convert_sql_value_function(svf: &bindings_raw::SQLValueFunction) -> protobuf::SqlValueFunction {
-    let xpr_ptr = &svf.xpr as *const bindings_raw::Expr as *mut bindings_raw::Node;
     protobuf::SqlValueFunction {
-        xpr: convert_node_boxed(xpr_ptr),
+        xpr: None,
         op: svf.op as i32 + 1,
         r#type: svf.type_,
         typmod: svf.typmod,
@@ -2762,9 +2778,8 @@ unsafe fn convert_sql_value_function(svf: &bindings_raw::SQLValueFunction) -> pr
 }
 
 unsafe fn convert_xml_expr(xe: &bindings_raw::XmlExpr) -> protobuf::XmlExpr {
-    let xpr_ptr = &xe.xpr as *const bindings_raw::Expr as *mut bindings_raw::Node;
     protobuf::XmlExpr {
-        xpr: convert_node_boxed(xpr_ptr),
+        xpr: None,
         op: xe.op as i32 + 1,
         name: convert_c_string(xe.name),
         named_args: convert_list_to_nodes(xe.named_args),
@@ -2789,9 +2804,8 @@ unsafe fn convert_xml_serialize(xs: &bindings_raw::XmlSerialize) -> protobuf::Xm
 }
 
 unsafe fn convert_named_arg_expr(nae: &bindings_raw::NamedArgExpr) -> protobuf::NamedArgExpr {
-    let xpr_ptr = &nae.xpr as *const bindings_raw::Expr as *mut bindings_raw::Node;
     protobuf::NamedArgExpr {
-        xpr: convert_node_boxed(xpr_ptr),
+        xpr: None,
         arg: convert_node_boxed(nae.arg as *mut bindings_raw::Node),
         name: convert_c_string(nae.name),
         argnumber: nae.argnumber,
@@ -2824,9 +2838,8 @@ unsafe fn convert_json_value_expr(jve: &bindings_raw::JsonValueExpr) -> protobuf
 }
 
 unsafe fn convert_json_constructor_expr(jce: &bindings_raw::JsonConstructorExpr) -> protobuf::JsonConstructorExpr {
-    let xpr_ptr = &jce.xpr as *const bindings_raw::Expr as *mut bindings_raw::Node;
     protobuf::JsonConstructorExpr {
-        xpr: convert_node_boxed(xpr_ptr),
+        xpr: None,
         r#type: jce.type_ as i32 + 1,
         args: convert_list_to_nodes(jce.args),
         func: convert_node_boxed(jce.func as *mut bindings_raw::Node),
@@ -2853,9 +2866,8 @@ unsafe fn convert_json_behavior(jb: &bindings_raw::JsonBehavior) -> protobuf::Js
 }
 
 unsafe fn convert_json_expr(je: &bindings_raw::JsonExpr) -> protobuf::JsonExpr {
-    let xpr_ptr = &je.xpr as *const bindings_raw::Expr as *mut bindings_raw::Node;
     protobuf::JsonExpr {
-        xpr: convert_node_boxed(xpr_ptr),
+        xpr: None,
         op: je.op as i32 + 1,
         column_name: convert_c_string(je.column_name),
         formatted_expr: convert_node_boxed(je.formatted_expr as *mut bindings_raw::Node),
