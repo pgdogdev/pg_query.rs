@@ -588,7 +588,7 @@ unsafe fn write_range_var(rv: &protobuf::RangeVar) -> *mut bindings_raw::RangeVa
     (*node).schemaname = pstrdup(&rv.schemaname);
     (*node).relname = pstrdup(&rv.relname);
     (*node).inh = rv.inh;
-    (*node).relpersistence = if rv.relpersistence.is_empty() { 'p' as i8 } else { rv.relpersistence.chars().next().unwrap() as i8 };
+    (*node).relpersistence = if rv.relpersistence.is_empty() { 'p' as c_char } else { rv.relpersistence.chars().next().unwrap() as c_char };
     (*node).alias = write_alias_ref(&rv.alias);
     (*node).location = rv.location;
     node
@@ -1171,12 +1171,12 @@ unsafe fn write_column_def(cd: &protobuf::ColumnDef) -> *mut bindings_raw::Colum
     (*node).is_local = cd.is_local;
     (*node).is_not_null = cd.is_not_null;
     (*node).is_from_type = cd.is_from_type;
-    (*node).storage = if cd.storage.is_empty() { 0 } else { cd.storage.as_bytes()[0] as i8 };
+    (*node).storage = if cd.storage.is_empty() { 0 } else { cd.storage.as_bytes()[0] as c_char };
     (*node).raw_default = write_node_boxed(&cd.raw_default);
     (*node).cooked_default = write_node_boxed(&cd.cooked_default);
-    (*node).identity = if cd.identity.is_empty() { 0 } else { cd.identity.as_bytes()[0] as i8 };
+    (*node).identity = if cd.identity.is_empty() { 0 } else { cd.identity.as_bytes()[0] as c_char };
     (*node).identitySequence = std::ptr::null_mut();
-    (*node).generated = if cd.generated.is_empty() { 0 } else { cd.generated.as_bytes()[0] as i8 };
+    (*node).generated = if cd.generated.is_empty() { 0 } else { cd.generated.as_bytes()[0] as c_char };
     (*node).collClause = std::ptr::null_mut();
     (*node).collOid = cd.coll_oid;
     (*node).constraints = write_node_list(&cd.constraints);
@@ -1196,7 +1196,7 @@ unsafe fn write_constraint(c: &protobuf::Constraint) -> *mut bindings_raw::Const
     (*node).is_no_inherit = c.is_no_inherit;
     (*node).raw_expr = write_node_boxed(&c.raw_expr);
     (*node).cooked_expr = pstrdup(&c.cooked_expr);
-    (*node).generated_when = if c.generated_when.is_empty() { 0 } else { c.generated_when.as_bytes()[0] as i8 };
+    (*node).generated_when = if c.generated_when.is_empty() { 0 } else { c.generated_when.as_bytes()[0] as c_char };
     (*node).nulls_not_distinct = c.nulls_not_distinct;
     (*node).keys = write_node_list(&c.keys);
     (*node).including = write_node_list(&c.including);
@@ -1210,9 +1210,9 @@ unsafe fn write_constraint(c: &protobuf::Constraint) -> *mut bindings_raw::Const
     (*node).pktable = write_range_var_ptr(&c.pktable);
     (*node).fk_attrs = write_node_list(&c.fk_attrs);
     (*node).pk_attrs = write_node_list(&c.pk_attrs);
-    (*node).fk_matchtype = if c.fk_matchtype.is_empty() { 0 } else { c.fk_matchtype.as_bytes()[0] as i8 };
-    (*node).fk_upd_action = if c.fk_upd_action.is_empty() { 0 } else { c.fk_upd_action.as_bytes()[0] as i8 };
-    (*node).fk_del_action = if c.fk_del_action.is_empty() { 0 } else { c.fk_del_action.as_bytes()[0] as i8 };
+    (*node).fk_matchtype = if c.fk_matchtype.is_empty() { 0 } else { c.fk_matchtype.as_bytes()[0] as c_char };
+    (*node).fk_upd_action = if c.fk_upd_action.is_empty() { 0 } else { c.fk_upd_action.as_bytes()[0] as c_char };
+    (*node).fk_del_action = if c.fk_del_action.is_empty() { 0 } else { c.fk_del_action.as_bytes()[0] as c_char };
     (*node).fk_del_set_cols = write_node_list(&c.fk_del_set_cols);
     (*node).old_conpfeqop = write_node_list(&c.old_conpfeqop);
     (*node).old_pktable_oid = c.old_pktable_oid;
@@ -1882,7 +1882,7 @@ unsafe fn write_create_event_trig_stmt(stmt: &protobuf::CreateEventTrigStmt) -> 
 unsafe fn write_alter_event_trig_stmt(stmt: &protobuf::AlterEventTrigStmt) -> *mut bindings_raw::AlterEventTrigStmt {
     let node = alloc_node::<bindings_raw::AlterEventTrigStmt>(bindings_raw::NodeTag_T_AlterEventTrigStmt);
     (*node).trigname = pstrdup(&stmt.trigname);
-    (*node).tgenabled = if stmt.tgenabled.is_empty() { 0 } else { stmt.tgenabled.as_bytes()[0] as i8 };
+    (*node).tgenabled = if stmt.tgenabled.is_empty() { 0 } else { stmt.tgenabled.as_bytes()[0] as c_char };
     node
 }
 
@@ -1901,7 +1901,7 @@ unsafe fn write_create_am_stmt(stmt: &protobuf::CreateAmStmt) -> *mut bindings_r
     let node = alloc_node::<bindings_raw::CreateAmStmt>(bindings_raw::NodeTag_T_CreateAmStmt);
     (*node).amname = pstrdup(&stmt.amname);
     (*node).handler_name = write_node_list(&stmt.handler_name);
-    (*node).amtype = if stmt.amtype.is_empty() { 0 } else { stmt.amtype.as_bytes()[0] as i8 };
+    (*node).amtype = if stmt.amtype.is_empty() { 0 } else { stmt.amtype.as_bytes()[0] as c_char };
     node
 }
 
@@ -2090,7 +2090,7 @@ unsafe fn write_alter_extension_contents_stmt(stmt: &protobuf::AlterExtensionCon
 
 unsafe fn write_alter_domain_stmt(stmt: &protobuf::AlterDomainStmt) -> *mut bindings_raw::AlterDomainStmt {
     let node = alloc_node::<bindings_raw::AlterDomainStmt>(bindings_raw::NodeTag_T_AlterDomainStmt);
-    (*node).subtype = if stmt.subtype.is_empty() { 0 } else { stmt.subtype.as_bytes()[0] as i8 };
+    (*node).subtype = if stmt.subtype.is_empty() { 0 } else { stmt.subtype.as_bytes()[0] as c_char };
     (*node).typeName = write_node_list(&stmt.type_name);
     (*node).name = pstrdup(&stmt.name);
     (*node).def = write_node_boxed(&stmt.def);
@@ -2382,7 +2382,7 @@ unsafe fn write_partition_spec(stmt: &protobuf::PartitionSpec) -> *mut bindings_
 
 unsafe fn write_partition_bound_spec(stmt: &protobuf::PartitionBoundSpec) -> *mut bindings_raw::PartitionBoundSpec {
     let node = alloc_node::<bindings_raw::PartitionBoundSpec>(bindings_raw::NodeTag_T_PartitionBoundSpec);
-    (*node).strategy = if stmt.strategy.is_empty() { 0 } else { stmt.strategy.as_bytes()[0] as i8 };
+    (*node).strategy = if stmt.strategy.is_empty() { 0 } else { stmt.strategy.as_bytes()[0] as c_char };
     (*node).is_default = stmt.is_default;
     (*node).modulus = stmt.modulus;
     (*node).remainder = stmt.remainder;

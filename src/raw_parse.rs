@@ -10,6 +10,7 @@ use crate::parse_result::ParseResult;
 use crate::protobuf;
 use crate::{Error, Result};
 use std::ffi::{CStr, CString};
+use std::os::raw::c_char;
 
 /// Parses a SQL statement directly into protobuf types without going through protobuf serialization.
 ///
@@ -2151,7 +2152,7 @@ unsafe fn convert_access_priv(ap: &bindings_raw::AccessPriv) -> protobuf::Access
 // ============================================================================
 
 /// Converts a C string pointer to a Rust String.
-unsafe fn convert_c_string(ptr: *const i8) -> std::string::String {
+unsafe fn convert_c_string(ptr: *const c_char) -> std::string::String {
     if ptr.is_null() {
         std::string::String::new()
     } else {
@@ -2518,7 +2519,7 @@ unsafe fn convert_alter_object_depends_stmt(aods: &bindings_raw::AlterObjectDepe
         object_type: aods.objectType as i32 + 1,
         relation: if aods.relation.is_null() { None } else { Some(convert_range_var(&*aods.relation)) },
         object: convert_node_boxed(aods.object),
-        extname: Some(protobuf::String { sval: convert_c_string(aods.extname as *mut i8) }),
+        extname: Some(protobuf::String { sval: convert_c_string(aods.extname as *mut c_char) }),
         remove: aods.remove,
     }
 }
