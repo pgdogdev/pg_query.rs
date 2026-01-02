@@ -80,4 +80,22 @@ mod tests {
         let result = fingerprint_raw("NOT VALID SQL @#$");
         assert!(result.is_err());
     }
+
+    #[test]
+    fn test_fingerprint_raw_comment_only() {
+        // Comment-only queries should produce the same fingerprint as the regular function
+        let raw_result = fingerprint_raw("-- ping").unwrap();
+        let std_result = crate::fingerprint("-- ping").unwrap();
+        assert_eq!(raw_result.value, std_result.value);
+        assert_eq!(raw_result.hex, std_result.hex);
+    }
+
+    #[test]
+    fn test_fingerprint_raw_empty() {
+        // Empty queries should produce the same fingerprint as the regular function
+        let raw_result = fingerprint_raw("").unwrap();
+        let std_result = crate::fingerprint("").unwrap();
+        assert_eq!(raw_result.value, std_result.value);
+        assert_eq!(raw_result.hex, std_result.hex);
+    }
 }
