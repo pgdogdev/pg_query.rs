@@ -468,3 +468,27 @@ fn it_parses_params_in_insert() {
 
     assert_eq!(raw_result.protobuf, proto_result.protobuf);
 }
+
+// ============================================================================
+// SQL Value Function tests
+// ============================================================================
+
+/// Test CURRENT_TIMESTAMP (was causing infinite recursion)
+#[test]
+fn it_parses_current_timestamp() {
+    let query = "INSERT INTO pgbench_history (tid, bid, aid, delta, mtime) VALUES (6, 1, 37553, -2309, CURRENT_TIMESTAMP)";
+    let raw_result = parse_raw(query).unwrap();
+    let proto_result = parse(query).unwrap();
+
+    assert_eq!(raw_result.protobuf, proto_result.protobuf);
+}
+
+/// Test other SQL value functions
+#[test]
+fn it_parses_sql_value_functions() {
+    let query = "SELECT CURRENT_DATE, CURRENT_TIME, CURRENT_TIMESTAMP, LOCALTIME, LOCALTIMESTAMP, CURRENT_USER, CURRENT_CATALOG, CURRENT_SCHEMA";
+    let raw_result = parse_raw(query).unwrap();
+    let proto_result = parse(query).unwrap();
+
+    assert_eq!(raw_result.protobuf, proto_result.protobuf);
+}
