@@ -51,6 +51,8 @@ fn benchmark_parse_raw_vs_parse() {
             SUM(ro.total_amount) AS total_spent,
             AVG(ro.total_amount) AS avg_order_value,
             MAX(ro.created_at) AS last_order_date,
+            now(),
+            current_timestamp,
             CASE
                 WHEN SUM(ro.total_amount) > 10000 THEN 'platinum'
                 WHEN SUM(ro.total_amount) > 5000 THEN 'gold'
@@ -190,6 +192,8 @@ fn benchmark_deparse_raw_vs_deparse() {
             SUM(ro.total_amount) AS total_spent,
             AVG(ro.total_amount) AS avg_order_value,
             MAX(ro.created_at) AS last_order_date,
+            now(),
+            current_timestamp,
             CASE
                 WHEN SUM(ro.total_amount) > 10000 THEN 'platinum'
                 WHEN SUM(ro.total_amount) > 5000 THEN 'gold'
