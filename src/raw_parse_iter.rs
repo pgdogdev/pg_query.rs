@@ -72,8 +72,6 @@ unsafe fn convert_list_to_raw_stmts(list: *mut bindings_raw::List) -> Vec<protob
 unsafe fn convert_raw_stmt(raw_stmt: &bindings_raw::RawStmt) -> protobuf::RawStmt {
     let mut processor = Processor::new(raw_stmt.stmt);
 
-    println!("processing raw_stmt");
-
     processor.process();
 
     protobuf::RawStmt { stmt: processor.get_result(), stmt_location: raw_stmt.stmt_location, stmt_len: raw_stmt.stmt_len }
@@ -107,13 +105,7 @@ impl Processor {
     }
 
     fn get_result(mut self) -> Option<Box<protobuf::Node>> {
-        println!("[result]  get_result: result_stack.len={}", self.result_stack.len());
         let result = self.result_stack.pop();
-        println!(
-            "[result]  popped={:?}, remaining={}",
-            result.as_ref().map(|n| format!("{:?}", n.node.as_ref().map(|n| std::mem::discriminant(n)))),
-            self.result_stack.len(),
-        );
 
         assert!(self.result_stack.is_empty(), "Result stack should be empty after processing, but has {} items left", self.result_stack.len());
 
@@ -131,26 +123,15 @@ impl Processor {
 
             let node_tag = (*node_ptr).type_;
 
-            println!(
-                "[process] tag={} ({}) collect={} stack_depth={} result_stack_depth={}",
-                node_tag_name(node_tag),
-                node_tag,
-                collect,
-                self.stack.len(),
-                self.result_stack.len(),
-            );
-
             match node_tag {
                 // === SelectStmt (boxed) ===
                 bindings_raw::NodeTag_T_SelectStmt => {
                     let stmt = node_ptr as *const bindings_raw::SelectStmt;
 
                     if collect {
-                        println!("[collect] SelectStmt — result_stack={}", self.result_stack.len());
                         let node = self.collect_select_stmt(&*stmt);
                         self.push_result(node);
                     } else {
-                        println!("[queue]   SelectStmt — pushing collect + children");
                         self.queue_collect(node_ptr);
                         self.queue_select_stmt(&*stmt);
                     }
@@ -161,11 +142,9 @@ impl Processor {
                     let rt = node_ptr as *const bindings_raw::ResTarget;
 
                     if collect {
-                        println!("[collect] ResTarget — result_stack={}", self.result_stack.len());
                         let node = self.collect_res_target(&*rt);
                         self.push_result(node);
                     } else {
-                        println!("[queue]   ResTarget — pushing collect + children");
                         self.queue_collect(node_ptr);
                         self.queue_res_target(&*rt);
                     }
@@ -176,11 +155,9 @@ impl Processor {
                     let cr = node_ptr as *const bindings_raw::ColumnRef;
 
                     if collect {
-                        println!("[collect] ColumnRef — result_stack={}", self.result_stack.len());
                         let node = self.collect_column_ref(&*cr);
                         self.push_result(node);
                     } else {
-                        println!("[queue]   ColumnRef — pushing collect + children");
                         self.queue_collect(node_ptr);
                         self.queue_column_ref(&*cr);
                     }
@@ -190,11 +167,9 @@ impl Processor {
                 bindings_raw::NodeTag_T_RangeVar => {
                     let rv = node_ptr as *const bindings_raw::RangeVar;
                     if collect {
-                        println!("[collect] RangeVar — result_stack={}", self.result_stack.len());
                         let node = self.collect_range_var(&*rv);
                         self.push_result(node);
                     } else {
-                        println!("[queue]   RangeVar relname={:?} — pushing collect + children", convert_c_string((*rv).relname));
                         self.queue_collect(node_ptr);
                         self.queue_range_var(&*rv);
                     }
@@ -204,11 +179,9 @@ impl Processor {
                 bindings_raw::NodeTag_T_JoinExpr => {
                     let je = node_ptr as *const bindings_raw::JoinExpr;
                     if collect {
-                        println!("[collect] JoinExpr — result_stack={}", self.result_stack.len());
                         let node = self.collect_join_expr(&*je);
                         self.push_result(node);
                     } else {
-                        println!("[queue]   JoinExpr — pushing collect + children");
                         self.queue_collect(node_ptr);
                         self.queue_join_expr(&*je);
                     }
@@ -218,11 +191,9 @@ impl Processor {
                 bindings_raw::NodeTag_T_A_Expr => {
                     let expr = node_ptr as *const bindings_raw::A_Expr;
                     if collect {
-                        println!("[collect] A_Expr — result_stack={}", self.result_stack.len());
                         let node = self.collect_a_expr(&*expr);
                         self.push_result(node);
                     } else {
-                        println!("[queue]   A_Expr — pushing collect + children");
                         self.queue_collect(node_ptr);
                         self.queue_a_expr(&*expr);
                     }
@@ -232,11 +203,9 @@ impl Processor {
                 bindings_raw::NodeTag_T_FuncCall => {
                     let fc = node_ptr as *const bindings_raw::FuncCall;
                     if collect {
-                        println!("[collect] FuncCall — result_stack={}", self.result_stack.len());
                         let node = self.collect_func_call(&*fc);
                         self.push_result(node);
                     } else {
-                        println!("[queue]   FuncCall — pushing collect + children");
                         self.queue_collect(node_ptr);
                         self.queue_func_call(&*fc);
                     }
@@ -246,11 +215,9 @@ impl Processor {
                 bindings_raw::NodeTag_T_WindowDef => {
                     let wd = node_ptr as *const bindings_raw::WindowDef;
                     if collect {
-                        println!("[collect] WindowDef — result_stack={}", self.result_stack.len());
                         let node = self.collect_window_def(&*wd);
                         self.push_result(node);
                     } else {
-                        println!("[queue]   WindowDef — pushing collect + children");
                         self.queue_collect(node_ptr);
                         self.queue_window_def(&*wd);
                     }
@@ -260,11 +227,9 @@ impl Processor {
                 bindings_raw::NodeTag_T_InsertStmt => {
                     let stmt = node_ptr as *const bindings_raw::InsertStmt;
                     if collect {
-                        println!("[collect] InsertStmt — result_stack={}", self.result_stack.len());
                         let node = self.collect_insert_stmt(&*stmt);
                         self.push_result(node);
                     } else {
-                        println!("[queue]   InsertStmt — pushing collect + children");
                         self.queue_collect(node_ptr);
                         self.queue_insert_stmt(&*stmt);
                     }
@@ -274,11 +239,9 @@ impl Processor {
                 bindings_raw::NodeTag_T_UpdateStmt => {
                     let stmt = node_ptr as *const bindings_raw::UpdateStmt;
                     if collect {
-                        println!("[collect] UpdateStmt — result_stack={}", self.result_stack.len());
                         let node = self.collect_update_stmt(&*stmt);
                         self.push_result(node);
                     } else {
-                        println!("[queue]   UpdateStmt — pushing collect + children");
                         self.queue_collect(node_ptr);
                         self.queue_update_stmt(&*stmt);
                     }
@@ -288,11 +251,9 @@ impl Processor {
                 bindings_raw::NodeTag_T_DeleteStmt => {
                     let stmt = node_ptr as *const bindings_raw::DeleteStmt;
                     if collect {
-                        println!("[collect] DeleteStmt — result_stack={}", self.result_stack.len());
                         let node = self.collect_delete_stmt(&*stmt);
                         self.push_result(node);
                     } else {
-                        println!("[queue]   DeleteStmt — pushing collect + children");
                         self.queue_collect(node_ptr);
                         self.queue_delete_stmt(&*stmt);
                     }
@@ -302,11 +263,9 @@ impl Processor {
                 bindings_raw::NodeTag_T_List => {
                     let list = node_ptr as *mut bindings_raw::List;
                     if collect {
-                        println!("[collect] List — result_stack={}", self.result_stack.len());
                         let items = self.fetch_list_results(list);
                         self.push_result(protobuf::node::Node::List(protobuf::List { items }));
                     } else {
-                        println!("[queue]   List — pushing collect + items");
                         self.queue_collect(node_ptr);
                         self.queue_list_nodes(list);
                     }
@@ -316,11 +275,9 @@ impl Processor {
                 bindings_raw::NodeTag_T_SortBy => {
                     let sb = node_ptr as *const bindings_raw::SortBy;
                     if collect {
-                        println!("[collect] SortBy — result_stack={}", self.result_stack.len());
                         let node = self.collect_sort_by(&*sb);
                         self.push_result(node);
                     } else {
-                        println!("[queue]   SortBy — pushing collect + children");
                         self.queue_collect(node_ptr);
                         self.queue_sort_by(&*sb);
                     }
@@ -330,11 +287,9 @@ impl Processor {
                 bindings_raw::NodeTag_T_TypeCast => {
                     let tc = node_ptr as *const bindings_raw::TypeCast;
                     if collect {
-                        println!("[collect] TypeCast — result_stack={}", self.result_stack.len());
                         let node = self.collect_type_cast(&*tc);
                         self.push_result(node);
                     } else {
-                        println!("[queue]   TypeCast — pushing collect + children");
                         self.queue_collect(node_ptr);
                         self.queue_type_cast(&*tc);
                     }
@@ -344,11 +299,9 @@ impl Processor {
                 bindings_raw::NodeTag_T_TypeName => {
                     let tn = node_ptr as *const bindings_raw::TypeName;
                     if collect {
-                        println!("[collect] TypeName — result_stack={}", self.result_stack.len());
                         let node = self.collect_type_name(&*tn);
                         self.push_result(node);
                     } else {
-                        println!("[queue]   TypeName — pushing collect + children");
                         self.queue_collect(node_ptr);
                         self.queue_type_name(&*tn);
                     }
@@ -357,28 +310,24 @@ impl Processor {
                 // === A_Const (leaf — no children) ===
                 bindings_raw::NodeTag_T_A_Const => {
                     let aconst = node_ptr as *const bindings_raw::A_Const;
-                    println!("[leaf]    A_Const isnull={}", (*aconst).isnull);
                     let converted = convert_a_const(&*aconst);
                     self.push_result(protobuf::node::Node::AConst(converted));
                 }
 
                 // === A_Star (leaf) ===
                 bindings_raw::NodeTag_T_A_Star => {
-                    println!("[leaf]    A_Star");
                     self.push_result(protobuf::node::Node::AStar(protobuf::AStar {}));
                 }
 
                 // === String (leaf) ===
                 bindings_raw::NodeTag_T_String => {
                     let s = node_ptr as *const bindings_raw::String;
-                    println!("[leaf]    String sval={:?}", convert_c_string((*s).sval));
                     self.push_result(protobuf::node::Node::String(convert_string(&*s)));
                 }
 
                 // === Integer (leaf) ===
                 bindings_raw::NodeTag_T_Integer => {
                     let i = node_ptr as *const bindings_raw::Integer;
-                    println!("[leaf]    Integer ival={}", (*i).ival);
                     self.push_result(protobuf::node::Node::Integer(protobuf::Integer { ival: (*i).ival }));
                 }
 
@@ -386,28 +335,24 @@ impl Processor {
                 bindings_raw::NodeTag_T_Float => {
                     let f = node_ptr as *const bindings_raw::Float;
                     let fval = if (*f).fval.is_null() { std::string::String::new() } else { CStr::from_ptr((*f).fval).to_string_lossy().to_string() };
-                    println!("[leaf]    Float fval={:?}", fval);
                     self.push_result(protobuf::node::Node::Float(protobuf::Float { fval }));
                 }
 
                 // === Boolean (leaf) ===
                 bindings_raw::NodeTag_T_Boolean => {
                     let b = node_ptr as *const bindings_raw::Boolean;
-                    println!("[leaf]    Boolean boolval={}", (*b).boolval);
                     self.push_result(protobuf::node::Node::Boolean(protobuf::Boolean { boolval: (*b).boolval }));
                 }
 
                 // === BitString (leaf) ===
                 bindings_raw::NodeTag_T_BitString => {
                     let bs = node_ptr as *const bindings_raw::BitString;
-                    println!("[leaf]    BitString");
                     self.push_result(protobuf::node::Node::BitString(convert_bit_string(&*bs)));
                 }
 
                 // === ParamRef (leaf) ===
                 bindings_raw::NodeTag_T_ParamRef => {
                     let pr = node_ptr as *const bindings_raw::ParamRef;
-                    println!("[leaf]    ParamRef number={}", (*pr).number);
                     self.push_result(protobuf::node::Node::ParamRef(protobuf::ParamRef { number: (*pr).number, location: (*pr).location }));
                 }
 
@@ -1281,11 +1226,7 @@ impl Processor {
                 }
 
                 _ => {
-                    panic!(
-                        "[ERROR] Unhandled node tag={} ({}) in iterative processor. This type needs to be migrated.",
-                        node_tag_name(node_tag),
-                        node_tag,
-                    );
+                    panic!("[ERROR] Unhandled node tag={} in iterative processor. This type needs to be migrated.", node_tag,);
                 }
             }
         }
@@ -1300,18 +1241,15 @@ impl Processor {
     }
 
     fn push_result(&mut self, node: protobuf::node::Node) {
-        println!("[push]    result variant={:?} → result_stack will be {}", std::mem::discriminant(&node), self.result_stack.len() + 1);
         self.result_stack.push(protobuf::Node { node: Some(node) });
     }
 
     fn single_result(&mut self, node: *const bindings_raw::Node) -> Option<protobuf::Node> {
         if node.is_null() {
-            println!("[single]  node is null — skipping pop");
             return None;
         }
 
         let result = self.result_stack.pop().expect("result stack should not be empty while processing");
-        println!("[single]  popped result — result_stack now={}", self.result_stack.len());
         Some(result)
     }
 
@@ -1320,7 +1258,6 @@ impl Processor {
     }
 
     fn fetch_results(&mut self, count: usize) -> Vec<protobuf::Node> {
-        println!("[fetch]   count={} from result_stack.len={}", count, self.result_stack.len());
         if count > self.result_stack.len() {
             panic!(
                 "fetch_results: count ({}) > result_stack.len ({}) — stack contents: {:?}",
@@ -1340,16 +1277,13 @@ impl Processor {
         let list = &*list;
         let length = list.length as usize;
 
-        println!("[qlist]   queuing {} nodes from list", length);
         self.stack.reserve(length);
 
         for i in 0..length {
             let cell = list.elements.add(i);
             let node = (*cell).ptr_value as *const bindings_raw::Node;
             if !node.is_null() {
-                println!("[qlist]     [{}] tag={} ({})", i, node_tag_name((*node).type_), (*node).type_);
             } else {
-                println!("[qlist]     [{}] null", i);
             }
             self.stack.push(ProcessingNode::with_node(node));
         }
@@ -1362,7 +1296,6 @@ impl Processor {
         let list = &*list;
         let length = list.length as usize;
 
-        println!("[flist]   fetching {} results for list", length);
         self.fetch_results(length)
     }
 
@@ -1486,11 +1419,6 @@ impl Processor {
     unsafe fn queue_res_target(&mut self, rt: &bindings_raw::ResTarget) {
         // Queue children that need recursive processing:
         //   indirection (list of nodes) and val (single node)
-        println!(
-            "[queue]   ResTarget children: indirection={}, val={}",
-            if rt.indirection.is_null() { "null".to_string() } else { format!("list({})", (*rt.indirection).length) },
-            if rt.val.is_null() { "null" } else { "present" },
-        );
         self.queue_list_nodes(rt.indirection);
         self.queue_node(rt.val);
     }
@@ -1498,14 +1426,6 @@ impl Processor {
     unsafe fn collect_res_target(&mut self, rt: &bindings_raw::ResTarget) -> protobuf::node::Node {
         let indirection = self.fetch_list_results(rt.indirection);
         let val = self.single_result_box(rt.val);
-
-        println!(
-            "[collect] ResTarget: name={:?}, indirection_len={}, val={:?}, location={}",
-            convert_c_string(rt.name),
-            indirection.len(),
-            val.as_ref().map(|v| format!("{:?}", v.node.as_ref().map(|n| std::mem::discriminant(n)))),
-            rt.location,
-        );
 
         let res = protobuf::ResTarget { name: convert_c_string(rt.name), indirection, val, location: rt.location };
         protobuf::node::Node::ResTarget(Box::new(res))
@@ -1516,16 +1436,11 @@ impl Processor {
     // ====================================================================
 
     unsafe fn queue_column_ref(&mut self, cr: &bindings_raw::ColumnRef) {
-        println!(
-            "[queue]   ColumnRef children: fields={}",
-            if cr.fields.is_null() { "null".to_string() } else { format!("list({})", (*cr.fields).length) },
-        );
         self.queue_list_nodes(cr.fields);
     }
 
     unsafe fn collect_column_ref(&mut self, cr: &bindings_raw::ColumnRef) -> protobuf::node::Node {
         let fields = self.fetch_list_results(cr.fields);
-        println!("[collect] ColumnRef: fields_len={}, location={}", fields.len(), cr.location);
         protobuf::node::Node::ColumnRef(protobuf::ColumnRef { fields, location: cr.location })
     }
 
@@ -3274,61 +3189,6 @@ impl Processor {
             _ => 0,
         };
         protobuf::node::Node::FunctionParameter(Box::new(protobuf::FunctionParameter { name: convert_c_string(fp.name), arg_type, mode, defexpr }))
-    }
-}
-
-/// Returns a human-readable name for a NodeTag value (for debug logging).
-fn node_tag_name(tag: u32) -> &'static str {
-    match tag {
-        bindings_raw::NodeTag_T_SelectStmt => "SelectStmt",
-        bindings_raw::NodeTag_T_InsertStmt => "InsertStmt",
-        bindings_raw::NodeTag_T_UpdateStmt => "UpdateStmt",
-        bindings_raw::NodeTag_T_DeleteStmt => "DeleteStmt",
-        bindings_raw::NodeTag_T_ResTarget => "ResTarget",
-        bindings_raw::NodeTag_T_A_Const => "A_Const",
-        bindings_raw::NodeTag_T_A_Expr => "A_Expr",
-        bindings_raw::NodeTag_T_ColumnRef => "ColumnRef",
-        bindings_raw::NodeTag_T_FuncCall => "FuncCall",
-        bindings_raw::NodeTag_T_TypeCast => "TypeCast",
-        bindings_raw::NodeTag_T_RangeVar => "RangeVar",
-        bindings_raw::NodeTag_T_JoinExpr => "JoinExpr",
-        bindings_raw::NodeTag_T_SortBy => "SortBy",
-        bindings_raw::NodeTag_T_BoolExpr => "BoolExpr",
-        bindings_raw::NodeTag_T_SubLink => "SubLink",
-        bindings_raw::NodeTag_T_NullTest => "NullTest",
-        bindings_raw::NodeTag_T_CaseExpr => "CaseExpr",
-        bindings_raw::NodeTag_T_CaseWhen => "CaseWhen",
-        bindings_raw::NodeTag_T_A_Star => "A_Star",
-        bindings_raw::NodeTag_T_Integer => "Integer",
-        bindings_raw::NodeTag_T_Float => "Float",
-        bindings_raw::NodeTag_T_Boolean => "Boolean",
-        bindings_raw::NodeTag_T_String => "String",
-        bindings_raw::NodeTag_T_BitString => "BitString",
-        bindings_raw::NodeTag_T_WithClause => "WithClause",
-        bindings_raw::NodeTag_T_TypeName => "TypeName",
-        bindings_raw::NodeTag_T_ParamRef => "ParamRef",
-        bindings_raw::NodeTag_T_List => "List",
-        bindings_raw::NodeTag_T_WindowDef => "WindowDef",
-        bindings_raw::NodeTag_T_CoalesceExpr => "CoalesceExpr",
-        bindings_raw::NodeTag_T_MinMaxExpr => "MinMaxExpr",
-        bindings_raw::NodeTag_T_SQLValueFunction => "SQLValueFunction",
-        bindings_raw::NodeTag_T_SetToDefault => "SetToDefault",
-        bindings_raw::NodeTag_T_BooleanTest => "BooleanTest",
-        bindings_raw::NodeTag_T_A_ArrayExpr => "A_ArrayExpr",
-        bindings_raw::NodeTag_T_A_Indirection => "A_Indirection",
-        bindings_raw::NodeTag_T_A_Indices => "A_Indices",
-        bindings_raw::NodeTag_T_CollateClause => "CollateClause",
-        bindings_raw::NodeTag_T_RangeSubselect => "RangeSubselect",
-        bindings_raw::NodeTag_T_CommonTableExpr => "CommonTableExpr",
-        bindings_raw::NodeTag_T_CTESearchClause => "CTESearchClause",
-        bindings_raw::NodeTag_T_CTECycleClause => "CTECycleClause",
-        bindings_raw::NodeTag_T_GroupingSet => "GroupingSet",
-        bindings_raw::NodeTag_T_LockingClause => "LockingClause",
-        bindings_raw::NodeTag_T_RowExpr => "RowExpr",
-        bindings_raw::NodeTag_T_MultiAssignRef => "MultiAssignRef",
-        bindings_raw::NodeTag_T_Alias => "Alias",
-        bindings_raw::NodeTag_T_GroupingFunc => "GroupingFunc",
-        _ => "Unknown",
     }
 }
 
