@@ -2,8 +2,8 @@
 
 ## Strategy
 
-Instead of migrating by node-type groups, we migrate **test by test** — running a single
-test from simple to complex, fixing whatever breaks, and moving on only after it passes.
+We migrate **test by test** — running a single test from simple to complex, adding
+the missing node type to the iterative `Processor`, and moving on only after it passes.
 
 All tests live in `tests/raw_parse_iter/` and mirror `tests/raw_parse/` exactly, except
 they call `parse_raw_iter` instead of `parse_raw`. Every test compares `parse_raw_iter`
@@ -23,7 +23,207 @@ cargo test --test raw_parse_iter_tests raw_parse_iter::basic::it_parses_simple_s
    fix it in `raw_parse_iter.rs` (or `Processor`), re-run, repeat
 4. After the fix passes, run all previously-passing tests as regression:
    `cargo test --test raw_parse_iter_tests -- --nocapture`
-5. Commit
+
+---
+
+## How the Iterative Processor Works
+
+The `Processor` struct in `raw_parse_iter.rs` replaces recursive `convert_node()` calls
+with an explicit stack. It has two stacks:
+
+- **`stack`** — `Vec<ProcessingNode>` — work items (C node pointers + a `collect` flag)
+- **`result_stack`** — `Vec<protobuf::Node>` — completed protobuf nodes
+
+### Two-pass processing
+
+Every node is visited **twice**:
+
+1. **Queue pass** (`collect=false`): Push a collect marker for this node, then push
+   its children onto the stack. Children go on top, so they are processed first.
+2. **Collect pass** (`collect=true`): All children have been processed and their results
+   sit on `result_stack`. Pop them, assemble the protobuf struct, push the result.
+
+```
+stack (LIFO):
+  ┌─────────────────┐
+  │ child C          │ ← processed first
+  │ child B          │
+  │ child A          │
+  │ COLLECT(parent)  │ ← processed after all children
+  └─────────────────┘
+```
+
+### Key helper methods
+
+| Method | Purpose |
+|--------|---------|
+| `queue_collect(ptr)` | Push a collect marker (same pointer, `collect=true`) |
+| `queue_node(ptr)` | Push a child node for processing (`collect=false`); null ptrs are skipped |
+| `queue_list_nodes(list)` | Push every element of a C `List*` as individual nodes |
+| `single_result(ptr)` | Pop one result from `result_stack`; returns `None` if ptr was null |
+| `single_result_box(ptr)` | Same but returns `Option<Box<Node>>` |
+| `fetch_list_results(list)` | Pop N results (where N = list length); returns `Vec<Node>` |
+| `push_result(node)` | Push a completed protobuf node onto `result_stack` |
+
+### Symmetry rule
+
+**Every queued node produces exactly one result.** This means:
+
+- `queue_node(ptr)` must be balanced by `single_result(ptr)` or `single_result_box(ptr)`
+  using **the same pointer** so the null-check matches.
+- `queue_list_nodes(list)` must be balanced by `fetch_list_results(list)` using
+  **the same list pointer**.
+- The order must be the same: queue A then B → collect fetches A then B.
+
+---
+
+## How to Migrate a Node Type
+
+### Step 1: Identify the category
+
+| Category | Description | Example |
+|----------|-------------|---------|
+| **Leaf** | No child nodes/lists that need conversion | `SQLValueFunction`, `SetToDefault` |
+| **Simple** | Has child nodes and/or lists | `BoolExpr`, `NullTest`, `SubLink` |
+
+### Step 2: Add the match arm in `process()`
+
+In the `match node_tag { ... }` block, add an arm for the new `NodeTag`:
+
+```rust
+bindings_raw::NodeTag_T_BoolExpr => {
+    let be = node_ptr as *const bindings_raw::BoolExpr;
+    if collect {
+        let node = self.collect_bool_expr(&*be);
+        self.push_result(node);
+    } else {
+        self.queue_collect(node_ptr);
+        self.queue_bool_expr(&*be);
+    }
+}
+```
+
+For **leaf nodes** (no children), skip queue/collect entirely:
+
+```rust
+bindings_raw::NodeTag_T_SQLValueFunction => {
+    let svf = node_ptr as *const bindings_raw::SQLValueFunction;
+    self.push_result(protobuf::node::Node::SqlvalueFunction(Box::new(
+        protobuf::SqlValueFunction {
+            xpr: None,
+            op: (*svf).op as i32 + 1,
+            r#type: (*svf).type_,
+            typmod: (*svf).typmod,
+            location: (*svf).location,
+        },
+    )));
+}
+```
+
+### Step 3: Add `queue_*` and `collect_*` methods (non-leaf only)
+
+The **queue method** pushes children onto the stack. The **collect method** pops
+results and assembles the protobuf struct.
+
+Look at the existing recursive `convert_*` function to see which fields need conversion.
+Each call to `convert_node_boxed(field)` becomes a `queue_node(field)` / `single_result_box(field)` pair.
+Each call to `convert_list_to_nodes(list)` becomes a `queue_list_nodes(list)` / `fetch_list_results(list)` pair.
+
+**Example — BoolExpr** (one list child):
+
+Recursive version (in `raw_parse.rs`):
+```rust
+unsafe fn convert_bool_expr(be: &bindings_raw::BoolExpr) -> protobuf::BoolExpr {
+    protobuf::BoolExpr {
+        xpr: None,
+        boolop: be.boolop as i32 + 1,
+        args: convert_list_to_nodes(be.args),       // ← list child
+        location: be.location,
+    }
+}
+```
+
+Iterative version (queue + collect methods on `Processor`):
+```rust
+unsafe fn queue_bool_expr(&mut self, be: &bindings_raw::BoolExpr) {
+    self.queue_list_nodes(be.args);                  // ← queue the list
+}
+
+unsafe fn collect_bool_expr(&mut self, be: &bindings_raw::BoolExpr) -> protobuf::node::Node {
+    let args = self.fetch_list_results(be.args);     // ← fetch matching results
+    protobuf::node::Node::BoolExpr(Box::new(protobuf::BoolExpr {
+        xpr: None,
+        boolop: be.boolop as i32 + 1,
+        args,
+        location: be.location,
+    }))
+}
+```
+
+**Example — SubLink** (two node children + one list child):
+
+```rust
+unsafe fn queue_sub_link(&mut self, sl: &bindings_raw::SubLink) {
+    self.queue_node(sl.testexpr);                    // node child 1
+    self.queue_list_nodes(sl.operName);              // list child
+    self.queue_node(sl.subselect);                   // node child 2
+}
+
+unsafe fn collect_sub_link(&mut self, sl: &bindings_raw::SubLink) -> protobuf::node::Node {
+    let testexpr = self.single_result_box(sl.testexpr);
+    let oper_name = self.fetch_list_results(sl.operName);
+    let subselect = self.single_result_box(sl.subselect);
+    protobuf::node::Node::SubLink(Box::new(protobuf::SubLink {
+        xpr: None,
+        sub_link_type: sl.subLinkType as i32 + 1,
+        sub_link_id: sl.subLinkId,
+        testexpr,
+        oper_name,
+        subselect,
+        location: sl.location,
+    }))
+}
+```
+
+### Step 4: Add to `node_tag_name()` (for debug logging)
+
+```rust
+bindings_raw::NodeTag_T_BoolExpr => "BoolExpr",
+```
+
+### Step 5: Handle non-Node helper structs
+
+Some PostgreSQL structs (like `Alias`, `IntoClause`, `OnConflictClause`) are embedded
+inside other nodes but are not themselves `Node` types in the processor's match. These
+are handled with dedicated `queue_*` / `fetch_*` helper pairs on the Processor, called
+from the parent's queue/collect methods. See `queue_into_clause` / `fetch_into_clause`
+and `queue_on_conflict_clause` / `fetch_on_conflict_clause` as examples.
+
+### Step 6: Run tests and verify
+
+```sh
+# Run the specific test that needs this node type
+cargo test --test raw_parse_iter_tests "raw_parse_iter::expressions::it_parses_null_tests" -- --nocapture
+
+# Run all tests as regression
+cargo test --test raw_parse_iter_tests -- --nocapture
+```
+
+### Common pitfalls
+
+- **Queue/collect order mismatch**: The collect method must pop results in the **same
+  order** as the queue method pushed children. If queue does `A, B, C` then collect
+  must do `A, B, C` (not `C, B, A`).
+- **Forgetting null checks**: `queue_node` with null is harmless (skipped in process),
+  but `single_result` must be called with **the same pointer** so it knows whether to
+  pop. If the pointer was null, `single_result` returns `None` without popping.
+- **Missing list symmetry**: If you call `queue_list_nodes(some_list)`, you MUST call
+  `fetch_list_results(some_list)` with the **same list pointer** — not a different copy.
+- **Wrong protobuf enum offset**: PostgreSQL C enums start at 0, protobuf enums reserve
+  0 for `UNDEFINED`. Most fields need `as i32 + 1`.
+- **Boxed vs unboxed**: Check the protobuf struct definition — some fields use
+  `Option<Box<Node>>` (call `single_result_box`), others use `Vec<Node>` (call
+  `fetch_list_results`), and some are scalar (just copy directly).
 
 ---
 
@@ -305,15 +505,16 @@ Progressively harder SELECT features. Each test tends to add one new node type.
 
 ## Progress Tracking
 
-Mark each test as it passes:
+**232 / 232 tests passing** (100%) ✅ — last checked 2026-02-08
 
-```
-[ ] 1. basic::it_parses_simple_select
-[ ] 2. basic::it_matches_parse_for_simple_select
-...
-```
+### Step 1 — `basic`: ✅ 21/21
+### Step 2 — `expressions`: ✅ 34/34
+### Step 3 — `select`: ✅ 61/61
+### Step 4 — `dml`: ✅ 38/38
+### Step 5 — `ddl`: ✅ 36/36
+### Step 6 — `statements`: ✅ 42/42
 
-Update this section as you go. When all 232 tests pass, the migration is functionally complete.
+All 232 tests pass. The iterative migration is functionally complete.
 
 ---
 
@@ -322,13 +523,15 @@ Update this section as you go. When all 232 tests pass, the migration is functio
 1. **Run full regression**: `cargo test --test raw_parse_iter_tests`
 2. **Run acceptance suite** against `parse_raw_iter` (port `parse_raw_acceptance.rs`)
 3. **Run benchmarks**: `cargo test --test raw_parse_iter_tests benchmark -- --nocapture` (if added)
-4. **Remove recursive fallback**: once all node types are handled iteratively in `process()`,
-   remove `convert_node()`, `convert_node_boxed()`, standalone `convert_*` functions,
+4. **Clean up dead code**: remove unused standalone `convert_*` functions, the legacy
+   `convert_node()` / `convert_node_boxed()` functions, `convert_list_to_nodes()`,
    and the `stacker` dependency
 5. **Swap entrypoint**: make `parse_raw` call the iterative implementation internally
 
 ## General Rules
 
+- **No recursive fallback**: every node type that appears in a parse tree must have its
+  own match arm in `process()`. The `_ =>` catch-all panics to surface missing types early.
 - **Queue and collect must be symmetric**: every node queued produces exactly one result.
   Every `fetch_list_results` call must match a corresponding `queue_list_nodes` call with
   the same list pointer. Every `single_result` must match a `queue_node`.
@@ -339,5 +542,4 @@ Update this section as you go. When all 232 tests pass, the migration is functio
 - **Push order**: `queue_collect` first (bottom of stack), then children left-to-right.
   Children are processed right-to-left (LIFO). Results accumulate in reverse.
   `fetch_results` drains from the end and reverses.
-- **One test at a time**: run, fix, verify, commit. The recursive fallback ensures
-  everything keeps working during incremental migration.
+- **One test at a time**: run, fix, verify, commit.
