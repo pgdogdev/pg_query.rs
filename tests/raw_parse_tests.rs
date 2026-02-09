@@ -12,7 +12,7 @@ mod support;
 mod raw_parse;
 
 // Re-export the benchmark test at the top level
-use pg_query::{deparse, deparse_raw, parse, parse_raw};
+use pg_query::{deparse, deparse_raw, parse, parse_raw, parse_raw_iter};
 use std::time::{Duration, Instant};
 
 /// Benchmark comparing parse_raw vs parse performance
@@ -87,12 +87,13 @@ fn benchmark_parse_raw_vs_parse() {
 
     // Warm up
     for _ in 0..10 {
+        let _ = parse_raw_iter(query).unwrap();
         let _ = parse_raw(query).unwrap();
         let _ = parse(query).unwrap();
     }
 
     // Run for a fixed duration to get stable measurements
-    let target_duration = Duration::from_secs(2);
+    let target_duration = Duration::from_secs(5);
 
     // Benchmark parse_raw
     let mut raw_iterations = 0u64;
@@ -105,6 +106,18 @@ fn benchmark_parse_raw_vs_parse() {
     }
     let raw_elapsed = raw_start.elapsed();
     let raw_ns_per_iter = raw_elapsed.as_nanos() as f64 / raw_iterations as f64;
+
+    // Benchmark parse_raw_iter
+    let mut raw_iter_iterations = 0u64;
+    let raw_start = Instant::now();
+    while raw_start.elapsed() < target_duration {
+        for _ in 0..100 {
+            let _ = parse_raw_iter(query).unwrap();
+            raw_iter_iterations += 1;
+        }
+    }
+    let raw_iter_elapsed = raw_start.elapsed();
+    let raw_iter_ns_per_iter = raw_iter_elapsed.as_nanos() as f64 / raw_iter_iterations as f64;
 
     // Benchmark parse (protobuf)
     let mut proto_iterations = 0u64;
@@ -123,7 +136,13 @@ fn benchmark_parse_raw_vs_parse() {
     let time_saved_ns = proto_ns_per_iter - raw_ns_per_iter;
     let time_saved_us = time_saved_ns / 1000.0;
 
+    // Calculate speedup and time saved
+    let speedup_iter = raw_ns_per_iter / raw_iter_ns_per_iter;
+    let time_saved_ns_iter = raw_ns_per_iter - raw_iter_ns_per_iter;
+    let time_saved_us_iter = time_saved_ns_iter / 1000.0;
+
     // Calculate throughput (queries per second)
+    let raw_iter_qps = 1_000_000_000.0 / raw_iter_ns_per_iter;
     let raw_qps = 1_000_000_000.0 / raw_ns_per_iter;
     let proto_qps = 1_000_000_000.0 / proto_ns_per_iter;
 
@@ -140,17 +159,24 @@ fn benchmark_parse_raw_vs_parse() {
     println!("│    Iterations:    {:>10}                            │", raw_iterations);
     println!("│    Total time:    {:>10.2?}                            │", raw_elapsed);
     println!("│    Per iteration: {:>10.2} μs                         │", raw_ns_per_iter / 1000.0);
-    println!("│    Throughput:    {:>10.0} queries/sec                 │", raw_qps);
+    println!("│    Throughput:    {:>10.0} queries/sec                │", raw_qps);
+    println!("├─────────────────────────────────────────────────────────┤");
+    println!("│  parse_raw_iter (direct C struct reading):              │");
+    println!("│    Iterations:    {:>10}                            │", raw_iter_iterations);
+    println!("│    Total time:    {:>10.2?}                            │", raw_iter_elapsed);
+    println!("│    Per iteration: {:>10.2} μs                         │", raw_iter_ns_per_iter / 1000.0);
+    println!("│    Throughput:    {:>10.0} queries/sec                │", raw_iter_qps);
     println!("├─────────────────────────────────────────────────────────┤");
     println!("│  parse (protobuf serialization):                        │");
     println!("│    Iterations:    {:>10}                            │", proto_iterations);
     println!("│    Total time:    {:>10.2?}                            │", proto_elapsed);
     println!("│    Per iteration: {:>10.2} μs                         │", proto_ns_per_iter / 1000.0);
-    println!("│    Throughput:    {:>10.0} queries/sec                 │", proto_qps);
+    println!("│    Throughput:    {:>10.0} queries/sec                │", proto_qps);
     println!("├─────────────────────────────────────────────────────────┤");
     println!("│  COMPARISON                                             │");
-    println!("│    Speedup:       {:>10.2}x faster                     │", speedup);
-    println!("│    Time saved:    {:>10.2} μs per parse                │", time_saved_us);
+    println!("│    Speedup:       {:>10.2}x faster                    │", speedup);
+    println!("│    Speedup iter:  {:>10.2}x faster                    │", speedup_iter);
+    println!("│    Time saved:    {:>10.2} μs per parse               │", time_saved_us);
     println!("│    Extra queries: {:>10.0} more queries/sec           │", raw_qps - proto_qps);
     println!("└─────────────────────────────────────────────────────────┘");
     println!();
