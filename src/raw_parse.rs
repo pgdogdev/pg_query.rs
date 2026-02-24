@@ -4,6 +4,9 @@
 //! directly reading PostgreSQL's internal parse tree structures and converting
 //! them to Rust protobuf types.
 
+// Some casts are necessary for cross-platform compatibility (e.g., `long` is i32 on Windows but i64 on Linux)
+#![allow(clippy::unnecessary_cast)]
+
 use crate::bindings;
 use crate::bindings_raw;
 use crate::parse_result::ParseResult;
@@ -2219,7 +2222,12 @@ unsafe fn convert_close_portal_stmt(cps: &bindings_raw::ClosePortalStmt) -> prot
 }
 
 unsafe fn convert_fetch_stmt(fs: &bindings_raw::FetchStmt) -> protobuf::FetchStmt {
-    protobuf::FetchStmt { direction: fs.direction as i32 + 1, how_many: fs.howMany, portalname: convert_c_string(fs.portalname), ismove: fs.ismove }
+    protobuf::FetchStmt {
+        direction: fs.direction as i32 + 1,
+        how_many: fs.howMany as i64,
+        portalname: convert_c_string(fs.portalname),
+        ismove: fs.ismove,
+    }
 }
 
 unsafe fn convert_declare_cursor_stmt(dcs: &bindings_raw::DeclareCursorStmt) -> protobuf::DeclareCursorStmt {

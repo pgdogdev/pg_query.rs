@@ -4,6 +4,9 @@
 //! C parse tree structures, then deparses them to SQL without going through
 //! protobuf serialization.
 
+// Some casts are necessary for cross-platform compatibility (e.g., `long` is i32 on Windows but i64 on Linux)
+#![allow(clippy::unnecessary_cast)]
+
 use crate::bindings_raw;
 use crate::protobuf;
 use crate::{Error, Result};
