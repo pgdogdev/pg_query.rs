@@ -45,26 +45,6 @@ pub fn parse_raw(statement: &str) -> Result<ParseResult> {
     parse_result
 }
 
-/// Parses a SQL statement with a custom stack size.
-///
-/// This function is useful for parsing deeply nested queries that might overflow the stack.
-/// It uses the `stacker` crate to grow the stack if needed.
-///
-/// # Arguments
-///
-/// * `statement` - The SQL statement to parse
-/// * `stack_size` - The stack size in bytes to ensure is available for parsing
-///
-/// # Example
-///
-/// ```rust
-/// let result = pg_query::parse_raw_with_stack("SELECT * FROM users", 8 * 1024 * 1024).unwrap();
-/// assert_eq!(result.tables(), vec!["users"]);
-/// ```
-pub fn parse_raw_with_stack(statement: &str, stack_size: usize) -> Result<ParseResult> {
-    stacker::maybe_grow(32 * 1024, stack_size, || parse_raw(statement))
-}
-
 /// Converts a PostgreSQL List of RawStmt nodes to protobuf RawStmt vector.
 unsafe fn convert_list_to_raw_stmts(list: *mut bindings_raw::List) -> Vec<protobuf::RawStmt> {
     if list.is_null() {

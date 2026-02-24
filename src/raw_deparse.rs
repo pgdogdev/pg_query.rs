@@ -52,27 +52,6 @@ pub fn deparse_raw(protobuf: &protobuf::ParseResult) -> Result<String> {
     }
 }
 
-/// Deparses a protobuf ParseResult with a custom stack size.
-///
-/// This function is useful for deparsing deeply nested queries that might overflow the stack.
-/// It uses the `stacker` crate to grow the stack if needed.
-///
-/// # Arguments
-///
-/// * `protobuf` - The protobuf ParseResult to deparse
-/// * `stack_size` - The stack size in bytes to ensure is available for deparsing
-///
-/// # Example
-///
-/// ```rust
-/// let result = pg_query::parse("SELECT * FROM users").unwrap();
-/// let sql = pg_query::deparse_raw_with_stack(&result.protobuf, 8 * 1024 * 1024).unwrap();
-/// assert_eq!(sql, "SELECT * FROM users");
-/// ```
-pub fn deparse_raw_with_stack(protobuf: &protobuf::ParseResult, stack_size: usize) -> Result<String> {
-    stacker::maybe_grow(32 * 1024, stack_size, || deparse_raw(protobuf))
-}
-
 /// Allocates a C node of the given type.
 unsafe fn alloc_node<T>(tag: bindings_raw::NodeTag) -> *mut T {
     bindings_raw::pg_query_alloc_node(std::mem::size_of::<T>(), tag as i32) as *mut T
@@ -148,19 +127,13 @@ fn write_node_boxed(node: &Option<Box<protobuf::Node>>) -> *mut bindings_raw::No
 /// Writes a protobuf Node to a C Node.
 fn write_node(node: &protobuf::Node) -> *mut bindings_raw::Node {
     match &node.node {
-        Some(n) => write_node_inner(n),
+        Some(n) => unsafe { write_node_inner(n) },
         None => std::ptr::null_mut(),
     }
 }
 
 /// Writes a protobuf node::Node enum to a C Node.
-fn write_node_inner(node: &protobuf::node::Node) -> *mut bindings_raw::Node {
-    // Use stacker to grow the stack for deeply nested queries
-    stacker::maybe_grow(32 * 1024, 1024 * 1024, || unsafe { write_node_inner_impl(node) })
-}
-
-/// Inner implementation of write_node_inner.
-unsafe fn write_node_inner_impl(node: &protobuf::node::Node) -> *mut bindings_raw::Node {
+unsafe fn write_node_inner(node: &protobuf::node::Node) -> *mut bindings_raw::Node {
     match node {
         protobuf::node::Node::SelectStmt(stmt) => write_select_stmt(stmt) as *mut bindings_raw::Node,
         protobuf::node::Node::InsertStmt(stmt) => write_insert_stmt(stmt) as *mut bindings_raw::Node,
