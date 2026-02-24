@@ -818,7 +818,7 @@ unsafe fn convert_node(node_ptr: *mut bindings_raw::Node) -> Option<protobuf::No
         bindings_raw::NodeTag_T_SinglePartitionSpec => Some(protobuf::node::Node::SinglePartitionSpec(protobuf::SinglePartitionSpec {})),
         bindings_raw::NodeTag_T_InferClause => {
             let ic = node_ptr as *mut bindings_raw::InferClause;
-            convert_infer_clause(ic).map(|c| protobuf::node::Node::InferClause(c))
+            convert_infer_clause(ic).map(protobuf::node::Node::InferClause)
         }
         bindings_raw::NodeTag_T_OnConflictClause => {
             let occ = node_ptr as *mut bindings_raw::OnConflictClause;
@@ -1012,7 +1012,7 @@ unsafe fn convert_list_to_nodes(list: *mut bindings_raw::List) -> Vec<protobuf::
         // Always push the node, even if it's None/unrecognized.
         // This preserves list structure for things like DISTINCT where
         // a placeholder node (Node { node: None }) is meaningful.
-        let node = convert_node(node_ptr).unwrap_or_else(|| protobuf::Node { node: None });
+        let node = convert_node(node_ptr).unwrap_or(protobuf::Node { node: None });
         nodes.push(node);
     }
 
@@ -2219,12 +2219,7 @@ unsafe fn convert_close_portal_stmt(cps: &bindings_raw::ClosePortalStmt) -> prot
 }
 
 unsafe fn convert_fetch_stmt(fs: &bindings_raw::FetchStmt) -> protobuf::FetchStmt {
-    protobuf::FetchStmt {
-        direction: fs.direction as i32 + 1,
-        how_many: fs.howMany as i64,
-        portalname: convert_c_string(fs.portalname),
-        ismove: fs.ismove,
-    }
+    protobuf::FetchStmt { direction: fs.direction as i32 + 1, how_many: fs.howMany, portalname: convert_c_string(fs.portalname), ismove: fs.ismove }
 }
 
 unsafe fn convert_declare_cursor_stmt(dcs: &bindings_raw::DeclareCursorStmt) -> protobuf::DeclareCursorStmt {

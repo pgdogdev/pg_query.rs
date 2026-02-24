@@ -87,10 +87,18 @@ fn proto_enum_to_c(value: i32) -> i32 {
 }
 
 /// Duplicates a string into PostgreSQL memory context.
+/// Returns null only for truly empty optional fields.
 unsafe fn pstrdup(s: &str) -> *mut c_char {
     if s.is_empty() {
         return std::ptr::null_mut();
     }
+    let cstr = std::ffi::CString::new(s).unwrap();
+    bindings_raw::pg_query_pstrdup(cstr.as_ptr())
+}
+
+/// Duplicates a string into PostgreSQL memory context, always returning a valid pointer.
+/// Use this for string values that must not be null (e.g., string constants in A_Const).
+unsafe fn pstrdup_always(s: &str) -> *mut c_char {
     let cstr = std::ffi::CString::new(s).unwrap();
     bindings_raw::pg_query_pstrdup(cstr.as_ptr())
 }
@@ -144,299 +152,303 @@ fn write_node(node: &protobuf::Node) -> *mut bindings_raw::Node {
 
 /// Writes a protobuf node::Node enum to a C Node.
 fn write_node_inner(node: &protobuf::node::Node) -> *mut bindings_raw::Node {
-    unsafe {
-        match node {
-            protobuf::node::Node::SelectStmt(stmt) => write_select_stmt(stmt) as *mut bindings_raw::Node,
-            protobuf::node::Node::InsertStmt(stmt) => write_insert_stmt(stmt) as *mut bindings_raw::Node,
-            protobuf::node::Node::UpdateStmt(stmt) => write_update_stmt(stmt) as *mut bindings_raw::Node,
-            protobuf::node::Node::DeleteStmt(stmt) => write_delete_stmt(stmt) as *mut bindings_raw::Node,
-            protobuf::node::Node::RangeVar(rv) => write_range_var(rv) as *mut bindings_raw::Node,
-            protobuf::node::Node::Alias(alias) => write_alias(alias) as *mut bindings_raw::Node,
-            protobuf::node::Node::ResTarget(rt) => write_res_target(rt) as *mut bindings_raw::Node,
-            protobuf::node::Node::ColumnRef(cr) => write_column_ref(cr) as *mut bindings_raw::Node,
-            protobuf::node::Node::AConst(ac) => write_a_const(ac) as *mut bindings_raw::Node,
-            protobuf::node::Node::AExpr(expr) => write_a_expr(expr) as *mut bindings_raw::Node,
-            protobuf::node::Node::FuncCall(fc) => write_func_call(fc) as *mut bindings_raw::Node,
-            protobuf::node::Node::String(s) => write_string(s) as *mut bindings_raw::Node,
-            protobuf::node::Node::Integer(i) => write_integer(i) as *mut bindings_raw::Node,
-            protobuf::node::Node::Float(f) => write_float(f) as *mut bindings_raw::Node,
-            protobuf::node::Node::Boolean(b) => write_boolean(b) as *mut bindings_raw::Node,
-            protobuf::node::Node::List(l) => write_list(l) as *mut bindings_raw::Node,
-            protobuf::node::Node::AStar(_) => write_a_star() as *mut bindings_raw::Node,
-            protobuf::node::Node::JoinExpr(je) => write_join_expr(je) as *mut bindings_raw::Node,
-            protobuf::node::Node::SortBy(sb) => write_sort_by(sb) as *mut bindings_raw::Node,
-            protobuf::node::Node::TypeCast(tc) => write_type_cast(tc) as *mut bindings_raw::Node,
-            protobuf::node::Node::TypeName(tn) => write_type_name(tn) as *mut bindings_raw::Node,
-            protobuf::node::Node::ParamRef(pr) => write_param_ref(pr) as *mut bindings_raw::Node,
-            protobuf::node::Node::NullTest(nt) => write_null_test(nt) as *mut bindings_raw::Node,
-            protobuf::node::Node::BoolExpr(be) => write_bool_expr(be) as *mut bindings_raw::Node,
-            protobuf::node::Node::SubLink(sl) => write_sub_link(sl) as *mut bindings_raw::Node,
-            protobuf::node::Node::RangeSubselect(rs) => write_range_subselect(rs) as *mut bindings_raw::Node,
-            protobuf::node::Node::CommonTableExpr(cte) => write_common_table_expr(cte) as *mut bindings_raw::Node,
-            protobuf::node::Node::WithClause(wc) => write_with_clause(wc) as *mut bindings_raw::Node,
-            protobuf::node::Node::GroupingSet(gs) => write_grouping_set(gs) as *mut bindings_raw::Node,
-            protobuf::node::Node::WindowDef(wd) => write_window_def(wd) as *mut bindings_raw::Node,
-            protobuf::node::Node::CoalesceExpr(ce) => write_coalesce_expr(ce) as *mut bindings_raw::Node,
-            protobuf::node::Node::CaseExpr(ce) => write_case_expr(ce) as *mut bindings_raw::Node,
-            protobuf::node::Node::CaseWhen(cw) => write_case_when(cw) as *mut bindings_raw::Node,
-            protobuf::node::Node::SetToDefault(_) => write_set_to_default() as *mut bindings_raw::Node,
-            protobuf::node::Node::LockingClause(lc) => write_locking_clause(lc) as *mut bindings_raw::Node,
-            protobuf::node::Node::RangeFunction(rf) => write_range_function(rf) as *mut bindings_raw::Node,
-            protobuf::node::Node::BitString(bs) => write_bit_string(bs) as *mut bindings_raw::Node,
-            protobuf::node::Node::IndexElem(ie) => write_index_elem(ie) as *mut bindings_raw::Node,
-            protobuf::node::Node::DropStmt(ds) => write_drop_stmt(ds) as *mut bindings_raw::Node,
-            protobuf::node::Node::ObjectWithArgs(owa) => write_object_with_args(owa) as *mut bindings_raw::Node,
-            protobuf::node::Node::FunctionParameter(fp) => write_function_parameter(fp) as *mut bindings_raw::Node,
-            protobuf::node::Node::TruncateStmt(ts) => write_truncate_stmt(ts) as *mut bindings_raw::Node,
-            protobuf::node::Node::CreateStmt(cs) => write_create_stmt(cs) as *mut bindings_raw::Node,
-            protobuf::node::Node::AlterTableStmt(ats) => write_alter_table_stmt(ats) as *mut bindings_raw::Node,
-            protobuf::node::Node::AlterTableCmd(atc) => write_alter_table_cmd(atc) as *mut bindings_raw::Node,
-            protobuf::node::Node::ColumnDef(cd) => write_column_def(cd) as *mut bindings_raw::Node,
-            protobuf::node::Node::Constraint(c) => write_constraint(c) as *mut bindings_raw::Node,
-            protobuf::node::Node::IndexStmt(is) => write_index_stmt(is) as *mut bindings_raw::Node,
-            protobuf::node::Node::ViewStmt(vs) => write_view_stmt(vs) as *mut bindings_raw::Node,
-            protobuf::node::Node::TransactionStmt(ts) => write_transaction_stmt(ts) as *mut bindings_raw::Node,
-            protobuf::node::Node::CopyStmt(cs) => write_copy_stmt(cs) as *mut bindings_raw::Node,
-            protobuf::node::Node::ExplainStmt(es) => write_explain_stmt(es) as *mut bindings_raw::Node,
-            protobuf::node::Node::VacuumStmt(vs) => write_vacuum_stmt(vs) as *mut bindings_raw::Node,
-            protobuf::node::Node::LockStmt(ls) => write_lock_stmt(ls) as *mut bindings_raw::Node,
-            protobuf::node::Node::CreateSchemaStmt(css) => write_create_schema_stmt(css) as *mut bindings_raw::Node,
-            protobuf::node::Node::VariableSetStmt(vss) => write_variable_set_stmt(vss) as *mut bindings_raw::Node,
-            protobuf::node::Node::VariableShowStmt(vss) => write_variable_show_stmt(vss) as *mut bindings_raw::Node,
-            protobuf::node::Node::RenameStmt(rs) => write_rename_stmt(rs) as *mut bindings_raw::Node,
-            protobuf::node::Node::GrantStmt(gs) => write_grant_stmt(gs) as *mut bindings_raw::Node,
-            protobuf::node::Node::RoleSpec(rs) => write_role_spec(rs) as *mut bindings_raw::Node,
-            protobuf::node::Node::AccessPriv(ap) => write_access_priv(ap) as *mut bindings_raw::Node,
-            protobuf::node::Node::CreateFunctionStmt(cfs) => write_create_function_stmt(cfs) as *mut bindings_raw::Node,
-            protobuf::node::Node::DefElem(de) => write_def_elem(de) as *mut bindings_raw::Node,
-            protobuf::node::Node::RuleStmt(rs) => write_rule_stmt(rs) as *mut bindings_raw::Node,
-            protobuf::node::Node::CreateTrigStmt(cts) => write_create_trig_stmt(cts) as *mut bindings_raw::Node,
-            protobuf::node::Node::DoStmt(ds) => write_do_stmt(ds) as *mut bindings_raw::Node,
-            protobuf::node::Node::CallStmt(cs) => write_call_stmt(cs) as *mut bindings_raw::Node,
-            protobuf::node::Node::MergeStmt(ms) => write_merge_stmt(ms) as *mut bindings_raw::Node,
-            protobuf::node::Node::MergeWhenClause(mwc) => write_merge_when_clause(mwc) as *mut bindings_raw::Node,
-            protobuf::node::Node::GrantRoleStmt(grs) => write_grant_role_stmt(grs) as *mut bindings_raw::Node,
-            protobuf::node::Node::PrepareStmt(ps) => write_prepare_stmt(ps) as *mut bindings_raw::Node,
-            protobuf::node::Node::ExecuteStmt(es) => write_execute_stmt(es) as *mut bindings_raw::Node,
-            protobuf::node::Node::DeallocateStmt(ds) => write_deallocate_stmt(ds) as *mut bindings_raw::Node,
-            protobuf::node::Node::AIndirection(ai) => write_a_indirection(ai) as *mut bindings_raw::Node,
-            protobuf::node::Node::AIndices(ai) => write_a_indices(ai) as *mut bindings_raw::Node,
-            protobuf::node::Node::MinMaxExpr(mme) => write_min_max_expr(mme) as *mut bindings_raw::Node,
-            protobuf::node::Node::RowExpr(re) => write_row_expr(re) as *mut bindings_raw::Node,
-            protobuf::node::Node::AArrayExpr(ae) => write_a_array_expr(ae) as *mut bindings_raw::Node,
-            protobuf::node::Node::BooleanTest(bt) => write_boolean_test(bt) as *mut bindings_raw::Node,
-            protobuf::node::Node::CollateClause(cc) => write_collate_clause(cc) as *mut bindings_raw::Node,
-            protobuf::node::Node::CheckPointStmt(_) => alloc_node::<bindings_raw::Node>(bindings_raw::NodeTag_T_CheckPointStmt),
-            protobuf::node::Node::CreateTableAsStmt(ctas) => write_create_table_as_stmt(ctas) as *mut bindings_raw::Node,
-            protobuf::node::Node::RefreshMatViewStmt(rmvs) => write_refresh_mat_view_stmt(rmvs) as *mut bindings_raw::Node,
-            protobuf::node::Node::VacuumRelation(vr) => write_vacuum_relation(vr) as *mut bindings_raw::Node,
-            // Simple statement nodes
-            protobuf::node::Node::ListenStmt(ls) => write_listen_stmt(ls) as *mut bindings_raw::Node,
-            protobuf::node::Node::UnlistenStmt(us) => write_unlisten_stmt(us) as *mut bindings_raw::Node,
-            protobuf::node::Node::NotifyStmt(ns) => write_notify_stmt(ns) as *mut bindings_raw::Node,
-            protobuf::node::Node::DiscardStmt(ds) => write_discard_stmt(ds) as *mut bindings_raw::Node,
-            // Type definition nodes
-            protobuf::node::Node::CompositeTypeStmt(cts) => write_composite_type_stmt(cts) as *mut bindings_raw::Node,
-            protobuf::node::Node::CreateEnumStmt(ces) => write_create_enum_stmt(ces) as *mut bindings_raw::Node,
-            protobuf::node::Node::CreateRangeStmt(crs) => write_create_range_stmt(crs) as *mut bindings_raw::Node,
-            protobuf::node::Node::AlterEnumStmt(aes) => write_alter_enum_stmt(aes) as *mut bindings_raw::Node,
-            protobuf::node::Node::CreateDomainStmt(cds) => write_create_domain_stmt(cds) as *mut bindings_raw::Node,
-            // Extension nodes
-            protobuf::node::Node::CreateExtensionStmt(ces) => write_create_extension_stmt(ces) as *mut bindings_raw::Node,
-            // Publication/Subscription nodes
-            protobuf::node::Node::CreatePublicationStmt(cps) => write_create_publication_stmt(cps) as *mut bindings_raw::Node,
-            protobuf::node::Node::AlterPublicationStmt(aps) => write_alter_publication_stmt(aps) as *mut bindings_raw::Node,
-            protobuf::node::Node::CreateSubscriptionStmt(css) => write_create_subscription_stmt(css) as *mut bindings_raw::Node,
-            protobuf::node::Node::AlterSubscriptionStmt(ass) => write_alter_subscription_stmt(ass) as *mut bindings_raw::Node,
-            // Expression nodes
-            protobuf::node::Node::CoerceToDomain(ctd) => write_coerce_to_domain(ctd) as *mut bindings_raw::Node,
-            // Sequence nodes
-            protobuf::node::Node::CreateSeqStmt(css) => write_create_seq_stmt(css) as *mut bindings_raw::Node,
-            protobuf::node::Node::AlterSeqStmt(ass) => write_alter_seq_stmt(ass) as *mut bindings_raw::Node,
-            // Cursor nodes
-            protobuf::node::Node::ClosePortalStmt(cps) => write_close_portal_stmt(cps) as *mut bindings_raw::Node,
-            protobuf::node::Node::FetchStmt(fs) => write_fetch_stmt(fs) as *mut bindings_raw::Node,
-            protobuf::node::Node::DeclareCursorStmt(dcs) => write_declare_cursor_stmt(dcs) as *mut bindings_raw::Node,
-            // Additional DDL statements
-            protobuf::node::Node::DefineStmt(ds) => write_define_stmt(ds) as *mut bindings_raw::Node,
-            protobuf::node::Node::CommentStmt(cs) => write_comment_stmt(cs) as *mut bindings_raw::Node,
-            protobuf::node::Node::SecLabelStmt(sls) => write_sec_label_stmt(sls) as *mut bindings_raw::Node,
-            protobuf::node::Node::CreateRoleStmt(crs) => write_create_role_stmt(crs) as *mut bindings_raw::Node,
-            protobuf::node::Node::AlterRoleStmt(ars) => write_alter_role_stmt(ars) as *mut bindings_raw::Node,
-            protobuf::node::Node::AlterRoleSetStmt(arss) => write_alter_role_set_stmt(arss) as *mut bindings_raw::Node,
-            protobuf::node::Node::DropRoleStmt(drs) => write_drop_role_stmt(drs) as *mut bindings_raw::Node,
-            protobuf::node::Node::CreatePolicyStmt(cps) => write_create_policy_stmt(cps) as *mut bindings_raw::Node,
-            protobuf::node::Node::AlterPolicyStmt(aps) => write_alter_policy_stmt(aps) as *mut bindings_raw::Node,
-            protobuf::node::Node::CreateEventTrigStmt(cets) => write_create_event_trig_stmt(cets) as *mut bindings_raw::Node,
-            protobuf::node::Node::AlterEventTrigStmt(aets) => write_alter_event_trig_stmt(aets) as *mut bindings_raw::Node,
-            protobuf::node::Node::CreatePlangStmt(cpls) => write_create_plang_stmt(cpls) as *mut bindings_raw::Node,
-            protobuf::node::Node::CreateAmStmt(cas) => write_create_am_stmt(cas) as *mut bindings_raw::Node,
-            protobuf::node::Node::CreateOpClassStmt(cocs) => write_create_op_class_stmt(cocs) as *mut bindings_raw::Node,
-            protobuf::node::Node::CreateOpClassItem(coci) => write_create_op_class_item(coci) as *mut bindings_raw::Node,
-            protobuf::node::Node::CreateOpFamilyStmt(cofs) => write_create_op_family_stmt(cofs) as *mut bindings_raw::Node,
-            protobuf::node::Node::AlterOpFamilyStmt(aofs) => write_alter_op_family_stmt(aofs) as *mut bindings_raw::Node,
-            protobuf::node::Node::CreateFdwStmt(cfds) => write_create_fdw_stmt(cfds) as *mut bindings_raw::Node,
-            protobuf::node::Node::AlterFdwStmt(afds) => write_alter_fdw_stmt(afds) as *mut bindings_raw::Node,
-            protobuf::node::Node::CreateForeignServerStmt(cfss) => write_create_foreign_server_stmt(cfss) as *mut bindings_raw::Node,
-            protobuf::node::Node::AlterForeignServerStmt(afss) => write_alter_foreign_server_stmt(afss) as *mut bindings_raw::Node,
-            protobuf::node::Node::CreateForeignTableStmt(cfts) => write_create_foreign_table_stmt(cfts) as *mut bindings_raw::Node,
-            protobuf::node::Node::CreateUserMappingStmt(cums) => write_create_user_mapping_stmt(cums) as *mut bindings_raw::Node,
-            protobuf::node::Node::AlterUserMappingStmt(aums) => write_alter_user_mapping_stmt(aums) as *mut bindings_raw::Node,
-            protobuf::node::Node::DropUserMappingStmt(dums) => write_drop_user_mapping_stmt(dums) as *mut bindings_raw::Node,
-            protobuf::node::Node::ImportForeignSchemaStmt(ifss) => write_import_foreign_schema_stmt(ifss) as *mut bindings_raw::Node,
-            protobuf::node::Node::CreateTableSpaceStmt(ctss) => write_create_table_space_stmt(ctss) as *mut bindings_raw::Node,
-            protobuf::node::Node::DropTableSpaceStmt(dtss) => write_drop_table_space_stmt(dtss) as *mut bindings_raw::Node,
-            protobuf::node::Node::AlterTableSpaceOptionsStmt(atsos) => write_alter_table_space_options_stmt(atsos) as *mut bindings_raw::Node,
-            protobuf::node::Node::AlterTableMoveAllStmt(atmas) => write_alter_table_move_all_stmt(atmas) as *mut bindings_raw::Node,
-            protobuf::node::Node::AlterExtensionStmt(aes) => write_alter_extension_stmt(aes) as *mut bindings_raw::Node,
-            protobuf::node::Node::AlterExtensionContentsStmt(aecs) => write_alter_extension_contents_stmt(aecs) as *mut bindings_raw::Node,
-            protobuf::node::Node::AlterDomainStmt(ads) => write_alter_domain_stmt(ads) as *mut bindings_raw::Node,
-            protobuf::node::Node::AlterFunctionStmt(afs) => write_alter_function_stmt(afs) as *mut bindings_raw::Node,
-            protobuf::node::Node::AlterOperatorStmt(aos) => write_alter_operator_stmt(aos) as *mut bindings_raw::Node,
-            protobuf::node::Node::AlterTypeStmt(ats) => write_alter_type_stmt(ats) as *mut bindings_raw::Node,
-            protobuf::node::Node::AlterOwnerStmt(aos) => write_alter_owner_stmt(aos) as *mut bindings_raw::Node,
-            protobuf::node::Node::AlterObjectSchemaStmt(aoss) => write_alter_object_schema_stmt(aoss) as *mut bindings_raw::Node,
-            protobuf::node::Node::AlterObjectDependsStmt(aods) => write_alter_object_depends_stmt(aods) as *mut bindings_raw::Node,
-            protobuf::node::Node::AlterCollationStmt(acs) => write_alter_collation_stmt(acs) as *mut bindings_raw::Node,
-            protobuf::node::Node::AlterDefaultPrivilegesStmt(adps) => write_alter_default_privileges_stmt(adps) as *mut bindings_raw::Node,
-            protobuf::node::Node::CreateCastStmt(ccs) => write_create_cast_stmt(ccs) as *mut bindings_raw::Node,
-            protobuf::node::Node::CreateTransformStmt(cts) => write_create_transform_stmt(cts) as *mut bindings_raw::Node,
-            protobuf::node::Node::CreateConversionStmt(ccs) => write_create_conversion_stmt(ccs) as *mut bindings_raw::Node,
-            protobuf::node::Node::AlterTsdictionaryStmt(atds) => write_alter_ts_dictionary_stmt(atds) as *mut bindings_raw::Node,
-            protobuf::node::Node::AlterTsconfigurationStmt(atcs) => write_alter_ts_configuration_stmt(atcs) as *mut bindings_raw::Node,
-            // Database statements
-            protobuf::node::Node::CreatedbStmt(cds) => write_createdb_stmt(cds) as *mut bindings_raw::Node,
-            protobuf::node::Node::DropdbStmt(dds) => write_dropdb_stmt(dds) as *mut bindings_raw::Node,
-            protobuf::node::Node::AlterDatabaseStmt(ads) => write_alter_database_stmt(ads) as *mut bindings_raw::Node,
-            protobuf::node::Node::AlterDatabaseSetStmt(adss) => write_alter_database_set_stmt(adss) as *mut bindings_raw::Node,
-            protobuf::node::Node::AlterDatabaseRefreshCollStmt(adrcs) => write_alter_database_refresh_coll_stmt(adrcs) as *mut bindings_raw::Node,
-            protobuf::node::Node::AlterSystemStmt(ass) => write_alter_system_stmt(ass) as *mut bindings_raw::Node,
-            protobuf::node::Node::ClusterStmt(cs) => write_cluster_stmt(cs) as *mut bindings_raw::Node,
-            protobuf::node::Node::ReindexStmt(rs) => write_reindex_stmt(rs) as *mut bindings_raw::Node,
-            protobuf::node::Node::ConstraintsSetStmt(css) => write_constraints_set_stmt(css) as *mut bindings_raw::Node,
-            protobuf::node::Node::LoadStmt(ls) => write_load_stmt(ls) as *mut bindings_raw::Node,
-            protobuf::node::Node::DropOwnedStmt(dos) => write_drop_owned_stmt(dos) as *mut bindings_raw::Node,
-            protobuf::node::Node::ReassignOwnedStmt(ros) => write_reassign_owned_stmt(ros) as *mut bindings_raw::Node,
-            protobuf::node::Node::DropSubscriptionStmt(dss) => write_drop_subscription_stmt(dss) as *mut bindings_raw::Node,
-            // Table-related nodes
-            protobuf::node::Node::TableFunc(tf) => write_table_func(tf) as *mut bindings_raw::Node,
-            protobuf::node::Node::IntoClause(ic) => write_into_clause(ic) as *mut bindings_raw::Node,
-            protobuf::node::Node::TableLikeClause(tlc) => write_table_like_clause(tlc) as *mut bindings_raw::Node,
-            protobuf::node::Node::RangeTableFunc(rtf) => write_range_table_func(rtf) as *mut bindings_raw::Node,
-            protobuf::node::Node::RangeTableFuncCol(rtfc) => write_range_table_func_col(rtfc) as *mut bindings_raw::Node,
-            protobuf::node::Node::RangeTableSample(rts) => write_range_table_sample(rts) as *mut bindings_raw::Node,
-            protobuf::node::Node::PartitionSpec(ps) => write_partition_spec(ps) as *mut bindings_raw::Node,
-            protobuf::node::Node::PartitionBoundSpec(pbs) => write_partition_bound_spec(pbs) as *mut bindings_raw::Node,
-            protobuf::node::Node::PartitionRangeDatum(prd) => write_partition_range_datum(prd) as *mut bindings_raw::Node,
-            protobuf::node::Node::PartitionElem(pe) => write_partition_elem(pe) as *mut bindings_raw::Node,
-            protobuf::node::Node::PartitionCmd(pc) => write_partition_cmd(pc) as *mut bindings_raw::Node,
-            protobuf::node::Node::SinglePartitionSpec(sps) => write_single_partition_spec(sps) as *mut bindings_raw::Node,
-            protobuf::node::Node::InferClause(ic) => write_infer_clause(ic) as *mut bindings_raw::Node,
-            protobuf::node::Node::OnConflictClause(occ) => write_on_conflict_clause(occ) as *mut bindings_raw::Node,
-            protobuf::node::Node::MultiAssignRef(mar) => write_multi_assign_ref(mar) as *mut bindings_raw::Node,
-            protobuf::node::Node::TriggerTransition(tt) => write_trigger_transition(tt) as *mut bindings_raw::Node,
-            // CTE-related nodes
-            protobuf::node::Node::CtesearchClause(csc) => write_cte_search_clause(csc) as *mut bindings_raw::Node,
-            protobuf::node::Node::CtecycleClause(ccc) => write_cte_cycle_clause(ccc) as *mut bindings_raw::Node,
-            // Statistics nodes
-            protobuf::node::Node::CreateStatsStmt(css) => write_create_stats_stmt(css) as *mut bindings_raw::Node,
-            protobuf::node::Node::AlterStatsStmt(ass) => write_alter_stats_stmt(ass) as *mut bindings_raw::Node,
-            protobuf::node::Node::StatsElem(se) => write_stats_elem(se) as *mut bindings_raw::Node,
-            // Publication nodes
-            protobuf::node::Node::PublicationObjSpec(pos) => write_publication_obj_spec(pos) as *mut bindings_raw::Node,
-            protobuf::node::Node::PublicationTable(pt) => write_publication_table(pt) as *mut bindings_raw::Node,
-            // Expression nodes (internal/executor - return null as they shouldn't appear in raw parse trees)
-            protobuf::node::Node::Var(_)
-            | protobuf::node::Node::Aggref(_)
-            | protobuf::node::Node::WindowFunc(_)
-            | protobuf::node::Node::WindowFuncRunCondition(_)
-            | protobuf::node::Node::MergeSupportFunc(_)
-            | protobuf::node::Node::SubscriptingRef(_)
-            | protobuf::node::Node::FuncExpr(_)
-            | protobuf::node::Node::OpExpr(_)
-            | protobuf::node::Node::DistinctExpr(_)
-            | protobuf::node::Node::NullIfExpr(_)
-            | protobuf::node::Node::ScalarArrayOpExpr(_)
-            | protobuf::node::Node::FieldSelect(_)
-            | protobuf::node::Node::FieldStore(_)
-            | protobuf::node::Node::RelabelType(_)
-            | protobuf::node::Node::CoerceViaIo(_)
-            | protobuf::node::Node::ArrayCoerceExpr(_)
-            | protobuf::node::Node::ConvertRowtypeExpr(_)
-            | protobuf::node::Node::CollateExpr(_)
-            | protobuf::node::Node::CaseTestExpr(_)
-            | protobuf::node::Node::ArrayExpr(_)
-            | protobuf::node::Node::RowCompareExpr(_)
-            | protobuf::node::Node::CoerceToDomainValue(_)
-            | protobuf::node::Node::CurrentOfExpr(_)
-            | protobuf::node::Node::NextValueExpr(_)
-            | protobuf::node::Node::InferenceElem(_)
-            | protobuf::node::Node::SubPlan(_)
-            | protobuf::node::Node::AlternativeSubPlan(_)
-            | protobuf::node::Node::TargetEntry(_)
-            | protobuf::node::Node::RangeTblRef(_)
-            | protobuf::node::Node::FromExpr(_)
-            | protobuf::node::Node::OnConflictExpr(_)
-            | protobuf::node::Node::Query(_)
-            | protobuf::node::Node::MergeAction(_)
-            | protobuf::node::Node::SortGroupClause(_)
-            | protobuf::node::Node::WindowClause(_)
-            | protobuf::node::Node::RowMarkClause(_)
-            | protobuf::node::Node::WithCheckOption(_)
-            | protobuf::node::Node::RangeTblEntry(_)
-            | protobuf::node::Node::RangeTblFunction(_)
-            | protobuf::node::Node::TableSampleClause(_)
-            | protobuf::node::Node::RtepermissionInfo(_)
-            | protobuf::node::Node::GroupingFunc(_)
-            | protobuf::node::Node::Param(_)
-            | protobuf::node::Node::IntList(_)
-            | protobuf::node::Node::OidList(_)
-            | protobuf::node::Node::RawStmt(_)
-            | protobuf::node::Node::SetOperationStmt(_)
-            | protobuf::node::Node::ReturnStmt(_)
-            | protobuf::node::Node::PlassignStmt(_)
-            | protobuf::node::Node::ReplicaIdentityStmt(_)
-            | protobuf::node::Node::CallContext(_)
-            | protobuf::node::Node::InlineCodeBlock(_) => {
-                // These are internal/executor nodes that shouldn't appear in raw parse trees,
-                // or are handled specially elsewhere
-                std::ptr::null_mut()
-            }
-            // SQL Value function
-            protobuf::node::Node::SqlvalueFunction(svf) => write_sql_value_function(svf) as *mut bindings_raw::Node,
-            // XML nodes
-            protobuf::node::Node::XmlExpr(xe) => write_xml_expr(xe) as *mut bindings_raw::Node,
-            protobuf::node::Node::XmlSerialize(xs) => write_xml_serialize(xs) as *mut bindings_raw::Node,
-            // Named argument
-            protobuf::node::Node::NamedArgExpr(nae) => write_named_arg_expr(nae) as *mut bindings_raw::Node,
-            // JSON nodes
-            protobuf::node::Node::JsonFormat(jf) => write_json_format(jf) as *mut bindings_raw::Node,
-            protobuf::node::Node::JsonReturning(jr) => write_json_returning(jr) as *mut bindings_raw::Node,
-            protobuf::node::Node::JsonValueExpr(jve) => write_json_value_expr(jve) as *mut bindings_raw::Node,
-            protobuf::node::Node::JsonConstructorExpr(jce) => write_json_constructor_expr(jce) as *mut bindings_raw::Node,
-            protobuf::node::Node::JsonIsPredicate(jip) => write_json_is_predicate(jip) as *mut bindings_raw::Node,
-            protobuf::node::Node::JsonBehavior(jb) => write_json_behavior(jb) as *mut bindings_raw::Node,
-            protobuf::node::Node::JsonExpr(je) => write_json_expr(je) as *mut bindings_raw::Node,
-            protobuf::node::Node::JsonTablePath(jtp) => write_json_table_path(jtp) as *mut bindings_raw::Node,
-            protobuf::node::Node::JsonTablePathScan(jtps) => write_json_table_path_scan(jtps) as *mut bindings_raw::Node,
-            protobuf::node::Node::JsonTableSiblingJoin(jtsj) => write_json_table_sibling_join(jtsj) as *mut bindings_raw::Node,
-            protobuf::node::Node::JsonOutput(jo) => write_json_output(jo) as *mut bindings_raw::Node,
-            protobuf::node::Node::JsonArgument(ja) => write_json_argument(ja) as *mut bindings_raw::Node,
-            protobuf::node::Node::JsonFuncExpr(jfe) => write_json_func_expr(jfe) as *mut bindings_raw::Node,
-            protobuf::node::Node::JsonTablePathSpec(jtps) => write_json_table_path_spec(jtps) as *mut bindings_raw::Node,
-            protobuf::node::Node::JsonTable(jt) => write_json_table(jt) as *mut bindings_raw::Node,
-            protobuf::node::Node::JsonTableColumn(jtc) => write_json_table_column(jtc) as *mut bindings_raw::Node,
-            protobuf::node::Node::JsonKeyValue(jkv) => write_json_key_value(jkv) as *mut bindings_raw::Node,
-            protobuf::node::Node::JsonParseExpr(jpe) => write_json_parse_expr(jpe) as *mut bindings_raw::Node,
-            protobuf::node::Node::JsonScalarExpr(jse) => write_json_scalar_expr(jse) as *mut bindings_raw::Node,
-            protobuf::node::Node::JsonSerializeExpr(jse) => write_json_serialize_expr(jse) as *mut bindings_raw::Node,
-            protobuf::node::Node::JsonObjectConstructor(joc) => write_json_object_constructor(joc) as *mut bindings_raw::Node,
-            protobuf::node::Node::JsonArrayConstructor(jac) => write_json_array_constructor(jac) as *mut bindings_raw::Node,
-            protobuf::node::Node::JsonArrayQueryConstructor(jaqc) => write_json_array_query_constructor(jaqc) as *mut bindings_raw::Node,
-            protobuf::node::Node::JsonAggConstructor(jac) => write_json_agg_constructor(jac) as *mut bindings_raw::Node,
-            protobuf::node::Node::JsonObjectAgg(joa) => write_json_object_agg(joa) as *mut bindings_raw::Node,
-            protobuf::node::Node::JsonArrayAgg(jaa) => write_json_array_agg(jaa) as *mut bindings_raw::Node,
+    // Use stacker to grow the stack for deeply nested queries
+    stacker::maybe_grow(32 * 1024, 1024 * 1024, || unsafe { write_node_inner_impl(node) })
+}
+
+/// Inner implementation of write_node_inner.
+unsafe fn write_node_inner_impl(node: &protobuf::node::Node) -> *mut bindings_raw::Node {
+    match node {
+        protobuf::node::Node::SelectStmt(stmt) => write_select_stmt(stmt) as *mut bindings_raw::Node,
+        protobuf::node::Node::InsertStmt(stmt) => write_insert_stmt(stmt) as *mut bindings_raw::Node,
+        protobuf::node::Node::UpdateStmt(stmt) => write_update_stmt(stmt) as *mut bindings_raw::Node,
+        protobuf::node::Node::DeleteStmt(stmt) => write_delete_stmt(stmt) as *mut bindings_raw::Node,
+        protobuf::node::Node::RangeVar(rv) => write_range_var(rv) as *mut bindings_raw::Node,
+        protobuf::node::Node::Alias(alias) => write_alias(alias) as *mut bindings_raw::Node,
+        protobuf::node::Node::ResTarget(rt) => write_res_target(rt) as *mut bindings_raw::Node,
+        protobuf::node::Node::ColumnRef(cr) => write_column_ref(cr) as *mut bindings_raw::Node,
+        protobuf::node::Node::AConst(ac) => write_a_const(ac) as *mut bindings_raw::Node,
+        protobuf::node::Node::AExpr(expr) => write_a_expr(expr) as *mut bindings_raw::Node,
+        protobuf::node::Node::FuncCall(fc) => write_func_call(fc) as *mut bindings_raw::Node,
+        protobuf::node::Node::String(s) => write_string(s) as *mut bindings_raw::Node,
+        protobuf::node::Node::Integer(i) => write_integer(i) as *mut bindings_raw::Node,
+        protobuf::node::Node::Float(f) => write_float(f) as *mut bindings_raw::Node,
+        protobuf::node::Node::Boolean(b) => write_boolean(b) as *mut bindings_raw::Node,
+        protobuf::node::Node::List(l) => write_list(l) as *mut bindings_raw::Node,
+        protobuf::node::Node::AStar(_) => write_a_star() as *mut bindings_raw::Node,
+        protobuf::node::Node::JoinExpr(je) => write_join_expr(je) as *mut bindings_raw::Node,
+        protobuf::node::Node::SortBy(sb) => write_sort_by(sb) as *mut bindings_raw::Node,
+        protobuf::node::Node::TypeCast(tc) => write_type_cast(tc) as *mut bindings_raw::Node,
+        protobuf::node::Node::TypeName(tn) => write_type_name(tn) as *mut bindings_raw::Node,
+        protobuf::node::Node::ParamRef(pr) => write_param_ref(pr) as *mut bindings_raw::Node,
+        protobuf::node::Node::NullTest(nt) => write_null_test(nt) as *mut bindings_raw::Node,
+        protobuf::node::Node::BoolExpr(be) => write_bool_expr(be) as *mut bindings_raw::Node,
+        protobuf::node::Node::SubLink(sl) => write_sub_link(sl) as *mut bindings_raw::Node,
+        protobuf::node::Node::RangeSubselect(rs) => write_range_subselect(rs) as *mut bindings_raw::Node,
+        protobuf::node::Node::CommonTableExpr(cte) => write_common_table_expr(cte) as *mut bindings_raw::Node,
+        protobuf::node::Node::WithClause(wc) => write_with_clause(wc) as *mut bindings_raw::Node,
+        protobuf::node::Node::GroupingSet(gs) => write_grouping_set(gs) as *mut bindings_raw::Node,
+        protobuf::node::Node::WindowDef(wd) => write_window_def(wd) as *mut bindings_raw::Node,
+        protobuf::node::Node::CoalesceExpr(ce) => write_coalesce_expr(ce) as *mut bindings_raw::Node,
+        protobuf::node::Node::CaseExpr(ce) => write_case_expr(ce) as *mut bindings_raw::Node,
+        protobuf::node::Node::CaseWhen(cw) => write_case_when(cw) as *mut bindings_raw::Node,
+        protobuf::node::Node::SetToDefault(_) => write_set_to_default() as *mut bindings_raw::Node,
+        protobuf::node::Node::LockingClause(lc) => write_locking_clause(lc) as *mut bindings_raw::Node,
+        protobuf::node::Node::RangeFunction(rf) => write_range_function(rf) as *mut bindings_raw::Node,
+        protobuf::node::Node::BitString(bs) => write_bit_string(bs) as *mut bindings_raw::Node,
+        protobuf::node::Node::IndexElem(ie) => write_index_elem(ie) as *mut bindings_raw::Node,
+        protobuf::node::Node::DropStmt(ds) => write_drop_stmt(ds) as *mut bindings_raw::Node,
+        protobuf::node::Node::ObjectWithArgs(owa) => write_object_with_args(owa) as *mut bindings_raw::Node,
+        protobuf::node::Node::FunctionParameter(fp) => write_function_parameter(fp) as *mut bindings_raw::Node,
+        protobuf::node::Node::TruncateStmt(ts) => write_truncate_stmt(ts) as *mut bindings_raw::Node,
+        protobuf::node::Node::CreateStmt(cs) => write_create_stmt(cs) as *mut bindings_raw::Node,
+        protobuf::node::Node::AlterTableStmt(ats) => write_alter_table_stmt(ats) as *mut bindings_raw::Node,
+        protobuf::node::Node::AlterTableCmd(atc) => write_alter_table_cmd(atc) as *mut bindings_raw::Node,
+        protobuf::node::Node::ColumnDef(cd) => write_column_def(cd) as *mut bindings_raw::Node,
+        protobuf::node::Node::Constraint(c) => write_constraint(c) as *mut bindings_raw::Node,
+        protobuf::node::Node::IndexStmt(is) => write_index_stmt(is) as *mut bindings_raw::Node,
+        protobuf::node::Node::ViewStmt(vs) => write_view_stmt(vs) as *mut bindings_raw::Node,
+        protobuf::node::Node::TransactionStmt(ts) => write_transaction_stmt(ts) as *mut bindings_raw::Node,
+        protobuf::node::Node::CopyStmt(cs) => write_copy_stmt(cs) as *mut bindings_raw::Node,
+        protobuf::node::Node::ExplainStmt(es) => write_explain_stmt(es) as *mut bindings_raw::Node,
+        protobuf::node::Node::VacuumStmt(vs) => write_vacuum_stmt(vs) as *mut bindings_raw::Node,
+        protobuf::node::Node::LockStmt(ls) => write_lock_stmt(ls) as *mut bindings_raw::Node,
+        protobuf::node::Node::CreateSchemaStmt(css) => write_create_schema_stmt(css) as *mut bindings_raw::Node,
+        protobuf::node::Node::VariableSetStmt(vss) => write_variable_set_stmt(vss) as *mut bindings_raw::Node,
+        protobuf::node::Node::VariableShowStmt(vss) => write_variable_show_stmt(vss) as *mut bindings_raw::Node,
+        protobuf::node::Node::RenameStmt(rs) => write_rename_stmt(rs) as *mut bindings_raw::Node,
+        protobuf::node::Node::GrantStmt(gs) => write_grant_stmt(gs) as *mut bindings_raw::Node,
+        protobuf::node::Node::RoleSpec(rs) => write_role_spec(rs) as *mut bindings_raw::Node,
+        protobuf::node::Node::AccessPriv(ap) => write_access_priv(ap) as *mut bindings_raw::Node,
+        protobuf::node::Node::CreateFunctionStmt(cfs) => write_create_function_stmt(cfs) as *mut bindings_raw::Node,
+        protobuf::node::Node::DefElem(de) => write_def_elem(de) as *mut bindings_raw::Node,
+        protobuf::node::Node::RuleStmt(rs) => write_rule_stmt(rs) as *mut bindings_raw::Node,
+        protobuf::node::Node::CreateTrigStmt(cts) => write_create_trig_stmt(cts) as *mut bindings_raw::Node,
+        protobuf::node::Node::DoStmt(ds) => write_do_stmt(ds) as *mut bindings_raw::Node,
+        protobuf::node::Node::CallStmt(cs) => write_call_stmt(cs) as *mut bindings_raw::Node,
+        protobuf::node::Node::MergeStmt(ms) => write_merge_stmt(ms) as *mut bindings_raw::Node,
+        protobuf::node::Node::MergeWhenClause(mwc) => write_merge_when_clause(mwc) as *mut bindings_raw::Node,
+        protobuf::node::Node::GrantRoleStmt(grs) => write_grant_role_stmt(grs) as *mut bindings_raw::Node,
+        protobuf::node::Node::PrepareStmt(ps) => write_prepare_stmt(ps) as *mut bindings_raw::Node,
+        protobuf::node::Node::ExecuteStmt(es) => write_execute_stmt(es) as *mut bindings_raw::Node,
+        protobuf::node::Node::DeallocateStmt(ds) => write_deallocate_stmt(ds) as *mut bindings_raw::Node,
+        protobuf::node::Node::AIndirection(ai) => write_a_indirection(ai) as *mut bindings_raw::Node,
+        protobuf::node::Node::AIndices(ai) => write_a_indices(ai) as *mut bindings_raw::Node,
+        protobuf::node::Node::MinMaxExpr(mme) => write_min_max_expr(mme) as *mut bindings_raw::Node,
+        protobuf::node::Node::RowExpr(re) => write_row_expr(re) as *mut bindings_raw::Node,
+        protobuf::node::Node::AArrayExpr(ae) => write_a_array_expr(ae) as *mut bindings_raw::Node,
+        protobuf::node::Node::BooleanTest(bt) => write_boolean_test(bt) as *mut bindings_raw::Node,
+        protobuf::node::Node::CollateClause(cc) => write_collate_clause(cc) as *mut bindings_raw::Node,
+        protobuf::node::Node::CheckPointStmt(_) => alloc_node::<bindings_raw::Node>(bindings_raw::NodeTag_T_CheckPointStmt),
+        protobuf::node::Node::CreateTableAsStmt(ctas) => write_create_table_as_stmt(ctas) as *mut bindings_raw::Node,
+        protobuf::node::Node::RefreshMatViewStmt(rmvs) => write_refresh_mat_view_stmt(rmvs) as *mut bindings_raw::Node,
+        protobuf::node::Node::VacuumRelation(vr) => write_vacuum_relation(vr) as *mut bindings_raw::Node,
+        // Simple statement nodes
+        protobuf::node::Node::ListenStmt(ls) => write_listen_stmt(ls) as *mut bindings_raw::Node,
+        protobuf::node::Node::UnlistenStmt(us) => write_unlisten_stmt(us) as *mut bindings_raw::Node,
+        protobuf::node::Node::NotifyStmt(ns) => write_notify_stmt(ns) as *mut bindings_raw::Node,
+        protobuf::node::Node::DiscardStmt(ds) => write_discard_stmt(ds) as *mut bindings_raw::Node,
+        // Type definition nodes
+        protobuf::node::Node::CompositeTypeStmt(cts) => write_composite_type_stmt(cts) as *mut bindings_raw::Node,
+        protobuf::node::Node::CreateEnumStmt(ces) => write_create_enum_stmt(ces) as *mut bindings_raw::Node,
+        protobuf::node::Node::CreateRangeStmt(crs) => write_create_range_stmt(crs) as *mut bindings_raw::Node,
+        protobuf::node::Node::AlterEnumStmt(aes) => write_alter_enum_stmt(aes) as *mut bindings_raw::Node,
+        protobuf::node::Node::CreateDomainStmt(cds) => write_create_domain_stmt(cds) as *mut bindings_raw::Node,
+        // Extension nodes
+        protobuf::node::Node::CreateExtensionStmt(ces) => write_create_extension_stmt(ces) as *mut bindings_raw::Node,
+        // Publication/Subscription nodes
+        protobuf::node::Node::CreatePublicationStmt(cps) => write_create_publication_stmt(cps) as *mut bindings_raw::Node,
+        protobuf::node::Node::AlterPublicationStmt(aps) => write_alter_publication_stmt(aps) as *mut bindings_raw::Node,
+        protobuf::node::Node::CreateSubscriptionStmt(css) => write_create_subscription_stmt(css) as *mut bindings_raw::Node,
+        protobuf::node::Node::AlterSubscriptionStmt(ass) => write_alter_subscription_stmt(ass) as *mut bindings_raw::Node,
+        // Expression nodes
+        protobuf::node::Node::CoerceToDomain(ctd) => write_coerce_to_domain(ctd) as *mut bindings_raw::Node,
+        // Sequence nodes
+        protobuf::node::Node::CreateSeqStmt(css) => write_create_seq_stmt(css) as *mut bindings_raw::Node,
+        protobuf::node::Node::AlterSeqStmt(ass) => write_alter_seq_stmt(ass) as *mut bindings_raw::Node,
+        // Cursor nodes
+        protobuf::node::Node::ClosePortalStmt(cps) => write_close_portal_stmt(cps) as *mut bindings_raw::Node,
+        protobuf::node::Node::FetchStmt(fs) => write_fetch_stmt(fs) as *mut bindings_raw::Node,
+        protobuf::node::Node::DeclareCursorStmt(dcs) => write_declare_cursor_stmt(dcs) as *mut bindings_raw::Node,
+        // Additional DDL statements
+        protobuf::node::Node::DefineStmt(ds) => write_define_stmt(ds) as *mut bindings_raw::Node,
+        protobuf::node::Node::CommentStmt(cs) => write_comment_stmt(cs) as *mut bindings_raw::Node,
+        protobuf::node::Node::SecLabelStmt(sls) => write_sec_label_stmt(sls) as *mut bindings_raw::Node,
+        protobuf::node::Node::CreateRoleStmt(crs) => write_create_role_stmt(crs) as *mut bindings_raw::Node,
+        protobuf::node::Node::AlterRoleStmt(ars) => write_alter_role_stmt(ars) as *mut bindings_raw::Node,
+        protobuf::node::Node::AlterRoleSetStmt(arss) => write_alter_role_set_stmt(arss) as *mut bindings_raw::Node,
+        protobuf::node::Node::DropRoleStmt(drs) => write_drop_role_stmt(drs) as *mut bindings_raw::Node,
+        protobuf::node::Node::CreatePolicyStmt(cps) => write_create_policy_stmt(cps) as *mut bindings_raw::Node,
+        protobuf::node::Node::AlterPolicyStmt(aps) => write_alter_policy_stmt(aps) as *mut bindings_raw::Node,
+        protobuf::node::Node::CreateEventTrigStmt(cets) => write_create_event_trig_stmt(cets) as *mut bindings_raw::Node,
+        protobuf::node::Node::AlterEventTrigStmt(aets) => write_alter_event_trig_stmt(aets) as *mut bindings_raw::Node,
+        protobuf::node::Node::CreatePlangStmt(cpls) => write_create_plang_stmt(cpls) as *mut bindings_raw::Node,
+        protobuf::node::Node::CreateAmStmt(cas) => write_create_am_stmt(cas) as *mut bindings_raw::Node,
+        protobuf::node::Node::CreateOpClassStmt(cocs) => write_create_op_class_stmt(cocs) as *mut bindings_raw::Node,
+        protobuf::node::Node::CreateOpClassItem(coci) => write_create_op_class_item(coci) as *mut bindings_raw::Node,
+        protobuf::node::Node::CreateOpFamilyStmt(cofs) => write_create_op_family_stmt(cofs) as *mut bindings_raw::Node,
+        protobuf::node::Node::AlterOpFamilyStmt(aofs) => write_alter_op_family_stmt(aofs) as *mut bindings_raw::Node,
+        protobuf::node::Node::CreateFdwStmt(cfds) => write_create_fdw_stmt(cfds) as *mut bindings_raw::Node,
+        protobuf::node::Node::AlterFdwStmt(afds) => write_alter_fdw_stmt(afds) as *mut bindings_raw::Node,
+        protobuf::node::Node::CreateForeignServerStmt(cfss) => write_create_foreign_server_stmt(cfss) as *mut bindings_raw::Node,
+        protobuf::node::Node::AlterForeignServerStmt(afss) => write_alter_foreign_server_stmt(afss) as *mut bindings_raw::Node,
+        protobuf::node::Node::CreateForeignTableStmt(cfts) => write_create_foreign_table_stmt(cfts) as *mut bindings_raw::Node,
+        protobuf::node::Node::CreateUserMappingStmt(cums) => write_create_user_mapping_stmt(cums) as *mut bindings_raw::Node,
+        protobuf::node::Node::AlterUserMappingStmt(aums) => write_alter_user_mapping_stmt(aums) as *mut bindings_raw::Node,
+        protobuf::node::Node::DropUserMappingStmt(dums) => write_drop_user_mapping_stmt(dums) as *mut bindings_raw::Node,
+        protobuf::node::Node::ImportForeignSchemaStmt(ifss) => write_import_foreign_schema_stmt(ifss) as *mut bindings_raw::Node,
+        protobuf::node::Node::CreateTableSpaceStmt(ctss) => write_create_table_space_stmt(ctss) as *mut bindings_raw::Node,
+        protobuf::node::Node::DropTableSpaceStmt(dtss) => write_drop_table_space_stmt(dtss) as *mut bindings_raw::Node,
+        protobuf::node::Node::AlterTableSpaceOptionsStmt(atsos) => write_alter_table_space_options_stmt(atsos) as *mut bindings_raw::Node,
+        protobuf::node::Node::AlterTableMoveAllStmt(atmas) => write_alter_table_move_all_stmt(atmas) as *mut bindings_raw::Node,
+        protobuf::node::Node::AlterExtensionStmt(aes) => write_alter_extension_stmt(aes) as *mut bindings_raw::Node,
+        protobuf::node::Node::AlterExtensionContentsStmt(aecs) => write_alter_extension_contents_stmt(aecs) as *mut bindings_raw::Node,
+        protobuf::node::Node::AlterDomainStmt(ads) => write_alter_domain_stmt(ads) as *mut bindings_raw::Node,
+        protobuf::node::Node::AlterFunctionStmt(afs) => write_alter_function_stmt(afs) as *mut bindings_raw::Node,
+        protobuf::node::Node::AlterOperatorStmt(aos) => write_alter_operator_stmt(aos) as *mut bindings_raw::Node,
+        protobuf::node::Node::AlterTypeStmt(ats) => write_alter_type_stmt(ats) as *mut bindings_raw::Node,
+        protobuf::node::Node::AlterOwnerStmt(aos) => write_alter_owner_stmt(aos) as *mut bindings_raw::Node,
+        protobuf::node::Node::AlterObjectSchemaStmt(aoss) => write_alter_object_schema_stmt(aoss) as *mut bindings_raw::Node,
+        protobuf::node::Node::AlterObjectDependsStmt(aods) => write_alter_object_depends_stmt(aods) as *mut bindings_raw::Node,
+        protobuf::node::Node::AlterCollationStmt(acs) => write_alter_collation_stmt(acs) as *mut bindings_raw::Node,
+        protobuf::node::Node::AlterDefaultPrivilegesStmt(adps) => write_alter_default_privileges_stmt(adps) as *mut bindings_raw::Node,
+        protobuf::node::Node::CreateCastStmt(ccs) => write_create_cast_stmt(ccs) as *mut bindings_raw::Node,
+        protobuf::node::Node::CreateTransformStmt(cts) => write_create_transform_stmt(cts) as *mut bindings_raw::Node,
+        protobuf::node::Node::CreateConversionStmt(ccs) => write_create_conversion_stmt(ccs) as *mut bindings_raw::Node,
+        protobuf::node::Node::AlterTsdictionaryStmt(atds) => write_alter_ts_dictionary_stmt(atds) as *mut bindings_raw::Node,
+        protobuf::node::Node::AlterTsconfigurationStmt(atcs) => write_alter_ts_configuration_stmt(atcs) as *mut bindings_raw::Node,
+        // Database statements
+        protobuf::node::Node::CreatedbStmt(cds) => write_createdb_stmt(cds) as *mut bindings_raw::Node,
+        protobuf::node::Node::DropdbStmt(dds) => write_dropdb_stmt(dds) as *mut bindings_raw::Node,
+        protobuf::node::Node::AlterDatabaseStmt(ads) => write_alter_database_stmt(ads) as *mut bindings_raw::Node,
+        protobuf::node::Node::AlterDatabaseSetStmt(adss) => write_alter_database_set_stmt(adss) as *mut bindings_raw::Node,
+        protobuf::node::Node::AlterDatabaseRefreshCollStmt(adrcs) => write_alter_database_refresh_coll_stmt(adrcs) as *mut bindings_raw::Node,
+        protobuf::node::Node::AlterSystemStmt(ass) => write_alter_system_stmt(ass) as *mut bindings_raw::Node,
+        protobuf::node::Node::ClusterStmt(cs) => write_cluster_stmt(cs) as *mut bindings_raw::Node,
+        protobuf::node::Node::ReindexStmt(rs) => write_reindex_stmt(rs) as *mut bindings_raw::Node,
+        protobuf::node::Node::ConstraintsSetStmt(css) => write_constraints_set_stmt(css) as *mut bindings_raw::Node,
+        protobuf::node::Node::LoadStmt(ls) => write_load_stmt(ls) as *mut bindings_raw::Node,
+        protobuf::node::Node::DropOwnedStmt(dos) => write_drop_owned_stmt(dos) as *mut bindings_raw::Node,
+        protobuf::node::Node::ReassignOwnedStmt(ros) => write_reassign_owned_stmt(ros) as *mut bindings_raw::Node,
+        protobuf::node::Node::DropSubscriptionStmt(dss) => write_drop_subscription_stmt(dss) as *mut bindings_raw::Node,
+        // Table-related nodes
+        protobuf::node::Node::TableFunc(tf) => write_table_func(tf) as *mut bindings_raw::Node,
+        protobuf::node::Node::IntoClause(ic) => write_into_clause(ic) as *mut bindings_raw::Node,
+        protobuf::node::Node::TableLikeClause(tlc) => write_table_like_clause(tlc) as *mut bindings_raw::Node,
+        protobuf::node::Node::RangeTableFunc(rtf) => write_range_table_func(rtf) as *mut bindings_raw::Node,
+        protobuf::node::Node::RangeTableFuncCol(rtfc) => write_range_table_func_col(rtfc) as *mut bindings_raw::Node,
+        protobuf::node::Node::RangeTableSample(rts) => write_range_table_sample(rts) as *mut bindings_raw::Node,
+        protobuf::node::Node::PartitionSpec(ps) => write_partition_spec(ps) as *mut bindings_raw::Node,
+        protobuf::node::Node::PartitionBoundSpec(pbs) => write_partition_bound_spec(pbs) as *mut bindings_raw::Node,
+        protobuf::node::Node::PartitionRangeDatum(prd) => write_partition_range_datum(prd) as *mut bindings_raw::Node,
+        protobuf::node::Node::PartitionElem(pe) => write_partition_elem(pe) as *mut bindings_raw::Node,
+        protobuf::node::Node::PartitionCmd(pc) => write_partition_cmd(pc) as *mut bindings_raw::Node,
+        protobuf::node::Node::SinglePartitionSpec(sps) => write_single_partition_spec(sps) as *mut bindings_raw::Node,
+        protobuf::node::Node::InferClause(ic) => write_infer_clause(ic) as *mut bindings_raw::Node,
+        protobuf::node::Node::OnConflictClause(occ) => write_on_conflict_clause(occ) as *mut bindings_raw::Node,
+        protobuf::node::Node::MultiAssignRef(mar) => write_multi_assign_ref(mar) as *mut bindings_raw::Node,
+        protobuf::node::Node::TriggerTransition(tt) => write_trigger_transition(tt) as *mut bindings_raw::Node,
+        // CTE-related nodes
+        protobuf::node::Node::CtesearchClause(csc) => write_cte_search_clause(csc) as *mut bindings_raw::Node,
+        protobuf::node::Node::CtecycleClause(ccc) => write_cte_cycle_clause(ccc) as *mut bindings_raw::Node,
+        // Statistics nodes
+        protobuf::node::Node::CreateStatsStmt(css) => write_create_stats_stmt(css) as *mut bindings_raw::Node,
+        protobuf::node::Node::AlterStatsStmt(ass) => write_alter_stats_stmt(ass) as *mut bindings_raw::Node,
+        protobuf::node::Node::StatsElem(se) => write_stats_elem(se) as *mut bindings_raw::Node,
+        // Publication nodes
+        protobuf::node::Node::PublicationObjSpec(pos) => write_publication_obj_spec(pos) as *mut bindings_raw::Node,
+        protobuf::node::Node::PublicationTable(pt) => write_publication_table(pt) as *mut bindings_raw::Node,
+        // Expression nodes (internal/executor - return null as they shouldn't appear in raw parse trees)
+        protobuf::node::Node::Var(_)
+        | protobuf::node::Node::Aggref(_)
+        | protobuf::node::Node::WindowFunc(_)
+        | protobuf::node::Node::WindowFuncRunCondition(_)
+        | protobuf::node::Node::MergeSupportFunc(_)
+        | protobuf::node::Node::SubscriptingRef(_)
+        | protobuf::node::Node::FuncExpr(_)
+        | protobuf::node::Node::OpExpr(_)
+        | protobuf::node::Node::DistinctExpr(_)
+        | protobuf::node::Node::NullIfExpr(_)
+        | protobuf::node::Node::ScalarArrayOpExpr(_)
+        | protobuf::node::Node::FieldSelect(_)
+        | protobuf::node::Node::FieldStore(_)
+        | protobuf::node::Node::RelabelType(_)
+        | protobuf::node::Node::CoerceViaIo(_)
+        | protobuf::node::Node::ArrayCoerceExpr(_)
+        | protobuf::node::Node::ConvertRowtypeExpr(_)
+        | protobuf::node::Node::CollateExpr(_)
+        | protobuf::node::Node::CaseTestExpr(_)
+        | protobuf::node::Node::ArrayExpr(_)
+        | protobuf::node::Node::RowCompareExpr(_)
+        | protobuf::node::Node::CoerceToDomainValue(_)
+        | protobuf::node::Node::CurrentOfExpr(_)
+        | protobuf::node::Node::NextValueExpr(_)
+        | protobuf::node::Node::InferenceElem(_)
+        | protobuf::node::Node::SubPlan(_)
+        | protobuf::node::Node::AlternativeSubPlan(_)
+        | protobuf::node::Node::TargetEntry(_)
+        | protobuf::node::Node::RangeTblRef(_)
+        | protobuf::node::Node::FromExpr(_)
+        | protobuf::node::Node::OnConflictExpr(_)
+        | protobuf::node::Node::Query(_)
+        | protobuf::node::Node::MergeAction(_)
+        | protobuf::node::Node::SortGroupClause(_)
+        | protobuf::node::Node::WindowClause(_)
+        | protobuf::node::Node::RowMarkClause(_)
+        | protobuf::node::Node::WithCheckOption(_)
+        | protobuf::node::Node::RangeTblEntry(_)
+        | protobuf::node::Node::RangeTblFunction(_)
+        | protobuf::node::Node::TableSampleClause(_)
+        | protobuf::node::Node::RtepermissionInfo(_)
+        | protobuf::node::Node::GroupingFunc(_)
+        | protobuf::node::Node::Param(_)
+        | protobuf::node::Node::IntList(_)
+        | protobuf::node::Node::OidList(_)
+        | protobuf::node::Node::RawStmt(_)
+        | protobuf::node::Node::SetOperationStmt(_)
+        | protobuf::node::Node::ReturnStmt(_)
+        | protobuf::node::Node::PlassignStmt(_)
+        | protobuf::node::Node::ReplicaIdentityStmt(_)
+        | protobuf::node::Node::CallContext(_)
+        | protobuf::node::Node::InlineCodeBlock(_) => {
+            // These are internal/executor nodes that shouldn't appear in raw parse trees,
+            // or are handled specially elsewhere
+            std::ptr::null_mut()
         }
+        // SQL Value function
+        protobuf::node::Node::SqlvalueFunction(svf) => write_sql_value_function(svf) as *mut bindings_raw::Node,
+        // XML nodes
+        protobuf::node::Node::XmlExpr(xe) => write_xml_expr(xe) as *mut bindings_raw::Node,
+        protobuf::node::Node::XmlSerialize(xs) => write_xml_serialize(xs) as *mut bindings_raw::Node,
+        // Named argument
+        protobuf::node::Node::NamedArgExpr(nae) => write_named_arg_expr(nae) as *mut bindings_raw::Node,
+        // JSON nodes
+        protobuf::node::Node::JsonFormat(jf) => write_json_format(jf) as *mut bindings_raw::Node,
+        protobuf::node::Node::JsonReturning(jr) => write_json_returning(jr) as *mut bindings_raw::Node,
+        protobuf::node::Node::JsonValueExpr(jve) => write_json_value_expr(jve) as *mut bindings_raw::Node,
+        protobuf::node::Node::JsonConstructorExpr(jce) => write_json_constructor_expr(jce) as *mut bindings_raw::Node,
+        protobuf::node::Node::JsonIsPredicate(jip) => write_json_is_predicate(jip) as *mut bindings_raw::Node,
+        protobuf::node::Node::JsonBehavior(jb) => write_json_behavior(jb) as *mut bindings_raw::Node,
+        protobuf::node::Node::JsonExpr(je) => write_json_expr(je) as *mut bindings_raw::Node,
+        protobuf::node::Node::JsonTablePath(jtp) => write_json_table_path(jtp) as *mut bindings_raw::Node,
+        protobuf::node::Node::JsonTablePathScan(jtps) => write_json_table_path_scan(jtps) as *mut bindings_raw::Node,
+        protobuf::node::Node::JsonTableSiblingJoin(jtsj) => write_json_table_sibling_join(jtsj) as *mut bindings_raw::Node,
+        protobuf::node::Node::JsonOutput(jo) => write_json_output(jo) as *mut bindings_raw::Node,
+        protobuf::node::Node::JsonArgument(ja) => write_json_argument(ja) as *mut bindings_raw::Node,
+        protobuf::node::Node::JsonFuncExpr(jfe) => write_json_func_expr(jfe) as *mut bindings_raw::Node,
+        protobuf::node::Node::JsonTablePathSpec(jtps) => write_json_table_path_spec(jtps) as *mut bindings_raw::Node,
+        protobuf::node::Node::JsonTable(jt) => write_json_table(jt) as *mut bindings_raw::Node,
+        protobuf::node::Node::JsonTableColumn(jtc) => write_json_table_column(jtc) as *mut bindings_raw::Node,
+        protobuf::node::Node::JsonKeyValue(jkv) => write_json_key_value(jkv) as *mut bindings_raw::Node,
+        protobuf::node::Node::JsonParseExpr(jpe) => write_json_parse_expr(jpe) as *mut bindings_raw::Node,
+        protobuf::node::Node::JsonScalarExpr(jse) => write_json_scalar_expr(jse) as *mut bindings_raw::Node,
+        protobuf::node::Node::JsonSerializeExpr(jse) => write_json_serialize_expr(jse) as *mut bindings_raw::Node,
+        protobuf::node::Node::JsonObjectConstructor(joc) => write_json_object_constructor(joc) as *mut bindings_raw::Node,
+        protobuf::node::Node::JsonArrayConstructor(jac) => write_json_array_constructor(jac) as *mut bindings_raw::Node,
+        protobuf::node::Node::JsonArrayQueryConstructor(jaqc) => write_json_array_query_constructor(jaqc) as *mut bindings_raw::Node,
+        protobuf::node::Node::JsonAggConstructor(jac) => write_json_agg_constructor(jac) as *mut bindings_raw::Node,
+        protobuf::node::Node::JsonObjectAgg(joa) => write_json_object_agg(joa) as *mut bindings_raw::Node,
+        protobuf::node::Node::JsonArrayAgg(jaa) => write_json_array_agg(jaa) as *mut bindings_raw::Node,
     }
 }
 
@@ -652,7 +664,7 @@ unsafe fn write_a_const(ac: &protobuf::AConst) -> *mut bindings_raw::A_Const {
             }
             protobuf::a_const::Val::Sval(s) => {
                 (*node).val.sval.type_ = bindings_raw::NodeTag_T_String;
-                (*node).val.sval.sval = pstrdup(&s.sval);
+                (*node).val.sval.sval = pstrdup_always(&s.sval);
             }
             protobuf::a_const::Val::Bsval(bs) => {
                 (*node).val.bsval.type_ = bindings_raw::NodeTag_T_BitString;
@@ -2395,7 +2407,7 @@ unsafe fn write_partition_bound_spec(stmt: &protobuf::PartitionBoundSpec) -> *mu
 
 unsafe fn write_partition_range_datum(stmt: &protobuf::PartitionRangeDatum) -> *mut bindings_raw::PartitionRangeDatum {
     let node = alloc_node::<bindings_raw::PartitionRangeDatum>(bindings_raw::NodeTag_T_PartitionRangeDatum);
-    (*node).kind = proto_enum_to_c(stmt.kind) as i32;
+    (*node).kind = proto_enum_to_c(stmt.kind);
     (*node).value = write_node_boxed(&stmt.value);
     (*node).location = stmt.location;
     node
@@ -2421,8 +2433,8 @@ unsafe fn write_partition_cmd(stmt: &protobuf::PartitionCmd) -> *mut bindings_ra
 
 unsafe fn write_single_partition_spec(_stmt: &protobuf::SinglePartitionSpec) -> *mut bindings_raw::SinglePartitionSpec {
     // SinglePartitionSpec is an empty struct in protobuf
-    let node = alloc_node::<bindings_raw::SinglePartitionSpec>(bindings_raw::NodeTag_T_SinglePartitionSpec);
-    node
+
+    alloc_node::<bindings_raw::SinglePartitionSpec>(bindings_raw::NodeTag_T_SinglePartitionSpec)
 }
 
 unsafe fn write_infer_clause(stmt: &protobuf::InferClause) -> *mut bindings_raw::InferClause {

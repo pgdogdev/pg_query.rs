@@ -160,7 +160,7 @@ impl ParseResult {
                         })
                         .rev()
                         .collect();
-                    if f.len() > 0 {
+                    if !f.is_empty() {
                         filter_columns.insert((f.get(1).cloned(), f[0].to_string()));
                     }
                 }

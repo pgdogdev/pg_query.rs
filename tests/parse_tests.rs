@@ -2074,3 +2074,13 @@ fn it_parses_DROP_TYPE() {
 )"#
     );
 }
+
+#[test]
+fn test_deparse_raw_empty_string_literal() {
+    // Regression test: empty string literals like '' must not crash deparse_raw
+    // Previously, pstrdup returned null for empty strings, causing SIGSEGV
+    let query = "SELECT COALESCE(name, '')";
+    let result = pg_query::parse(query).unwrap();
+    let deparsed = pg_query::deparse_raw(&result.protobuf).unwrap();
+    assert!(deparsed.contains("COALESCE"));
+}

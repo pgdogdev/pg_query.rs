@@ -183,7 +183,7 @@ impl From<&protobuf::summary_result::Function> for Function {
         Function {
             name: v.name.to_owned(),
             function_name: v.function_name.to_owned(),
-            schema_name: schema_name,
+            schema_name,
             context: Context::try_from(v.context).unwrap_or(Context::None),
         }
     }

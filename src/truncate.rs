@@ -229,7 +229,7 @@ pub fn truncate(protobuf: &protobuf::ParseResult, max_length: usize) -> Result<S
                 }
                 (NodeMut::CommonTableExpr(s), TruncationAttr::CTEQuery) => {
                     let s = s.as_mut().ok_or(Error::InvalidPointer)?;
-                    let old = std::mem::replace(&mut s.ctequery, Some(dummy_select(vec![], Some(dummy_column()), vec![])));
+                    let old = s.ctequery.replace(dummy_select(vec![], Some(dummy_column()), vec![]));
                     if let Some(s) = old {
                         let node = s.node.ok_or(Error::InvalidPointer)?;
                         truncations.retain(|t| t.node.to_enum().unwrap() != node);
