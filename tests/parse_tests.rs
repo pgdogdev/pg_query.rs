@@ -307,7 +307,7 @@ fn it_parses_DROP_TABLE() {
     assert_eq!(result.ddl_tables(), ["abc.test123"]);
     assert_eq!(result.statement_types(), ["DropStmt"]);
     let drop = cast!(result.protobuf.nodes()[0].0, NodeRef::DropStmt);
-    assert_eq!(protobuf::DropBehavior::from_i32(drop.behavior), Some(protobuf::DropBehavior::DropCascade));
+    assert_eq!(protobuf::DropBehavior::try_from(drop.behavior), Ok(protobuf::DropBehavior::DropCascade));
 
     let query2 = "drop table abc.test123, test";
     assert_parse_raw_equals_parse(query2);
@@ -327,7 +327,7 @@ fn it_parses_COMMIT() {
     assert_eq!(result.warnings.len(), 0);
     assert_eq!(result.statement_types(), ["TransactionStmt"]);
     let stmt = cast!(result.protobuf.nodes()[0].0, NodeRef::TransactionStmt);
-    assert_eq!(protobuf::TransactionStmtKind::from_i32(stmt.kind), Some(protobuf::TransactionStmtKind::TransStmtCommit));
+    assert_eq!(protobuf::TransactionStmtKind::try_from(stmt.kind), Ok(protobuf::TransactionStmtKind::TransStmtCommit));
 }
 
 #[test]
@@ -716,7 +716,7 @@ fn it_parses_CREATE_RULE() {
     assert_eq!(result.statement_types(), ["RuleStmt"]);
     let stmt = cast!(result.protobuf.nodes()[0].0, NodeRef::RuleStmt);
     assert_eq!(stmt.rulename, "shoe_ins_protect");
-    assert_eq!(protobuf::CmdType::from_i32(stmt.event), Some(protobuf::CmdType::CmdInsert));
+    assert_eq!(protobuf::CmdType::try_from(stmt.event), Ok(protobuf::CmdType::CmdInsert));
 }
 
 #[test]
@@ -732,8 +732,8 @@ fn it_parses_CREATE_TRIGGER() {
     let stmt = cast!(result.protobuf.nodes()[0].0, NodeRef::CreateTrigStmt);
     let func = cast!(stmt.funcname[0].node.as_ref().unwrap(), NodeEnum::String);
     assert_eq!(func.sval, "check_account_update");
-    assert_eq!(TriggerType::from_i32(stmt.timing), Some(TriggerType::Before));
-    assert_eq!(TriggerType::from_i32(stmt.events), Some(TriggerType::Update));
+    assert_eq!(TriggerType::try_from(stmt.timing), Ok(TriggerType::Before));
+    assert_eq!(TriggerType::try_from(stmt.events), Ok(TriggerType::Update));
 }
 
 #[test]
