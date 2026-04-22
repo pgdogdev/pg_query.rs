@@ -498,3 +498,98 @@ fn it_parses_chained_dml_ctes() {
 
     assert_eq!(raw_result.protobuf, proto_result.protobuf);
 }
+
+// ============================================================================
+// MERGE statement tests
+// ============================================================================
+
+/// Test basic MERGE
+#[test]
+fn it_parses_merge_basic() {
+    let query = "MERGE INTO target t USING source s ON t.id = s.id
+        WHEN MATCHED THEN UPDATE SET val = s.val
+        WHEN NOT MATCHED THEN INSERT (id, val) VALUES (s.id, s.val)";
+    parse_test!(query);
+}
+
+/// Test MERGE with DELETE
+#[test]
+fn it_parses_merge_with_delete() {
+    let query = "MERGE INTO target t USING source s ON t.id = s.id
+        WHEN MATCHED AND s.deleted THEN DELETE
+        WHEN MATCHED THEN UPDATE SET val = s.val";
+    parse_test!(query);
+}
+
+/// Test MERGE with multiple conditions
+#[test]
+fn it_parses_merge_multiple_conditions() {
+    let query = "MERGE INTO accounts a USING transactions t ON a.id = t.account_id
+        WHEN MATCHED AND t.type = 'credit' THEN UPDATE SET balance = balance + t.amount
+        WHEN MATCHED AND t.type = 'debit' THEN UPDATE SET balance = balance - t.amount
+        WHEN NOT MATCHED AND t.amount > 0 THEN INSERT (id, balance) VALUES (t.account_id, t.amount)
+        WHEN NOT MATCHED THEN DO NOTHING";
+    parse_test!(query);
+}
+
+/// Test MERGE with subquery source
+#[test]
+fn it_parses_merge_with_subquery_source() {
+    let query = "MERGE INTO target t USING (SELECT id, val FROM source WHERE active) s ON t.id = s.id
+        WHEN MATCHED THEN UPDATE SET val = s.val";
+    parse_test!(query);
+}
+
+// ============================================================================
+// INSERT variations with CTE used in VALUES
+// ============================================================================
+
+/// Test INSERT with all default values
+#[test]
+fn it_parses_insert_default_values_only() {
+    let query = "INSERT INTO logs DEFAULT VALUES";
+    parse_test!(query);
+}
+
+/// Test UPDATE with indirection in SET (column with schema-qualified table)
+#[test]
+fn it_parses_update_schema_qualified() {
+    let query = "UPDATE public.users SET name = 'test' WHERE id = 1";
+    parse_test!(query);
+}
+
+/// Test DELETE with schema-qualified
+#[test]
+fn it_parses_delete_schema_qualified() {
+    let query = "DELETE FROM public.users WHERE id = 1";
+    parse_test!(query);
+}
+
+/// Test INSERT with ON CONFLICT ON CONSTRAINT
+#[test]
+fn it_parses_insert_on_conflict_on_constraint() {
+    let query = "INSERT INTO users (id, name) VALUES (1, 'test') ON CONFLICT ON CONSTRAINT users_pkey DO NOTHING";
+    parse_test!(query);
+}
+
+/// Test INSERT with VALUES keyword and no target
+#[test]
+fn it_parses_insert_no_columns() {
+    let query = "INSERT INTO users VALUES (1, 'Alice')";
+    parse_test!(query);
+}
+
+/// Regression: DELETE ... WHERE CURRENT OF cursor used to silently drop the
+/// WHERE clause because CurrentOfExpr was in the null-returning arm of
+/// write_node_inner.
+#[test]
+fn it_parses_delete_where_current_of() {
+    parse_test!("DELETE FROM t WHERE CURRENT OF mycursor");
+}
+
+/// Regression: UPDATE ... WHERE CURRENT OF cursor used to silently drop the
+/// WHERE clause (see it_parses_delete_where_current_of).
+#[test]
+fn it_parses_update_where_current_of() {
+    parse_test!("UPDATE t SET x = 1 WHERE CURRENT OF mycursor");
+}

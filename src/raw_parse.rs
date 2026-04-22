@@ -960,6 +960,10 @@ unsafe fn convert_node(node_ptr: *mut bindings_raw::Node) -> Option<protobuf::No
             let gf = node_ptr as *mut bindings_raw::GroupingFunc;
             Some(protobuf::node::Node::GroupingFunc(Box::new(convert_grouping_func(&*gf))))
         }
+        bindings_raw::NodeTag_T_CurrentOfExpr => {
+            let ce = node_ptr as *mut bindings_raw::CurrentOfExpr;
+            Some(protobuf::node::Node::CurrentOfExpr(Box::new(convert_current_of_expr(&*ce))))
+        }
         _ => {
             // For unhandled node types, return None
             // In the future, we could add more node types here
@@ -1512,6 +1516,10 @@ unsafe fn convert_grouping_func(gf: &bindings_raw::GroupingFunc) -> protobuf::Gr
         agglevelsup: gf.agglevelsup,
         location: gf.location,
     }
+}
+
+unsafe fn convert_current_of_expr(ce: &bindings_raw::CurrentOfExpr) -> protobuf::CurrentOfExpr {
+    protobuf::CurrentOfExpr { xpr: None, cvarno: ce.cvarno, cursor_name: convert_c_string(ce.cursor_name), cursor_param: ce.cursor_param }
 }
 
 unsafe fn convert_locking_clause(lc: &bindings_raw::LockingClause) -> protobuf::LockingClause {

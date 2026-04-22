@@ -448,3 +448,266 @@ fn it_parses_do_with_language() {
 
     assert_eq!(raw_result.protobuf, proto_result.protobuf);
 }
+
+// ============================================================================
+// CALL statement tests (stored procedures)
+// ============================================================================
+
+/// Test CALL
+#[test]
+fn it_parses_call() {
+    let query = "CALL transfer(1, 2, 100.00)";
+    parse_test!(query);
+}
+
+/// Test CALL with no args
+#[test]
+fn it_parses_call_no_args() {
+    let query = "CALL cleanup()";
+    parse_test!(query);
+}
+
+/// Test CALL with named args
+#[test]
+fn it_parses_call_named_args() {
+    let query = "CALL transfer(sender => 1, receiver => 2, amount => 100.00)";
+    parse_test!(query);
+}
+
+// ============================================================================
+// Cursor statement tests
+// ============================================================================
+
+/// Test DECLARE CURSOR
+#[test]
+fn it_parses_declare_cursor() {
+    let query = "DECLARE mycursor CURSOR FOR SELECT * FROM users";
+    parse_test!(query);
+}
+
+/// Test DECLARE CURSOR with options
+#[test]
+fn it_parses_declare_cursor_options() {
+    let query = "DECLARE mycursor NO SCROLL CURSOR WITH HOLD FOR SELECT * FROM users";
+    parse_test!(query);
+}
+
+/// Test FETCH
+#[test]
+fn it_parses_fetch() {
+    let query = "FETCH NEXT FROM mycursor";
+    parse_test!(query);
+}
+
+/// Test FETCH with count
+#[test]
+fn it_parses_fetch_count() {
+    let query = "FETCH 5 FROM mycursor";
+    parse_test!(query);
+}
+
+/// Test FETCH ALL
+#[test]
+fn it_parses_fetch_all() {
+    let query = "FETCH ALL FROM mycursor";
+    parse_test!(query);
+}
+
+/// Test MOVE
+#[test]
+fn it_parses_move() {
+    let query = "MOVE 10 IN mycursor";
+    parse_test!(query);
+}
+
+/// Test CLOSE cursor
+#[test]
+fn it_parses_close_cursor() {
+    let query = "CLOSE mycursor";
+    parse_test!(query);
+}
+
+/// Test CLOSE ALL
+#[test]
+fn it_parses_close_all() {
+    let query = "CLOSE ALL";
+    parse_test!(query);
+}
+
+// ============================================================================
+// More transaction tests
+// ============================================================================
+
+/// Test BEGIN TRANSACTION READ ONLY DEFERRABLE
+#[test]
+fn it_parses_begin_read_only_deferrable() {
+    let query = "BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY DEFERRABLE";
+    parse_test!(query);
+}
+
+/// Test PREPARE TRANSACTION
+#[test]
+fn it_parses_prepare_transaction() {
+    let query = "PREPARE TRANSACTION 'my_txn'";
+    parse_test!(query);
+}
+
+/// Test COMMIT PREPARED
+#[test]
+fn it_parses_commit_prepared() {
+    let query = "COMMIT PREPARED 'my_txn'";
+    parse_test!(query);
+}
+
+/// Test ROLLBACK PREPARED
+#[test]
+fn it_parses_rollback_prepared() {
+    let query = "ROLLBACK PREPARED 'my_txn'";
+    parse_test!(query);
+}
+
+/// Test COMMIT AND CHAIN
+#[test]
+fn it_parses_commit_and_chain() {
+    let query = "COMMIT AND CHAIN";
+    parse_test!(query);
+}
+
+// ============================================================================
+// Additional VACUUM tests
+// ============================================================================
+
+/// Test VACUUM multiple tables
+#[test]
+fn it_parses_vacuum_multiple() {
+    let query = "VACUUM users, orders";
+    parse_test!(query);
+}
+
+/// Test VACUUM with options
+#[test]
+fn it_parses_vacuum_with_options() {
+    let query = "VACUUM (VERBOSE, ANALYZE, PARALLEL 4) users";
+    parse_test!(query);
+}
+
+// ============================================================================
+// SET with variable list
+// ============================================================================
+
+/// Test SET timezone with literal
+#[test]
+fn it_parses_set_timezone() {
+    let query = "SET TIME ZONE 'UTC'";
+    parse_test!(query);
+}
+
+/// Test SET variable multiple values
+#[test]
+fn it_parses_set_variable_multi() {
+    let query = "SET search_path TO public, extensions";
+    parse_test!(query);
+}
+
+/// Test SET ROLE
+#[test]
+fn it_parses_set_role() {
+    let query = "SET ROLE admin";
+    parse_test!(query);
+}
+
+/// Test SET SESSION AUTHORIZATION
+#[test]
+fn it_parses_set_session_authorization() {
+    let query = "SET SESSION AUTHORIZATION bob";
+    parse_test!(query);
+}
+
+/// Test SET TRANSACTION
+#[test]
+fn it_parses_set_transaction() {
+    let query = "SET TRANSACTION ISOLATION LEVEL SERIALIZABLE";
+    parse_test!(query);
+}
+
+/// Test SHOW TIMEZONE
+#[test]
+fn it_parses_show_timezone() {
+    let query = "SHOW TIME ZONE";
+    parse_test!(query);
+}
+
+// ============================================================================
+// SCHEMA tests
+// ============================================================================
+
+/// Test CREATE SCHEMA
+#[test]
+fn it_parses_create_schema() {
+    let query = "CREATE SCHEMA IF NOT EXISTS myapp AUTHORIZATION bob";
+    parse_test!(query);
+}
+
+/// Test CREATE SCHEMA with statements
+#[test]
+fn it_parses_create_schema_with_statements() {
+    let query = "CREATE SCHEMA hollywood CREATE TABLE films (title text, release date, awards text[]) CREATE VIEW winners AS SELECT title, release FROM films WHERE awards IS NOT NULL";
+    parse_test!(query);
+}
+
+/// Test DROP SCHEMA
+#[test]
+fn it_parses_drop_schema() {
+    let query = "DROP SCHEMA IF EXISTS myapp CASCADE";
+    parse_test!(query);
+}
+
+// ============================================================================
+// EXPLAIN variations
+// ============================================================================
+
+/// Test EXPLAIN VERBOSE
+#[test]
+fn it_parses_explain_verbose() {
+    let query = "EXPLAIN VERBOSE SELECT * FROM users";
+    parse_test!(query);
+}
+
+/// Test EXPLAIN with INSERT
+#[test]
+fn it_parses_explain_insert() {
+    let query = "EXPLAIN INSERT INTO users (name) VALUES ('bob')";
+    parse_test!(query);
+}
+
+/// Test EXPLAIN with UPDATE
+#[test]
+fn it_parses_explain_update() {
+    let query = "EXPLAIN UPDATE users SET name = 'bob' WHERE id = 1";
+    parse_test!(query);
+}
+
+// ============================================================================
+// COPY variations
+// ============================================================================
+
+/// Test COPY to stdout
+#[test]
+fn it_parses_copy_to_stdout() {
+    let query = "COPY users TO STDOUT WITH (FORMAT csv, HEADER true)";
+    parse_test!(query);
+}
+
+/// Test COPY from file
+#[test]
+fn it_parses_copy_from_file() {
+    let query = "COPY users FROM '/tmp/users.csv' WITH (FORMAT csv, HEADER)";
+    parse_test!(query);
+}
+
+/// Test COPY query
+#[test]
+fn it_parses_copy_query() {
+    let query = "COPY (SELECT id, name FROM users WHERE active) TO STDOUT";
+    parse_test!(query);
+}

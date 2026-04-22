@@ -212,6 +212,9 @@ unsafe fn write_node_inner(node: &protobuf::node::Node) -> *mut bindings_raw::No
         protobuf::node::Node::AIndices(ai) => write_a_indices(ai) as *mut bindings_raw::Node,
         protobuf::node::Node::MinMaxExpr(mme) => write_min_max_expr(mme) as *mut bindings_raw::Node,
         protobuf::node::Node::RowExpr(re) => write_row_expr(re) as *mut bindings_raw::Node,
+        protobuf::node::Node::GroupingFunc(gf) => write_grouping_func(gf) as *mut bindings_raw::Node,
+        protobuf::node::Node::CurrentOfExpr(ce) => write_current_of_expr(ce) as *mut bindings_raw::Node,
+        protobuf::node::Node::ReplicaIdentityStmt(ris) => write_replica_identity_stmt(ris) as *mut bindings_raw::Node,
         protobuf::node::Node::AArrayExpr(ae) => write_a_array_expr(ae) as *mut bindings_raw::Node,
         protobuf::node::Node::BooleanTest(bt) => write_boolean_test(bt) as *mut bindings_raw::Node,
         protobuf::node::Node::CollateClause(cc) => write_collate_clause(cc) as *mut bindings_raw::Node,
@@ -357,7 +360,6 @@ unsafe fn write_node_inner(node: &protobuf::node::Node) -> *mut bindings_raw::No
         | protobuf::node::Node::ArrayExpr(_)
         | protobuf::node::Node::RowCompareExpr(_)
         | protobuf::node::Node::CoerceToDomainValue(_)
-        | protobuf::node::Node::CurrentOfExpr(_)
         | protobuf::node::Node::NextValueExpr(_)
         | protobuf::node::Node::InferenceElem(_)
         | protobuf::node::Node::SubPlan(_)
@@ -376,7 +378,6 @@ unsafe fn write_node_inner(node: &protobuf::node::Node) -> *mut bindings_raw::No
         | protobuf::node::Node::RangeTblFunction(_)
         | protobuf::node::Node::TableSampleClause(_)
         | protobuf::node::Node::RtepermissionInfo(_)
-        | protobuf::node::Node::GroupingFunc(_)
         | protobuf::node::Node::Param(_)
         | protobuf::node::Node::IntList(_)
         | protobuf::node::Node::OidList(_)
@@ -384,7 +385,6 @@ unsafe fn write_node_inner(node: &protobuf::node::Node) -> *mut bindings_raw::No
         | protobuf::node::Node::SetOperationStmt(_)
         | protobuf::node::Node::ReturnStmt(_)
         | protobuf::node::Node::PlassignStmt(_)
-        | protobuf::node::Node::ReplicaIdentityStmt(_)
         | protobuf::node::Node::CallContext(_)
         | protobuf::node::Node::InlineCodeBlock(_) => {
             // These are internal/executor nodes that shouldn't appear in raw parse trees,
@@ -1550,6 +1550,30 @@ unsafe fn write_row_expr(re: &protobuf::RowExpr) -> *mut bindings_raw::RowExpr {
     (*node).row_format = proto_enum_to_c(re.row_format) as _;
     (*node).colnames = write_node_list(&re.colnames);
     (*node).location = re.location;
+    node
+}
+
+unsafe fn write_grouping_func(gf: &protobuf::GroupingFunc) -> *mut bindings_raw::GroupingFunc {
+    let node = alloc_node::<bindings_raw::GroupingFunc>(bindings_raw::NodeTag_T_GroupingFunc);
+    (*node).args = write_node_list(&gf.args);
+    (*node).refs = write_node_list(&gf.refs);
+    (*node).agglevelsup = gf.agglevelsup;
+    (*node).location = gf.location;
+    node
+}
+
+unsafe fn write_current_of_expr(ce: &protobuf::CurrentOfExpr) -> *mut bindings_raw::CurrentOfExpr {
+    let node = alloc_node::<bindings_raw::CurrentOfExpr>(bindings_raw::NodeTag_T_CurrentOfExpr);
+    (*node).cvarno = ce.cvarno;
+    (*node).cursor_name = pstrdup(&ce.cursor_name);
+    (*node).cursor_param = ce.cursor_param;
+    node
+}
+
+unsafe fn write_replica_identity_stmt(ris: &protobuf::ReplicaIdentityStmt) -> *mut bindings_raw::ReplicaIdentityStmt {
+    let node = alloc_node::<bindings_raw::ReplicaIdentityStmt>(bindings_raw::NodeTag_T_ReplicaIdentityStmt);
+    (*node).identity_type = ris.identity_type.as_bytes().first().copied().unwrap_or(0) as c_char;
+    (*node).name = pstrdup(&ris.name);
     node
 }
 
