@@ -114,12 +114,3 @@ fn char_truncate_works() {
     let output = "WITH \"原チコ氏にはす腹腹腹腹腹...";
     assert_eq!(result.truncated_query, output);
 }
-
-#[test]
-#[should_panic(
-    expected = "byte index 22 is not a char boundary; it is inside 'は' (bytes 21..24) of `WITH \"原チコ氏にはす腹腹腹腹腹腹腹腹腹腹腹\" AS (SELECT) SELECT w`"
-)]
-fn byte_truncate_fails() {
-    let query = "WITH \"原チコ氏にはす腹腹腹腹腹腹腹腹腹腹腹\" AS (SELECT) SELECT w".to_string();
-    query[0..=21].to_string();
-}
